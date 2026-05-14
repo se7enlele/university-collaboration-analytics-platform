@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>高校国际合作分析平台 - 查看你的学校与全球机构的合作数据</title>
+  <meta name="description" content="免费查询山东大学、四川大学等高校国际合作论文数据，分析合作国家分布、机构排行、学科热点，支持多校横向对标。">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { brand: '#1a3a5c', accent: '#f97316' } } } }
+  </script>
+</head>
+<body class="bg-white text-slate-900">
+  <header class="border-b border-slate-200">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <a class="text-xl font-bold text-brand" href="/">高校国际合作智析平台</a>
+      <a class="rounded-md bg-accent px-4 py-2 text-sm font-semibold text-white" href="/app">免费查看我的学校</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="mx-auto grid max-w-6xl gap-10 px-6 py-14 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
+      <div>
+        <h1 class="text-4xl font-bold leading-tight text-brand md:text-5xl">高校国际合作分析平台</h1>
+        <p class="mt-5 text-lg leading-8 text-slate-700">整合 OpenAlex 学术数据，快速查看合作国家、合作机构、主导率、僵尸合作和多校对标指标。</p>
+        <div class="mt-8 flex gap-3">
+          <a class="rounded-md bg-accent px-5 py-3 font-semibold text-white" href="/app">免费查看我的学校</a>
+          <a class="rounded-md border border-brand px-5 py-3 font-semibold text-brand" href="#pricing">查看版本对比</a>
+        </div>
+      </div>
+      <div class="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div class="grid h-80 place-items-center rounded-md bg-white text-brand">
+          <div class="text-center">
+            <div class="text-5xl font-bold">全球合作地图</div>
+            <p class="mt-4 text-slate-600">国家分布 · 机构下钻 · 趋势识别</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="border-y border-slate-200 bg-slate-50 py-12">
+      <div class="mx-auto max-w-6xl px-6">
+        <h2 class="text-2xl font-bold text-brand">数据预览</h2>
+        <div class="mt-6 grid gap-4 md:grid-cols-4">
+          <article class="rounded-lg border border-slate-200 bg-white p-5"><h3 class="font-semibold">山东大学</h3><p class="mt-3 text-sm text-slate-600">合作国家、机构排行、主导率分析</p></article>
+          <article class="rounded-lg border border-slate-200 bg-white p-5"><h3 class="font-semibold">四川大学</h3><p class="mt-3 text-sm text-slate-600">近十年国际合作趋势</p></article>
+          <article class="rounded-lg border border-slate-200 bg-white p-5"><h3 class="font-semibold">武汉大学</h3><p class="mt-3 text-sm text-slate-600">学科热力和伙伴质量</p></article>
+          <article class="rounded-lg border border-slate-200 bg-white p-5"><h3 class="font-semibold">中山大学</h3><p class="mt-3 text-sm text-slate-600">横向对标与机会识别</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing" class="mx-auto max-w-6xl px-6 py-12">
+      <h2 class="text-2xl font-bold text-brand">免费版 vs 付费版</h2>
+      <div class="mt-6 overflow-hidden rounded-lg border border-slate-200">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-brand text-white"><tr><th class="p-4">功能</th><th class="p-4">免费版</th><th class="p-4">付费版 19.9元/年</th></tr></thead>
+          <tbody class="[&>tr:nth-child(odd)]:bg-slate-50">
+            <tr><td class="p-4">全球合作地图</td><td class="p-4">国家级分布</td><td class="p-4">机构下钻和完整列表</td></tr>
+            <tr><td class="p-4">合作机构排行</td><td class="p-4">Top10</td><td class="p-4">Top100 + 质量标签</td></tr>
+            <tr><td class="p-4">僵尸合作识别</td><td class="p-4">统计数量</td><td class="p-4">完整名单 + 导出</td></tr>
+            <tr><td class="p-4">对标分析</td><td class="p-4">宏观数字</td><td class="p-4">逐项指标和差距分析</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="bg-slate-50 py-12">
+      <div class="mx-auto max-w-6xl px-6">
+        <h2 class="text-2xl font-bold text-brand">使用场景</h2>
+        <div class="mt-6 grid gap-4 md:grid-cols-3">
+          <article class="rounded-lg bg-white p-5"><h3 class="font-semibold">国际处老师</h3><p class="mt-2 text-sm text-slate-600">快速准备出访材料和年度汇报。</p></article>
+          <article class="rounded-lg bg-white p-5"><h3 class="font-semibold">院长</h3><p class="mt-2 text-sm text-slate-600">判断学院国际合作质量和拓展目标。</p></article>
+          <article class="rounded-lg bg-white p-5"><h3 class="font-semibold">教授</h3><p class="mt-2 text-sm text-slate-600">发现潜在合作机构和学科热点。</p></article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="border-t border-slate-200 py-8 text-center text-sm text-slate-500">© 高校国际合作智析平台</footer>
+</body>
+</html>

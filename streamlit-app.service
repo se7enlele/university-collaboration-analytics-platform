@@ -1,0 +1,14 @@
+[Unit]
+Description=Streamlit App
+After=network.target
+
+[Service]
+User=admin
+WorkingDirectory=/var/www/project
+Environment=PATH=/var/www/project/.venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/var/www/project/.venv/bin/python -m streamlit run app.py --server.port 8501 --server.address 127.0.0.1 --server.baseUrlPath app --server.headless true
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
