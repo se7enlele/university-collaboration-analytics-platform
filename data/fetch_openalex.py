@@ -1,3 +1,4 @@
+import argparse
 import json
 import sqlite3
 import time
@@ -36,6 +37,10 @@ def init_db(conn: sqlite3.Connection) -> None:
     conn.commit()
 
 
+def existing_count(conn: sqlite3.Connection, university: str) -> int:
+    return conn.execute("SELECT COUNT(*) FROM raw_works WHERE university = ?", (university,)).fetchone()[0]
+
+
 def resolve_institution(session: requests.Session, university: str, search_name: str) -> tuple[str, str]:
     response = session.get(
         OPENALEX_INSTITUTIONS_URL,
@@ -56,14 +61,11 @@ def resolve_institution(session: requests.Session, university: str, search_name:
     institution = exact[0] if exact else results[0]
     openalex_id = institution["id"]
     ror_id = institution.get("ror") or ""
-    print(
-        f"{university}: resolved {institution.get('display_name')} "
-        f"({openalex_id}, {ror_id}, works={institution.get('works_count')})"
-    )
+    print(f"{university}: resolved {institution.get('display_name')} ({openalex_id}, works={institution.get('works_count')})")
     return openalex_id, ror_id
 
 
-def fetch_university(conn: sqlite3.Connection, university: str, search_name: str) -> int:
+def fetch_university(conn: sqlite3.Connection, university: str, search_name: str, limit: int | None) -> int:
     cursor = "*"
     saved = 0
     session = requests.Session()
@@ -84,6 +86,9 @@ def fetch_university(conn: sqlite3.Connection, university: str, search_name: str
         works = payload.get("results", [])
 
         for work in works:
+            if limit is not None and saved >= limit:
+                conn.commit()
+                return saved
             work_id = work.get("id")
             if not work_id:
                 continue
@@ -106,15 +111,26 @@ def fetch_university(conn: sqlite3.Connection, university: str, search_name: str
     return saved
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--limit-per-university", type=int, default=None, help="Limit newly fetched works per university.")
+    parser.add_argument("--skip-existing", action="store_true", help="Skip universities that already have raw works.")
+    return parser.parse_args()
+
+
 def main() -> None:
+    args = parse_args()
     Path(SQLITE_DB_PATH).parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(SQLITE_DB_PATH)
     init_db(conn)
 
     try:
         for university, search_name in UNIVERSITIES.items():
-            count = fetch_university(conn, university, search_name)
-            print(f"[DONE] {university}: {count} works")
+            if args.skip_existing and existing_count(conn, university) > 0:
+                print(f"[SKIP] {university}: already has {existing_count(conn, university)} raw works")
+                continue
+            count = fetch_university(conn, university, search_name, args.limit_per_university)
+            print(f"[DONE] {university}: fetched {count} works")
     finally:
         conn.close()
 

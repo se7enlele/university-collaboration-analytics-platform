@@ -130,6 +130,16 @@ def benchmark() -> list[dict]:
         return []
     return rows(
         """
+        WITH sample AS (
+            SELECT *
+            FROM (
+                SELECT
+                    w.*,
+                    ROW_NUMBER() OVER (PARTITION BY w.university ORDER BY w.year DESC, w.id DESC) AS rn
+                FROM works w
+            )
+            WHERE rn <= 1200
+        )
         SELECT
             w.university AS university,
             COUNT(DISTINCT w.id) AS papers,
@@ -141,7 +151,7 @@ def benchmark() -> list[dict]:
                 / NULLIF(COUNT(DISTINCT CASE WHEN w.is_international = 1 THEN w.id END), 0),
                 1
             ) AS lead_rate
-        FROM works w
+        FROM sample w
         LEFT JOIN collaborations c ON w.id = c.work_id
         GROUP BY w.university
         ORDER BY university

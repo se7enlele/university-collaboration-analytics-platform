@@ -7,8 +7,8 @@ async function api(path) {
   return response.json();
 }
 
-function fmt(value, suffix = "") {
-  return `${nf.format(Number(value || 0))}${suffix}`;
+function fmt(value) {
+  return nf.format(Number(value || 0));
 }
 
 function shell(title, copy, content) {
@@ -32,7 +32,7 @@ function table(rows, columns) {
       <thead><tr>${columns.map((col) => `<th>${col.label}</th>`).join("")}</tr></thead>
       <tbody>
         ${rows
-          .map((row) => `<tr>${columns.map((col) => `<td>${col.format ? col.format(row[col.key], row) : row[col.key] ?? ""}</td>`).join("")}</tr>`)
+          .map((row) => `<tr>${columns.map((col) => `<td>${col.format ? col.format(row[col.key]) : row[col.key] ?? ""}</td>`).join("")}</tr>`)
           .join("")}
       </tbody>
     </table>
@@ -201,7 +201,11 @@ function renderLogin() {
 }
 
 function renderAdmin() {
-  shell("管理后台", "用于付费审核、用户状态和运营管理。", `<div class="card form"><label>管理员密码</label><input type="password" /><div class="actions"><button class="button">进入后台</button></div></div>`);
+  shell(
+    "管理后台",
+    "用于付费审核、用户状态和运营管理。",
+    `<div class="card form"><label>管理员密码</label><input type="password" /><div class="actions"><button class="button">进入后台</button></div></div>`
+  );
 }
 
 const routes = {
