@@ -1,16 +1,20 @@
 import streamlit as st
 
-from utils.auth import require_login
 from utils.charts import subject_bubble
 from utils.db_sqlite import query_df
-from utils.ui import data_warning, filter_clause, inject_style, paywall, sidebar_filters
+from utils.ui import data_warning, filter_clause, inject_style, page_nav, page_shell_end, page_shell_start, paywall, sidebar_filters
 
 
 st.set_page_config(page_title="学科热力图", layout="wide")
 inject_style()
-st.title("学科合作热力图")
+page_nav("学科热力图")
+page_shell_start()
 
-if not require_login() or data_warning():
+st.title("学科合作热力图")
+st.caption("免费版展示学科领域热度，开通后下钻到更细分主题。")
+
+if data_warning():
+    page_shell_end()
     st.stop()
 
 filters = sidebar_filters()
@@ -35,7 +39,21 @@ df = query_df(
     tuple(params),
 )
 
-st.plotly_chart(subject_bubble(df), use_container_width=True)
-st.dataframe(df, use_container_width=True, hide_index=True)
+st.plotly_chart(subject_bubble(df), use_container_width=True, config={"displayModeBar": False})
+st.dataframe(
+    df.rename(
+        columns={
+            "topic": "学科/主题",
+            "domain": "领域",
+            "paper_count": "论文数",
+            "country_count": "合作国家数",
+            "avg_cited": "平均被引数",
+        }
+    ),
+    use_container_width=True,
+    hide_index=True,
+)
 if not filters["paid"]:
     paywall("升级下钻到细分学科和机构穿透")
+
+page_shell_end()

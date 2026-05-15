@@ -1,16 +1,20 @@
 import streamlit as st
 
-from utils.auth import require_login
 from utils.charts import cooperation_map
 from utils.db_sqlite import query_df
-from utils.ui import data_warning, download_excel, filter_clause, inject_style, paywall, sidebar_filters
+from utils.ui import data_warning, download_excel, filter_clause, inject_style, page_nav, page_shell_end, page_shell_start, paywall, sidebar_filters
 
 
 st.set_page_config(page_title="全球合作地图", layout="wide")
 inject_style()
-st.title("全球合作地图")
+page_nav("合作地图")
+page_shell_start()
 
-if not require_login() or data_warning():
+st.title("全球合作地图")
+st.caption("公开查看合作国家、机构覆盖和论文列表预览，完整列表和导出需要开通。")
+
+if data_warning():
+    page_shell_end()
     st.stop()
 
 filters = sidebar_filters()
@@ -39,7 +43,7 @@ cols = st.columns(4)
 cols[0].metric("国际合作论文总数", int(metrics["total_papers"] or 0))
 cols[1].metric("合作国家数", int(metrics["country_count"] or 0))
 cols[2].metric("合作机构数", int(metrics["institution_count"] or 0))
-cols[3].metric("近5年增长率", f"{growth:.1f}%")
+cols[3].metric("近 5 年增长率", f"{growth:.1f}%")
 
 country_df = query_df(
     f"""
@@ -55,13 +59,17 @@ country_df = query_df(
     """,
     tuple(params),
 )
-st.plotly_chart(cooperation_map(country_df), use_container_width=True)
+st.plotly_chart(cooperation_map(country_df), use_container_width=True, config={"displayModeBar": False})
 
 st.subheader("合作论文列表")
 limit = "" if filters["paid"] else "LIMIT 20"
 paper_df = query_df(
     f"""
-    SELECT w.title, w.year, GROUP_CONCAT(DISTINCT c.collab_institution) AS collab_institutions, w.cited_by
+    SELECT
+        w.title AS 论文标题,
+        w.year AS 年份,
+        GROUP_CONCAT(DISTINCT c.collab_institution) AS 合作机构,
+        w.cited_by AS 被引次数
     FROM works w
     JOIN collaborations c ON w.id = c.work_id
     WHERE {where_sql} AND w.is_international = 1
@@ -75,3 +83,5 @@ st.dataframe(paper_df, use_container_width=True, hide_index=True)
 if not filters["paid"]:
     paywall("升级查看全部论文和机构下钻")
 download_excel(paper_df, "global_collaborations.csv", "导出当前列表")
+
+page_shell_end()

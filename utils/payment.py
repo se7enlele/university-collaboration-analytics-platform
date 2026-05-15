@@ -27,11 +27,11 @@ def payment_panel() -> None:
     if not user or user.get("is_paid"):
         return
 
-    with st.expander("🔒 升级解锁完整数据", expanded=False):
-        st.write("扫码支付 19.9 元后，请填写支付宝付款单号。管理员审核通过后自动开通一年。")
+    with st.expander("升级解锁完整数据", expanded=False):
+        st.write("扫码支付 19.9 元后，填写支付宝付款单号。管理员审核通过后自动开通一年。")
         st.image(ALIPAY_QR_PATH, width=220)
         trade_no = st.text_input("支付宝付款单号")
-        if st.button("提交审核", type="primary"):
+        if st.button("提交审核", type="primary", use_container_width=True):
             if not trade_no:
                 st.warning("请输入付款单号")
                 return

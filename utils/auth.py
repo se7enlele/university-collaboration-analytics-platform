@@ -31,7 +31,8 @@ def login_box() -> None:
                 try:
                     debug_code = send_sms_code(phone)
                     if debug_code:
-                        st.info(f"开发环境验证码：{debug_code}")
+                        with st.expander("本地调试验证码", expanded=False):
+                            st.code(debug_code)
                     st.success("验证码已发送")
                 except Exception as exc:
                     st.error(f"验证码发送失败：{exc}")
@@ -51,15 +52,15 @@ def login_box() -> None:
                     st.error(f"登录失败：{exc}")
 
 
-def require_login() -> bool:
+def require_login(message: str = "请先登录后继续操作。") -> bool:
     if is_logged_in():
         return True
-    st.info("请先登录后查看数据应用。")
+    st.info(message)
     login_box()
     return False
 
 
 def logout_button() -> None:
-    if st.sidebar.button("退出登录"):
+    if st.button("退出登录"):
         st.session_state.pop("user", None)
         st.rerun()
