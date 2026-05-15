@@ -8,8 +8,7 @@ async function api(path) {
 }
 
 function fmt(value, suffix = "") {
-  const number = Number(value || 0);
-  return `${nf.format(number)}${suffix}`;
+  return `${nf.format(Number(value || 0))}${suffix}`;
 }
 
 function shell(title, copy, content) {
@@ -22,8 +21,12 @@ function shell(title, copy, content) {
   `;
 }
 
+function emptyState() {
+  return `<div class="card status">当前数据正在准备中，完成数据接入后将自动展示。</div>`;
+}
+
 function table(rows, columns) {
-  if (!rows.length) return `<div class="card status">当前数据正在准备中，完成数据接入后将自动展示。</div>`;
+  if (!rows.length) return emptyState();
   return `
     <table class="table">
       <thead><tr>${columns.map((col) => `<th>${col.label}</th>`).join("")}</tr></thead>
@@ -33,6 +36,28 @@ function table(rows, columns) {
           .join("")}
       </tbody>
     </table>
+  `;
+}
+
+function kpis(overview) {
+  return `
+    <div class="kpis">
+      <div class="kpi"><strong>${fmt(overview.international_papers)}</strong><span>国际合作论文</span></div>
+      <div class="kpi"><strong>${fmt(overview.countries)}</strong><span>合作国家/地区</span></div>
+      <div class="kpi"><strong>${fmt(overview.institutions)}</strong><span>合作机构</span></div>
+      <div class="kpi"><strong>${overview.lead_rate || 0}%</strong><span>本校主导率</span></div>
+    </div>
+  `;
+}
+
+function moduleCard(title, copy, href) {
+  return `
+    <a class="card module-card" href="${href}">
+      <span class="tag">平台模块</span>
+      <h3>${title}</h3>
+      <p>${copy}</p>
+      <p class="muted">进入页面</p>
+    </a>
   `;
 }
 
@@ -48,12 +73,7 @@ async function renderHome() {
           <a class="button" href="/map">查看合作地图</a>
           <a class="button secondary" href="/benchmark">进入对标分析</a>
         </div>
-        <div class="kpis">
-          <div class="kpi"><strong>${fmt(overview.international_papers)}</strong><span>国际合作论文</span></div>
-          <div class="kpi"><strong>${fmt(overview.countries)}</strong><span>合作国家/地区</span></div>
-          <div class="kpi"><strong>${fmt(overview.institutions)}</strong><span>合作机构</span></div>
-          <div class="kpi"><strong>${overview.lead_rate || 0}%</strong><span>本校主导率</span></div>
-        </div>
+        ${kpis(overview)}
       </div>
     </section>
     <section class="section">
@@ -71,58 +91,40 @@ async function renderHome() {
   `;
 }
 
-function moduleCard(title, copy, href) {
-  return `
-    <a class="card module-card" href="${href}">
-      <span class="tag">平台模块</span>
-      <h3>${title}</h3>
-      <p>${copy}</p>
-      <p class="muted">进入页面</p>
-    </a>
-  `;
-}
-
 async function renderMap() {
   const [overview, data] = await Promise.all([api("/api/overview"), api("/api/map")]);
+  const top = data.slice(0, 12);
+  const max = Math.max(...top.map((item) => item.papers), 1);
   shell(
     "全球合作地图",
     "查看国际合作国家、机构覆盖和论文规模。",
     `
-      <div class="kpis">
-        <div class="kpi"><strong>${fmt(overview.international_papers)}</strong><span>国际合作论文</span></div>
-        <div class="kpi"><strong>${fmt(overview.countries)}</strong><span>合作国家/地区</span></div>
-        <div class="kpi"><strong>${fmt(overview.institutions)}</strong><span>合作机构</span></div>
-        <div class="kpi"><strong>${overview.lead_rate || 0}%</strong><span>本校主导率</span></div>
+      ${kpis(overview)}
+      <div class="grid two">
+        <div class="card">
+          <h3>合作国家排行</h3>
+          <div class="bar-list">
+            ${top
+              .map(
+                (item) => `
+                  <div class="bar-row">
+                    <span>${item.name || item.code}</span>
+                    <div class="bar-track"><div class="bar-fill" style="width:${(item.papers / max) * 100}%"></div></div>
+                    <strong>${fmt(item.papers)}</strong>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+        </div>
+        <div class="card">
+          <h3>数据说明</h3>
+          <p class="muted">当前先展示稳定的国家排行视图。交互式世界地图后续将切换到本地 GeoJSON 资源，避免 CDN 地图包加载失败。</p>
+          <p class="muted">已识别 ${fmt(overview.countries)} 个合作国家/地区，覆盖 ${fmt(overview.institutions)} 个合作机构。</p>
+        </div>
       </div>
-      <div class="card"><div id="worldMap" class="chart"></div></div>
     `
   );
-
-  const chart = echarts.init(document.querySelector("#worldMap"));
-  chart.setOption({
-    tooltip: { trigger: "item", formatter: (p) => `${p.name}<br/>论文数：${fmt(p.value || 0)}` },
-    visualMap: {
-      min: 0,
-      max: Math.max(...data.map((item) => item.papers), 1),
-      left: 18,
-      bottom: 18,
-      text: ["高", "低"],
-      calculable: true,
-      inRange: { color: ["#dbeafe", "#60a5fa", "#005bb8"] },
-    },
-    series: [
-      {
-        type: "map",
-        map: "world",
-        roam: true,
-        nameProperty: "name",
-        itemStyle: { borderColor: "#cbd5e1" },
-        emphasis: { label: { show: false } },
-        data: data.map((item) => ({ name: item.name, value: item.papers })),
-      },
-    ],
-  });
-  window.addEventListener("resize", () => chart.resize());
 }
 
 async function renderInstitutions() {
@@ -142,16 +144,28 @@ async function renderInstitutions() {
 
 async function renderSubjects() {
   const data = await api("/api/subjects?limit=12");
-  shell("学科热力", "查看国际合作论文集中在哪些学科领域。", `<div class="card"><div id="subjects" class="chart small"></div></div>`);
-  const chart = echarts.init(document.querySelector("#subjects"));
-  chart.setOption({
-    tooltip: {},
-    grid: { left: 140, right: 20, top: 20, bottom: 30 },
-    xAxis: { type: "value" },
-    yAxis: { type: "category", data: data.map((item) => item.domain).reverse() },
-    series: [{ type: "bar", data: data.map((item) => item.papers).reverse(), itemStyle: { color: "#006edb", borderRadius: [0, 8, 8, 0] } }],
-  });
-  window.addEventListener("resize", () => chart.resize());
+  const max = Math.max(...data.map((item) => item.papers), 1);
+  shell(
+    "学科热力",
+    "查看国际合作论文集中在哪些学科领域。",
+    `
+      <div class="card">
+        <div class="bar-list">
+          ${data
+            .map(
+              (item) => `
+                <div class="bar-row">
+                  <span>${item.domain}</span>
+                  <div class="bar-track"><div class="bar-fill green" style="width:${(item.papers / max) * 100}%"></div></div>
+                  <strong>${fmt(item.papers)}</strong>
+                </div>
+              `
+            )
+            .join("")}
+        </div>
+      </div>
+    `
+  );
 }
 
 async function renderBenchmark() {
