@@ -30,3 +30,29 @@ python -m data.process_data
 ## 环境变量
 
 生产环境请通过环境变量覆盖 `config.py` 中的默认值：`MYSQL_HOST`、`MYSQL_USER`、`MYSQL_PASSWORD`、`ALIYUN_ACCESS_KEY_ID`、`ADMIN_PASSWORD`、`SMTP_USER` 等。
+## 正式 Web 版
+
+Streamlit 版本保留为数据原型。正式平台入口使用标准 Web 架构：
+
+```powershell
+python web_app.py
+```
+
+访问：
+
+```text
+http://127.0.0.1:8000
+```
+
+数据来自本地 SQLite：
+
+```text
+data/works.db
+```
+
+如果没有数据，先运行：
+
+```powershell
+python -m data.fetch_openalex
+python -m data.process_data
+```
