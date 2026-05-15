@@ -58,8 +58,8 @@ def inject_style() -> None:
         }
         .block-container,
         .main .block-container {
-            max-width: 100%;
-            padding: 0 0 4rem;
+            max-width: 1180px !important;
+            padding: 1.5rem 1.5rem 4rem !important;
         }
         .site-nav {
             position: sticky;
@@ -71,6 +71,7 @@ def inject_style() -> None:
             justify-content: space-between;
             box-sizing: border-box;
             width: 100%;
+            border-radius: 18px;
             padding: 0 clamp(18px, 4vw, 44px);
             background: rgba(255,255,255,0.86);
             backdrop-filter: blur(18px);
@@ -110,8 +111,10 @@ def inject_style() -> None:
             display: grid;
             place-items: center;
             text-align: center;
-            min-height: min(760px, calc(100vh - 56px));
+            min-height: auto;
             padding: clamp(64px, 9vh, 96px) 24px clamp(42px, 7vh, 70px);
+            margin-top: 18px;
+            border-radius: 28px;
             background: #f5f5f7;
             color: #111827;
         }
@@ -194,12 +197,12 @@ def inject_style() -> None:
         }
         .page-section {
             box-sizing: border-box;
-            width: min(1160px, calc(100vw - 48px));
+            width: 100%;
             margin: 0 auto;
-            padding: clamp(56px, 8vw, 92px) 0;
+            padding: clamp(38px, 6vw, 64px) 0;
         }
         .page-shell {
-            padding-top: 52px;
+            padding-top: 38px;
         }
         .section-title {
             margin: 0 0 28px;
@@ -306,6 +309,14 @@ def inject_style() -> None:
             border: 1px solid #e5e7eb;
             border-radius: 14px;
             padding: 14px;
+            box-shadow: 0 12px 34px rgba(15,23,42,0.06);
+        }
+        div[data-testid="stDataFrame"],
+        div[data-testid="stPlotlyChart"] {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 12px;
+            box-shadow: 0 14px 40px rgba(15,23,42,0.07);
         }
         .paywall {
             background: #ffffff;
@@ -333,6 +344,11 @@ def inject_style() -> None:
             }
         }
         @media (max-width: 560px) {
+            .block-container,
+            .main .block-container {
+                padding-left: 14px !important;
+                padding-right: 14px !important;
+            }
             .site-brand {
                 font-size: 13px;
             }
