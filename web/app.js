@@ -418,7 +418,7 @@ async function renderMap() {
                         <div class="trend-row">
                           <span>${item.year}</span>
                           <strong>${fmt(item.papers)}</strong>
-                          <small>${fmt(item.countries)} 国 / ${fmt(item.institutions)} 机构</small>
+                          <small>国际合作论文</small>
                         </div>
                       `
                     )

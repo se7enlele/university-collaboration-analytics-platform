@@ -175,21 +175,20 @@ def collaboration_analysis(university: str | None = None) -> dict:
     countries = countries_all[:20]
     institutions = institution_rank(10, university)
     params = (university, datetime.now().year) if university else (datetime.now().year,)
-    university_filter = "AND w.university = ?" if university else ""
+    university_filter = "AND university = ?" if university else ""
     trend = rows(
         f"""
         SELECT
-            w.year AS year,
-            COUNT(DISTINCT w.id) AS papers,
-            COUNT(DISTINCT c.collab_country) AS countries,
-            COUNT(DISTINCT c.collab_institution) AS institutions
-        FROM works w
-        JOIN collaborations c ON w.id = c.work_id
-        WHERE w.is_international = 1
+            year,
+            COUNT(*) AS papers,
+            0 AS countries,
+            0 AS institutions
+        FROM works
+        WHERE is_international = 1
         {university_filter}
-        AND w.year IS NOT NULL AND w.year < ?
-        GROUP BY w.year
-        ORDER BY w.year DESC
+        AND year IS NOT NULL AND year < ?
+        GROUP BY year
+        ORDER BY year DESC
         LIMIT 8
         """,
         params,
