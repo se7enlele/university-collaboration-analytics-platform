@@ -2,6 +2,12 @@ const app = document.querySelector("#app");
 const nf = new Intl.NumberFormat("zh-CN");
 let universitiesCache = null;
 let selectedUniversity = localStorage.getItem("selectedUniversity") || "山东大学";
+const fallbackUniversities = [
+  { university: "山东大学" },
+  { university: "中山大学" },
+  { university: "武汉大学" },
+  { university: "四川大学" },
+];
 
 async function api(path) {
   const response = await fetch(path);
@@ -82,7 +88,13 @@ function moduleCard(title, copy, href) {
 }
 
 async function loadUniversities() {
-  if (!universitiesCache) universitiesCache = await api("/api/universities");
+  if (!universitiesCache) {
+    try {
+      universitiesCache = await api("/api/universities");
+    } catch (_) {
+      universitiesCache = fallbackUniversities;
+    }
+  }
   if (!universitiesCache.some((item) => item.university === selectedUniversity) && universitiesCache[0]) {
     selectedUniversity = universitiesCache[0].university;
     localStorage.setItem("selectedUniversity", selectedUniversity);
