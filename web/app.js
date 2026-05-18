@@ -544,19 +544,58 @@ async function renderBenchmark() {
 }
 
 function renderLogin() {
-  shell(
-    "账号只在需要时出现。",
-    "公开分析先直接查看；导出、完整数据和后台管理再登录。",
-    `
-      <div class="card form">
-        <label>手机号</label>
-        <input placeholder="请输入手机号" />
-        <label>验证码</label>
-        <input placeholder="请输入验证码" />
-        <div class="actions"><button class="button">登录</button></div>
+  app.innerHTML = `
+    <section class="section auth-section">
+      <div class="auth-layout">
+        <div class="auth-copy">
+          <span class="tag">权限入口</span>
+          <h1>登录后进入完整决策工作台。</h1>
+          <p>公开页面用于快速浏览合作格局；开通账号后，可查看完整样本、导出报告、管理学校与机构权限。</p>
+          <div class="auth-benefits">
+            <div>
+              <strong>完整数据</strong>
+              <span>查看学校、学科、国家和机构的多维明细。</span>
+            </div>
+            <div>
+              <strong>报告导出</strong>
+              <span>生成对标分析、合作清单和管理汇报材料。</span>
+            </div>
+            <div>
+              <strong>团队协作</strong>
+              <span>支持国际处、科研院和学院分级使用。</span>
+            </div>
+          </div>
+        </div>
+        <div class="auth-card">
+          <div class="auth-tabs" aria-label="账号操作">
+            <button class="active">登录</button>
+            <button>申请开通</button>
+          </div>
+          <div class="auth-form">
+            <label>手机号</label>
+            <input type="tel" inputmode="tel" placeholder="请输入手机号" />
+            <label>验证码</label>
+            <div class="input-action">
+              <input inputmode="numeric" placeholder="请输入验证码" />
+              <button>获取验证码</button>
+            </div>
+            <button class="button auth-submit">登录工作台</button>
+          </div>
+          <div class="auth-divider"><span>机构开通</span></div>
+          <div class="signup-panel">
+            <label>学校 / 机构名称</label>
+            <input placeholder="请输入学校或机构名称" />
+            <label>联系人</label>
+            <input placeholder="请输入联系人姓名" />
+            <label>职务 / 部门</label>
+            <input placeholder="例如：国际合作处、科研院、学院办公室" />
+            <button class="button secondary auth-submit">提交开通申请</button>
+          </div>
+          <p class="auth-note">提交后由平台顾问联系确认数据范围、账号数量和开通方式。</p>
+        </div>
       </div>
-    `
-  );
+    </section>
+  `;
 }
 
 function renderAdmin() {
