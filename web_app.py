@@ -284,6 +284,64 @@ def benchmark() -> list[dict]:
     )
 
 
+def zombie_partners(university: str | None = None) -> dict:
+    if not has_data():
+        return {"summary": {}, "partners": []}
+    params = (university,) if university else ()
+    university_filter = "AND c.university = ?" if university else ""
+    partners = rows(
+        f"""
+        SELECT
+            c.collab_institution AS institution,
+            c.collab_country_name AS country,
+            COUNT(DISTINCT w.id) AS papers,
+            MAX(w.year) AS last_year,
+            CAST(? - MAX(w.year) AS INTEGER) AS silent_years
+        FROM works w
+        JOIN collaborations c ON w.id = c.work_id
+        WHERE w.is_international = 1 AND c.collab_institution != ''
+        {university_filter}
+        GROUP BY c.collab_institution, c.collab_country_name
+        HAVING papers >= 2
+        ORDER BY papers DESC, silent_years DESC
+        """,
+        (datetime.now().year, *params),
+    )
+    for item in partners:
+        silent = item.get("silent_years") or 0
+        if silent >= 3:
+            item["status"] = "僵尸"
+            item["priority"] = "需要复盘"
+        elif silent >= 1:
+            item["status"] = "警告"
+            item["priority"] = "建议跟进"
+        else:
+            item["status"] = "活跃"
+            item["priority"] = "持续维护"
+    summary = {
+        "total": len(partners),
+        "active": sum(1 for item in partners if item["status"] == "活跃"),
+        "warning": sum(1 for item in partners if item["status"] == "警告"),
+        "zombie": sum(1 for item in partners if item["status"] == "僵尸"),
+    }
+    zombies = sorted(
+        [item for item in partners if item["status"] == "僵尸"],
+        key=lambda item: (item.get("papers") or 0, item.get("silent_years") or 0),
+        reverse=True,
+    )[:80]
+    warnings = sorted(
+        [item for item in partners if item["status"] == "警告"],
+        key=lambda item: (item.get("papers") or 0, item.get("silent_years") or 0),
+        reverse=True,
+    )[:40]
+    active = sorted(
+        [item for item in partners if item["status"] == "活跃"],
+        key=lambda item: item.get("papers") or 0,
+        reverse=True,
+    )[:20]
+    return {"summary": summary, "partners": [*zombies, *warnings, *active]}
+
+
 API = {
     "/api/universities": universities,
     "/api/overview": overview,
@@ -292,6 +350,7 @@ API = {
     "/api/institutions": institution_rank,
     "/api/subjects": subjects,
     "/api/benchmark": benchmark,
+    "/api/zombies": zombie_partners,
 }
 
 
@@ -308,14 +367,14 @@ class Handler(SimpleHTTPRequestHandler):
             handler = API[parsed.path]
             if parsed.path in {"/api/institutions", "/api/subjects"}:
                 payload = handler(limit, university)
-            elif parsed.path in {"/api/overview", "/api/map", "/api/collaboration"}:
+            elif parsed.path in {"/api/overview", "/api/map", "/api/collaboration", "/api/zombies"}:
                 payload = handler(university)
             else:
                 payload = handler()
             self.send_json(payload)
             return
 
-        if parsed.path in {"/", "/map", "/institutions", "/subjects", "/benchmark", "/admin", "/login"}:
+        if parsed.path in {"/", "/map", "/institutions", "/subjects", "/benchmark", "/zombies", "/admin", "/login"}:
             self.path = "/index.html"
         super().do_GET()
 

@@ -295,7 +295,7 @@ async function renderHome() {
       <div class="scenario-grid">
         ${scenarioCard("出访前查对象", "快速了解目标机构与本校的合作历史、优势学科和近年活跃度。", "查看合作机构", "/institutions")}
         ${scenarioCard("年终证明成效", "用合著规模、覆盖国家、活跃伙伴和学科分布支撑国际化工作汇报。", "查看合作格局", "/map")}
-        ${scenarioCard("发现沉默关系", "识别多年没有产出的合作机构，判断是重新激活还是清理维护成本。", "查看机构质量", "/institutions")}
+        ${scenarioCard("发现沉默关系", "识别多年没有产出的合作机构，判断是重新激活还是清理维护成本。", "查看沉默关系", "/zombies")}
         ${scenarioCard("对标兄弟高校", "比较同层级高校的合作规模、国家覆盖和伙伴网络，找到差距与机会。", "进入对标分析", "/benchmark")}
       </div>
     </section>
@@ -305,10 +305,10 @@ async function renderHome() {
       <div class="grid">
         ${moduleCard("合作格局", "国家、机构与论文成果覆盖。", "/map")}
         ${moduleCard("机构排行", "识别核心伙伴与潜力机构。", "/institutions")}
+        ${moduleCard("沉默关系", "找出长期无产出的合作伙伴。", "/zombies")}
         ${moduleCard("学科热力", "发现优势学科和增长方向。", "/subjects")}
         ${moduleCard("对标分析", "比较合作规模、覆盖和主导能力。", "/benchmark")}
         ${moduleCard("账号开通", "解锁完整数据与导出报告。", "/login")}
-        ${moduleCard("管理后台", "管理用户、权限与数据接入。", "/admin")}
       </div>
     </section>
   `;
@@ -501,6 +501,77 @@ async function renderInstitutions() {
   bindSchoolSelector();
 }
 
+async function renderZombies() {
+  const [data, universities] = await Promise.all([api(withUniversity("/api/zombies")), loadUniversities()]);
+  const summary = data.summary || {};
+  const partners = data.partners || [];
+  const zombies = partners.filter((item) => item.status === "僵尸").slice(0, 20);
+  const warnings = partners.filter((item) => item.status === "警告").slice(0, 10);
+  shell(
+    "沉默关系识别",
+    "找出签过协议或曾经合作、但近年没有继续产出的机构，帮助国际处判断是否激活、维护或清理。",
+    `
+      <div class="kpis">
+        <div class="kpi"><strong>${fmt(summary.total)}</strong><span>样例合作机构</span></div>
+        <div class="kpi"><strong>${fmt(summary.zombie)}</strong><span>僵尸关系</span></div>
+        <div class="kpi"><strong>${fmt(summary.warning)}</strong><span>警告关系</span></div>
+        <div class="kpi"><strong>${fmt(summary.active)}</strong><span>仍然活跃</span></div>
+      </div>
+      ${schoolSelector(universities)}
+      <div class="insight-grid">
+        <div class="card insight-card">
+          <span class="tag">痛点识别</span>
+          <h3>协议不等于有效合作</h3>
+          <p>长期没有论文产出的机构需要重新评估，避免合作协议只停留在名义关系。</p>
+        </div>
+        <div class="card insight-card">
+          <span class="tag">优先处理</span>
+          <h3>${summary.zombie || 0} 个关系需要复盘</h3>
+          <p>建议优先看历史产出较高、但最近三年以上没有新成果的合作机构。</p>
+        </div>
+        <div class="card insight-card">
+          <span class="tag">行动清单</span>
+          <h3>从名单到跟进任务</h3>
+          <p>可按国家、学院和历史合作强度拆分维护责任，形成访问、续约或终止建议。</p>
+        </div>
+        <div class="card insight-card">
+          <span class="tag">付费价值</span>
+          <h3>完整名单适合导出</h3>
+          <p>完整僵尸合作名单、联系人维护和 Excel 导出适合作为登录后的核心权益。</p>
+        </div>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>优先复盘的沉默机构</h3>
+          ${table(zombies, [
+            { label: "机构", key: "institution" },
+            { label: "国家/地区", key: "country" },
+            { label: "历史论文", key: "papers", format: fmt },
+            { label: "最后合作", key: "last_year" },
+            { label: "沉默年数", key: "silent_years" },
+            { label: "状态", key: "status" },
+          ])}
+        </div>
+        <div class="card">
+          <h3>近期需要跟进</h3>
+          ${table(warnings, [
+            { label: "机构", key: "institution" },
+            { label: "国家/地区", key: "country" },
+            { label: "最后合作", key: "last_year" },
+            { label: "建议", key: "priority" },
+          ])}
+        </div>
+      </div>
+      <div class="card recommendation">
+        <span class="tag">行动建议</span>
+        <h3>把沉默关系分成三类处理：激活、观察、清理。</h3>
+        <p>历史产出高但沉默时间长的机构，优先安排学院复盘和外方沟通；历史产出低且长期无后续的机构，可减少维护投入，把资源转向高潜力伙伴。</p>
+      </div>
+    `
+  );
+  bindSchoolSelector();
+}
+
 async function renderSubjects() {
   const [data, universities] = await Promise.all([api(withUniversity("/api/subjects?limit=12")), loadUniversities()]);
   const analysis = buildSubjectAnalysis(data);
@@ -681,6 +752,7 @@ const routes = {
   "/": renderHome,
   "/map": renderMap,
   "/institutions": renderInstitutions,
+  "/zombies": renderZombies,
   "/subjects": renderSubjects,
   "/benchmark": renderBenchmark,
   "/login": renderLogin,
