@@ -85,7 +85,7 @@ a {
 .section {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 72px 0;
+  padding: 58px 0;
 }
 
 .hero {
@@ -160,8 +160,8 @@ h1 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1px;
-  width: min(920px, 100%);
-  margin: 56px auto 0;
+  width: 100%;
+  margin: 34px 0 0;
   overflow: hidden;
   border-radius: 20px;
   background: #d1d5db;
@@ -185,13 +185,18 @@ h1 {
   color: var(--blue);
 }
 
+.hero .kpis {
+  width: min(920px, 100%);
+  margin: 44px auto 0;
+}
+
 .school-selector {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  width: min(720px, 100%);
-  margin: 34px auto 0;
+  width: 100%;
+  margin: 24px 0 0;
   padding: 14px 16px 14px 18px;
   border: 1px solid rgba(138, 150, 168, 0.22);
   border-radius: 22px;
@@ -201,7 +206,7 @@ h1 {
 }
 
 .section > .school-selector {
-  margin: 0 0 24px;
+  margin: 18px 0 24px;
 }
 
 .school-selector strong {
