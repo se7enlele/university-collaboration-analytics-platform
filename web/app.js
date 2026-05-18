@@ -170,11 +170,16 @@ async function loadCollaborationAnalysis() {
 }
 
 function institutionTier(item, maxPapers) {
-  if ((item.papers || 0) >= maxPapers * 0.55 && (item.avg_cited || 0) >= 70) return "战略核心";
-  if ((item.papers || 0) >= maxPapers * 0.35) return "高频合作";
-  if ((item.avg_cited || 0) >= 90) return "高影响力";
-  if ((item.last_year || 0) < 2023) return "需重新激活";
-  return "潜力观察";
+  const papers = item.papers || 0;
+  const leadRate = Number(item.lead_rate || 0);
+  const silentYears = Number(item.silent_years || 0);
+  const avgCited = Number(item.avg_cited || 0);
+  if (silentYears >= 3) return "沉默伙伴";
+  if (papers >= maxPapers * 0.35 && leadRate >= 50) return "核心伙伴";
+  if (papers >= maxPapers * 0.25 && leadRate < 10) return "灌水风险";
+  if (avgCited >= 80 && leadRate >= 20) return "高潜力伙伴";
+  if (silentYears >= 1) return "需要跟进";
+  return "常规维护";
 }
 
 function buildInstitutionAnalysis(rows) {
@@ -183,6 +188,8 @@ function buildInstitutionAnalysis(rows) {
   const countries = new Set(list.map((item) => item.country).filter(Boolean));
   const avgCited = list.length ? list.reduce((sum, item) => sum + Number(item.avg_cited || 0), 0) / list.length : 0;
   const active = list.filter((item) => (item.last_year || 0) >= 2024).length;
+  const lowLead = list.filter((item) => Number(item.lead_rate || 0) < 10).length;
+  const dormant = list.filter((item) => Number(item.silent_years || 0) >= 3).length;
   const tiered = list.map((item) => ({ ...item, tier: institutionTier(item, maxPapers) }));
   const tierCounts = tiered.reduce((acc, item) => {
     acc[item.tier] = (acc[item.tier] || 0) + 1;
@@ -204,12 +211,14 @@ function buildInstitutionAnalysis(rows) {
     countries: countries.size,
     avgCited: avgCited.toFixed(1),
     active,
+    lowLead,
+    dormant,
     tierCounts,
     countriesRank,
     insights: [
       { title: "核心伙伴明确", text: `${top.institution || "头部机构"} 是当前样例库中合作频次最高的机构，合作论文 ${fmt(top.papers)} 篇。` },
-      { title: "合作质量可分层", text: `已按频次、影响力和活跃度将机构划分为战略核心、高频合作、高影响力和潜力观察。` },
-      { title: "近期活跃度可追踪", text: `${active} 个机构在 2024 年后仍保持合作记录，可优先纳入持续维护清单。` },
+      { title: "主导性需要单独看", text: `${lowLead} 个 Top 机构主导率低于 10%，可能更像参与型合作，需要结合学院判断实际价值。` },
+      { title: "沉默伙伴需要复盘", text: `${dormant} 个 Top 机构近三年以上没有新成果，应进入重新激活或清理维护成本的清单。` },
       { title: "国家分布可辅助决策", text: `Top 机构覆盖 ${countries.size} 个国家/地区，可结合国家战略和学科方向制定访问计划。` },
     ],
   };
@@ -429,9 +438,9 @@ async function renderInstitutions() {
     `
       <div class="kpis">
         <div class="kpi"><strong>${fmt(rows.length)}</strong><span>样例合作机构</span></div>
-        <div class="kpi"><strong>${fmt(analysis.countries)}</strong><span>覆盖国家/地区</span></div>
-        <div class="kpi"><strong>${analysis.avgCited}</strong><span>平均被引</span></div>
-        <div class="kpi"><strong>${fmt(analysis.active)}</strong><span>近年活跃机构</span></div>
+        <div class="kpi"><strong>${fmt(analysis.lowLead)}</strong><span>低主导风险</span></div>
+        <div class="kpi"><strong>${fmt(analysis.dormant)}</strong><span>沉默伙伴</span></div>
+        <div class="kpi"><strong>${fmt(analysis.active)}</strong><span>仍然活跃</span></div>
       </div>
       ${schoolSelector(universities)}
       <div class="insight-grid">
@@ -449,7 +458,7 @@ async function renderInstitutions() {
       </div>
       <div class="grid two">
         <div class="card">
-          <h3>机构质量分层</h3>
+          <h3>伙伴质量标签</h3>
           <div class="tier-grid">
             ${tierEntries
               .map(
@@ -486,15 +495,16 @@ async function renderInstitutions() {
           { label: "机构", key: "institution" },
           { label: "国家", key: "country" },
           { label: "合作论文", key: "papers", format: fmt },
-          { label: "平均被引", key: "avg_cited" },
-          { label: "最近年份", key: "last_year" },
+          { label: "主导率", key: "lead_rate", format: (value) => `${value || 0}%` },
+          { label: "最后合作", key: "last_year" },
+          { label: "沉默年数", key: "silent_years" },
           { label: "质量标签", key: "tier" },
         ])}
       </div>
       <div class="card recommendation">
         <span class="tag">行动建议</span>
         <h3>把机构排行转化为伙伴维护清单。</h3>
-        <p>优先维护“战略核心”和“高影响力”机构；对“需重新激活”的机构结合学院、学科和历史项目复盘，判断是否恢复访问、联合申报或学生交流合作。</p>
+        <p>优先维护“核心伙伴”和“高潜力伙伴”；对“灌水风险”要判断是否只是挂名参与；对“沉默伙伴”结合学院、学科和历史项目复盘，决定激活、观察或减少维护投入。</p>
       </div>
     `
   );

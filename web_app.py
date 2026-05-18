@@ -146,8 +146,15 @@ def institution_rank(limit: int = 20, university: str | None = None) -> list[dic
             c.collab_institution AS institution,
             c.collab_country_name AS country,
             COUNT(DISTINCT w.id) AS papers,
+            COUNT(DISTINCT CASE WHEN w.is_lead = 1 THEN w.id END) AS lead_papers,
+            ROUND(
+                100.0 * COUNT(DISTINCT CASE WHEN w.is_lead = 1 THEN w.id END)
+                / NULLIF(COUNT(DISTINCT w.id), 0),
+                1
+            ) AS lead_rate,
             ROUND(AVG(w.cited_by), 1) AS avg_cited,
-            MAX(w.year) AS last_year
+            MAX(w.year) AS last_year,
+            CAST(? - MAX(w.year) AS INTEGER) AS silent_years
         FROM works w
         JOIN collaborations c ON w.id = c.work_id
         WHERE w.is_international = 1
@@ -156,7 +163,7 @@ def institution_rank(limit: int = 20, university: str | None = None) -> list[dic
         ORDER BY papers DESC
         LIMIT ?
         """,
-        params,
+        (datetime.now().year, *params),
     )
 
 
