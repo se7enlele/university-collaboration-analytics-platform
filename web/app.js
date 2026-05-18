@@ -74,6 +74,16 @@ function moduleCard(title, copy, href) {
   `;
 }
 
+function scenarioCard(title, copy, action, href) {
+  return `
+    <a class="card scenario-card" href="${href}">
+      <strong>${title}</strong>
+      <span>${copy}</span>
+      <em>${action}</em>
+    </a>
+  `;
+}
+
 function regionName(country) {
   const europe = new Set(["United Kingdom", "Germany", "France", "Italy", "Spain", "Sweden", "Netherlands", "Switzerland", "Russian Federation", "Portugal", "Poland", "Greece"]);
   const asia = new Set(["Japan", "Singapore", "Hong Kong", "Korea, Republic of", "India", "Malaysia", "Thailand", "Israel", "Türkiye"]);
@@ -223,19 +233,34 @@ async function renderHome() {
   app.innerHTML = `
     <section class="section hero">
       <div class="hero-panel">
-        <p class="eyebrow">National Research Collaboration Intelligence</p>
-        <h1>中国高校国际合作智能决策平台</h1>
-        <p class="lead">看清合作格局，识别高价值伙伴，形成可执行的国际合作策略。</p>
+        <p class="eyebrow">International Office Workspace</p>
+        <h1>给高校国际处使用的国际合作工作台</h1>
+        <p class="lead">从公开论文和机构数据出发，快速看清合作现状、识别重点伙伴、发现沉默关系，并形成可汇报的决策依据。</p>
         <div class="actions">
-          <a class="button" href="/map">查看合作格局</a>
-          <a class="button secondary" href="/benchmark">进入对标分析</a>
+          <a class="button" href="/map">先看合作格局</a>
+          <a class="button secondary" href="/login">开通完整工作台</a>
         </div>
-        ${platformKpis(overview)}
+        <div class="kpis value-kpis">
+          <div class="kpi"><strong>${big(overview.papers)}</strong><span>全球科研成果底座</span></div>
+          <div class="kpi"><strong>${fmt(overview.universities)}+</strong><span>可扩展国内高校机构</span></div>
+          <div class="kpi"><strong>4类</strong><span>合作格局分析维度</span></div>
+          <div class="kpi"><strong>1键</strong><span>形成汇报与行动清单</span></div>
+        </div>
       </div>
     </section>
     <section class="section">
-      <h2 class="section-title">全国视角，服务每所学校。</h2>
-      <p class="section-copy">覆盖合作态势、机构质量、学科热点和多校对标，支持高校国际处与科研管理部门快速判断合作机会。</p>
+      <h2 class="section-title">不是临时报告，而是日常工作入口。</h2>
+      <p class="section-copy">围绕国际处最常见的工作场景组织数据：出访准备、伙伴维护、领导汇报和高校对标。</p>
+      <div class="scenario-grid">
+        ${scenarioCard("出访前查对象", "快速了解目标机构与本校的合作历史、优势学科和近年活跃度。", "查看合作机构", "/institutions")}
+        ${scenarioCard("年终证明成效", "用合著规模、覆盖国家、活跃伙伴和学科分布支撑国际化工作汇报。", "查看合作格局", "/map")}
+        ${scenarioCard("发现沉默关系", "识别多年没有产出的合作机构，判断是重新激活还是清理维护成本。", "查看机构质量", "/institutions")}
+        ${scenarioCard("对标兄弟高校", "比较同层级高校的合作规模、国家覆盖和伙伴网络，找到差距与机会。", "进入对标分析", "/benchmark")}
+      </div>
+    </section>
+    <section class="section">
+      <h2 class="section-title">先免费看到轮廓，再解锁完整细节。</h2>
+      <p class="section-copy">公开页面先展示国家、机构、学科和对标的宏观结果；具体机构名单、历史明细、导出报告和后台权限在登录后开放。</p>
       <div class="grid">
         ${moduleCard("合作格局", "国家、机构与论文成果覆盖。", "/map")}
         ${moduleCard("机构排行", "识别核心伙伴与潜力机构。", "/institutions")}

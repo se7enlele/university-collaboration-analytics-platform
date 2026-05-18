@@ -181,6 +181,10 @@ h1 {
   color: var(--muted);
 }
 
+.value-kpis .kpi strong {
+  color: var(--blue);
+}
+
 .section-title {
   margin: 0 0 12px;
   font-size: clamp(34px, 4vw, 48px);
@@ -206,6 +210,13 @@ h1 {
   grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.65fr);
 }
 
+.scenario-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 28px;
+}
+
 .card {
   min-width: 0;
   border-radius: 24px;
@@ -216,6 +227,34 @@ h1 {
 
 .module-card {
   min-height: 190px;
+}
+
+.scenario-card {
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid rgba(138, 150, 168, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(255,255,255,0.78)),
+    radial-gradient(circle at 80% 10%, rgba(0, 110, 219, 0.12), transparent 34%);
+}
+
+.scenario-card strong {
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.scenario-card span {
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.scenario-card em {
+  margin-top: auto;
+  color: var(--blue);
+  font-style: normal;
+  font-weight: 800;
 }
 
 .tag {
@@ -603,6 +642,7 @@ h1 {
   .kpis,
   .grid,
   .grid.two,
+  .scenario-grid,
   .insight-grid {
     grid-template-columns: 1fr;
   }
