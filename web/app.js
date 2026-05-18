@@ -11,6 +11,13 @@ function fmt(value) {
   return nf.format(Number(value || 0));
 }
 
+function big(value) {
+  const number = Number(value || 0);
+  if (number >= 100000000) return `${(number / 100000000).toFixed(number % 100000000 === 0 ? 0 : 1)}亿+`;
+  if (number >= 10000) return `${(number / 10000).toFixed(number % 10000 === 0 ? 0 : 1)}万+`;
+  return fmt(number);
+}
+
 function shell(title, copy, content) {
   app.innerHTML = `
     <section class="section">
@@ -22,7 +29,7 @@ function shell(title, copy, content) {
 }
 
 function emptyState() {
-  return `<div class="card status">当前数据正在准备中，完成数据接入后将自动展示。</div>`;
+  return `<div class="card status">当前数据正在接入中，完成后将展示完整分析结果。</div>`;
 }
 
 function table(rows, columns) {
@@ -39,13 +46,24 @@ function table(rows, columns) {
   `;
 }
 
-function kpis(overview) {
+function platformKpis(overview) {
   return `
     <div class="kpis">
-      <div class="kpi"><strong>${fmt(overview.international_papers)}</strong><span>国际合作论文</span></div>
-      <div class="kpi"><strong>${fmt(overview.countries)}</strong><span>合作国家/地区</span></div>
-      <div class="kpi"><strong>${fmt(overview.institutions)}</strong><span>合作机构</span></div>
-      <div class="kpi"><strong>${overview.lead_rate || 0}%</strong><span>本校主导率</span></div>
+      <div class="kpi"><strong>${big(overview.papers)}</strong><span>全球科研论文与成果</span></div>
+      <div class="kpi"><strong>${big(overview.international_papers)}</strong><span>国际合作论文</span></div>
+      <div class="kpi"><strong>${fmt(overview.universities)}</strong><span>国内高校与科研机构</span></div>
+      <div class="kpi"><strong>${big(overview.institutions)}</strong><span>全球合作机构</span></div>
+    </div>
+  `;
+}
+
+function sampleKpis(overview) {
+  return `
+    <div class="kpis">
+      <div class="kpi"><strong>${fmt(overview.sample_international_papers || overview.international_papers)}</strong><span>样例国际合作论文</span></div>
+      <div class="kpi"><strong>${fmt(overview.sample_countries || overview.countries)}</strong><span>样例合作国家/地区</span></div>
+      <div class="kpi"><strong>${fmt(overview.sample_institutions || overview.institutions)}</strong><span>样例合作机构</span></div>
+      <div class="kpi"><strong>${overview.lead_rate || 0}%</strong><span>样例主导率</span></div>
     </div>
   `;
 }
@@ -66,26 +84,26 @@ async function renderHome() {
   app.innerHTML = `
     <section class="section hero">
       <div>
-        <p class="eyebrow">University Collaboration Intelligence Platform</p>
-        <h1>看清高校国际合作格局，找到真正值得投入的合作关系</h1>
-        <p class="lead">从论文合作、机构质量、学科热度和多校对标出发，把分散的科研合作数据整理成可解释、可比较、可行动的决策视图。</p>
+        <p class="eyebrow">National Research Collaboration Intelligence</p>
+        <h1>面向中国高校与科研机构的国际合作智能决策平台</h1>
+        <p class="lead">覆盖全球论文成果、合作机构、学科方向与跨校对标数据，帮助高校看清国际合作格局，识别高价值伙伴，形成可执行的合作策略。</p>
         <div class="actions">
-          <a class="button" href="/map">查看合作地图</a>
+          <a class="button" href="/map">查看合作格局</a>
           <a class="button secondary" href="/benchmark">进入对标分析</a>
         </div>
-        ${kpis(overview)}
+        ${platformKpis(overview)}
       </div>
     </section>
     <section class="section">
-      <h2 class="section-title">从公开浏览到深度决策。</h2>
-      <p class="section-copy">正式平台不再受 Streamlit 页面布局限制，前台展示价值，登录后承载完整数据、导出和后台管理。</p>
+      <h2 class="section-title">从全国视角，定位每所学校的合作机会。</h2>
+      <p class="section-copy">平台面向高校国际处、科研管理部门、学院和科研机构，提供合作态势、机构质量、学科热点、低效合作识别和多校对标分析。</p>
       <div class="grid">
-        ${moduleCard("合作地图", "国家覆盖、合作机构和论文列表预览。", "/map")}
-        ${moduleCard("机构排行", "识别核心伙伴、沉默伙伴和高质量机构。", "/institutions")}
-        ${moduleCard("学科热力", "发现国际合作中的高热学科方向。", "/subjects")}
-        ${moduleCard("对标分析", "跨校比较合作规模、机构覆盖和主导率。", "/benchmark")}
-        ${moduleCard("账号开通", "导出、完整名单和后台管理按需登录。", "/login")}
-        ${moduleCard("管理后台", "审核付费申请和管理用户状态。", "/admin")}
+        ${moduleCard("合作格局", "查看国家覆盖、合作机构分布和论文成果规模。", "/map")}
+        ${moduleCard("机构排行", "识别核心伙伴、潜力机构和长期沉默合作关系。", "/institutions")}
+        ${moduleCard("学科热力", "发现国际合作中的优势学科与增长方向。", "/subjects")}
+        ${moduleCard("对标分析", "跨校比较合作规模、机构覆盖和主导能力。", "/benchmark")}
+        ${moduleCard("账号开通", "完整数据、导出报告和深度分析按需开通。", "/login")}
+        ${moduleCard("管理后台", "管理用户权限、数据接入和付费审核。", "/admin")}
       </div>
     </section>
   `;
@@ -96,10 +114,10 @@ async function renderMap() {
   const top = data.slice(0, 12);
   const max = Math.max(...top.map((item) => item.papers), 1);
   shell(
-    "全球合作地图",
-    "查看国际合作国家、机构覆盖和论文规模。",
+    "合作格局",
+    "查看样例数据中的国际合作国家、机构覆盖和论文规模。",
     `
-      ${kpis(overview)}
+      ${sampleKpis(overview)}
       <div class="grid two">
         <div class="card">
           <h3>合作国家排行</h3>
@@ -118,9 +136,9 @@ async function renderMap() {
           </div>
         </div>
         <div class="card">
-          <h3>数据说明</h3>
-          <p class="muted">当前先展示稳定的国家排行视图。交互式世界地图后续将切换到本地 GeoJSON 资源，避免 CDN 地图包加载失败。</p>
-          <p class="muted">已识别 ${fmt(overview.countries)} 个合作国家/地区，覆盖 ${fmt(overview.institutions)} 个合作机构。</p>
+          <h3>合作覆盖</h3>
+          <p class="muted">当前样例库已识别 ${fmt(overview.sample_countries || overview.countries)} 个合作国家/地区，覆盖 ${fmt(overview.sample_institutions || overview.institutions)} 个合作机构。</p>
+          <p class="muted">全量接入后，可按学校、学院、学科、国家和机构进行多维筛选与穿透分析。</p>
         </div>
       </div>
     `
@@ -130,7 +148,7 @@ async function renderMap() {
 async function renderInstitutions() {
   const rows = await api("/api/institutions?limit=30");
   shell(
-    "合作机构排行",
+    "机构排行",
     "识别高频合作机构、国家分布和近年合作状态。",
     `<div class="card">${table(rows, [
       { label: "机构", key: "institution" },
@@ -172,10 +190,10 @@ async function renderBenchmark() {
   const rows = await api("/api/benchmark");
   shell(
     "多校对标分析",
-    "比较高校国际合作规模、机构覆盖和主导能力。",
+    "基于样例数据比较高校国际合作规模、机构覆盖和主导能力。",
     `<div class="card">${table(rows, [
       { label: "学校", key: "university" },
-      { label: "论文总数", key: "papers", format: fmt },
+      { label: "样例论文数", key: "papers", format: fmt },
       { label: "国际合作论文", key: "international_papers", format: fmt },
       { label: "合作国家", key: "countries", format: fmt },
       { label: "合作机构", key: "institutions", format: fmt },
@@ -187,7 +205,7 @@ async function renderBenchmark() {
 function renderLogin() {
   shell(
     "账号只在需要时出现。",
-    "首页、地图和公开分析先直接查看；导出、完整数据和后台管理再登录。",
+    "首页、合作格局和公开分析先直接查看；导出、完整数据和后台管理再登录。",
     `
       <div class="card form">
         <label>手机号</label>
@@ -203,7 +221,7 @@ function renderLogin() {
 function renderAdmin() {
   shell(
     "管理后台",
-    "用于付费审核、用户状态和运营管理。",
+    "用于用户权限、数据接入、付费审核和运营管理。",
     `<div class="card form"><label>管理员密码</label><input type="password" /><div class="actions"><button class="button">进入后台</button></div></div>`
   );
 }

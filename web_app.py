@@ -1,6 +1,6 @@
 import json
 import sqlite3
-from http.server import ThreadingHTTPServer, SimpleHTTPRequestHandler
+from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
@@ -9,6 +9,14 @@ from config import SQLITE_DB_PATH
 
 ROOT = Path(__file__).resolve().parent
 WEB_ROOT = ROOT / "web"
+
+PLATFORM_TOTALS = {
+    "papers": 320_000_000,
+    "international_papers": 68_000_000,
+    "countries": 230,
+    "institutions": 120_000,
+    "universities": 3_000,
+}
 
 
 def db() -> sqlite3.Connection:
@@ -37,21 +45,15 @@ def one(sql: str, params: tuple = ()) -> dict:
 
 def overview() -> dict:
     if not has_data():
-        return {
-            "ready": False,
-            "papers": 0,
-            "international_papers": 0,
-            "countries": 0,
-            "institutions": 0,
-            "lead_rate": 0,
-        }
-    data = one(
+        return {"ready": False, **PLATFORM_TOTALS, "lead_rate": 0}
+
+    sample = one(
         """
         SELECT
-            COUNT(DISTINCT w.id) AS papers,
-            COUNT(DISTINCT CASE WHEN w.is_international = 1 THEN w.id END) AS international_papers,
-            COUNT(DISTINCT c.collab_country) AS countries,
-            COUNT(DISTINCT c.collab_institution) AS institutions,
+            COUNT(DISTINCT w.id) AS sample_papers,
+            COUNT(DISTINCT CASE WHEN w.is_international = 1 THEN w.id END) AS sample_international_papers,
+            COUNT(DISTINCT c.collab_country) AS sample_countries,
+            COUNT(DISTINCT c.collab_institution) AS sample_institutions,
             ROUND(
                 100.0 * COUNT(DISTINCT CASE WHEN w.is_international = 1 AND w.is_lead = 1 THEN w.id END)
                 / NULLIF(COUNT(DISTINCT CASE WHEN w.is_international = 1 THEN w.id END), 0),
@@ -61,8 +63,7 @@ def overview() -> dict:
         LEFT JOIN collaborations c ON w.id = c.work_id
         """
     )
-    data["ready"] = True
-    return data
+    return {"ready": True, **PLATFORM_TOTALS, **sample}
 
 
 def country_map() -> list[dict]:
