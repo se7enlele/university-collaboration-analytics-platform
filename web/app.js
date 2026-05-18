@@ -425,7 +425,12 @@ async function renderDashboard() {
 }
 
 async function renderMap() {
-  const [overview, analysis, universities, works] = await Promise.all([api(withUniversity("/api/overview")), loadCollaborationAnalysis(), loadUniversities(), api(withUniversity("/api/works?limit=8"))]);
+  const [overview, analysis, universities, works] = await Promise.all([
+    api(withUniversity("/api/overview")),
+    loadCollaborationAnalysis(),
+    loadUniversities(),
+    api(withUniversity("/api/works?limit=8")).catch(() => []),
+  ]);
   const top = analysis.countries.slice(0, 12);
   const regions = analysis.regions.slice(0, 6);
   const institutions = analysis.institutions.slice(0, 8);
