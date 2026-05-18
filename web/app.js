@@ -28,12 +28,8 @@ function shell(title, copy, content) {
   `;
 }
 
-function emptyState() {
-  return `<div class="card status">当前数据正在接入中，完成后将展示完整分析结果。</div>`;
-}
-
 function table(rows, columns) {
-  if (!rows.length) return emptyState();
+  if (!rows.length) return `<div class="card status">数据接入中，完成后将展示分析结果。</div>`;
   return `
     <table class="table">
       <thead><tr>${columns.map((col) => `<th>${col.label}</th>`).join("")}</tr></thead>
@@ -49,9 +45,9 @@ function table(rows, columns) {
 function platformKpis(overview) {
   return `
     <div class="kpis">
-      <div class="kpi"><strong>${big(overview.papers)}</strong><span>全球科研论文与成果</span></div>
+      <div class="kpi"><strong>${big(overview.papers)}</strong><span>全球科研成果</span></div>
       <div class="kpi"><strong>${big(overview.international_papers)}</strong><span>国际合作论文</span></div>
-      <div class="kpi"><strong>${fmt(overview.universities)}</strong><span>国内高校与科研机构</span></div>
+      <div class="kpi"><strong>${fmt(overview.universities)}</strong><span>国内高校与机构</span></div>
       <div class="kpi"><strong>${big(overview.institutions)}</strong><span>全球合作机构</span></div>
     </div>
   `;
@@ -60,10 +56,10 @@ function platformKpis(overview) {
 function sampleKpis(overview) {
   return `
     <div class="kpis">
-      <div class="kpi"><strong>${fmt(overview.sample_international_papers || overview.international_papers)}</strong><span>样例国际合作论文</span></div>
-      <div class="kpi"><strong>${fmt(overview.sample_countries || overview.countries)}</strong><span>样例合作国家/地区</span></div>
-      <div class="kpi"><strong>${fmt(overview.sample_institutions || overview.institutions)}</strong><span>样例合作机构</span></div>
-      <div class="kpi"><strong>${overview.lead_rate || 0}%</strong><span>样例主导率</span></div>
+      <div class="kpi"><strong>${fmt(overview.sample_international_papers || 0)}</strong><span>样例合作论文</span></div>
+      <div class="kpi"><strong>${fmt(overview.sample_countries || 0)}</strong><span>合作国家/地区</span></div>
+      <div class="kpi"><strong>${fmt(overview.sample_institutions || 0)}</strong><span>合作机构</span></div>
+      <div class="kpi"><strong>${overview.lead_rate || 0}%</strong><span>主导率</span></div>
     </div>
   `;
 }
@@ -71,10 +67,9 @@ function sampleKpis(overview) {
 function moduleCard(title, copy, href) {
   return `
     <a class="card module-card" href="${href}">
-      <span class="tag">平台模块</span>
+      <span class="tag">核心能力</span>
       <h3>${title}</h3>
       <p>${copy}</p>
-      <p class="muted">进入页面</p>
     </a>
   `;
 }
@@ -83,10 +78,10 @@ async function renderHome() {
   const overview = await api("/api/overview");
   app.innerHTML = `
     <section class="section hero">
-      <div>
+      <div class="hero-panel">
         <p class="eyebrow">National Research Collaboration Intelligence</p>
-        <h1>面向中国高校与科研机构的国际合作智能决策平台</h1>
-        <p class="lead">覆盖全球论文成果、合作机构、学科方向与跨校对标数据，帮助高校看清国际合作格局，识别高价值伙伴，形成可执行的合作策略。</p>
+        <h1>中国高校国际合作智能决策平台</h1>
+        <p class="lead">看清合作格局，识别高价值伙伴，形成可执行的国际合作策略。</p>
         <div class="actions">
           <a class="button" href="/map">查看合作格局</a>
           <a class="button secondary" href="/benchmark">进入对标分析</a>
@@ -95,15 +90,15 @@ async function renderHome() {
       </div>
     </section>
     <section class="section">
-      <h2 class="section-title">从全国视角，定位每所学校的合作机会。</h2>
-      <p class="section-copy">平台面向高校国际处、科研管理部门、学院和科研机构，提供合作态势、机构质量、学科热点、低效合作识别和多校对标分析。</p>
+      <h2 class="section-title">全国视角，服务每所学校。</h2>
+      <p class="section-copy">覆盖合作态势、机构质量、学科热点和多校对标，支持高校国际处与科研管理部门快速判断合作机会。</p>
       <div class="grid">
-        ${moduleCard("合作格局", "查看国家覆盖、合作机构分布和论文成果规模。", "/map")}
-        ${moduleCard("机构排行", "识别核心伙伴、潜力机构和长期沉默合作关系。", "/institutions")}
-        ${moduleCard("学科热力", "发现国际合作中的优势学科与增长方向。", "/subjects")}
-        ${moduleCard("对标分析", "跨校比较合作规模、机构覆盖和主导能力。", "/benchmark")}
-        ${moduleCard("账号开通", "完整数据、导出报告和深度分析按需开通。", "/login")}
-        ${moduleCard("管理后台", "管理用户权限、数据接入和付费审核。", "/admin")}
+        ${moduleCard("合作格局", "国家、机构与论文成果覆盖。", "/map")}
+        ${moduleCard("机构排行", "识别核心伙伴与潜力机构。", "/institutions")}
+        ${moduleCard("学科热力", "发现优势学科和增长方向。", "/subjects")}
+        ${moduleCard("对标分析", "比较合作规模、覆盖和主导能力。", "/benchmark")}
+        ${moduleCard("账号开通", "解锁完整数据与导出报告。", "/login")}
+        ${moduleCard("管理后台", "管理用户、权限与数据接入。", "/admin")}
       </div>
     </section>
   `;
@@ -115,7 +110,7 @@ async function renderMap() {
   const max = Math.max(...top.map((item) => item.papers), 1);
   shell(
     "合作格局",
-    "查看样例数据中的国际合作国家、机构覆盖和论文规模。",
+    "查看样例数据中的国家覆盖、机构覆盖和论文规模。",
     `
       ${sampleKpis(overview)}
       <div class="grid two">
@@ -137,8 +132,8 @@ async function renderMap() {
         </div>
         <div class="card">
           <h3>合作覆盖</h3>
-          <p class="muted">当前样例库已识别 ${fmt(overview.sample_countries || overview.countries)} 个合作国家/地区，覆盖 ${fmt(overview.sample_institutions || overview.institutions)} 个合作机构。</p>
-          <p class="muted">全量接入后，可按学校、学院、学科、国家和机构进行多维筛选与穿透分析。</p>
+          <p class="muted">样例库已识别 ${fmt(overview.sample_countries || 0)} 个合作国家/地区，覆盖 ${fmt(overview.sample_institutions || 0)} 个合作机构。</p>
+          <p class="muted">全量接入后，可按学校、学院、学科、国家和机构进行穿透分析。</p>
         </div>
       </div>
     `
@@ -205,7 +200,7 @@ async function renderBenchmark() {
 function renderLogin() {
   shell(
     "账号只在需要时出现。",
-    "首页、合作格局和公开分析先直接查看；导出、完整数据和后台管理再登录。",
+    "公开分析先直接查看；导出、完整数据和后台管理再登录。",
     `
       <div class="card form">
         <label>手机号</label>

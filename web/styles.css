@@ -16,9 +16,25 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(0, 110, 219, 0.12), transparent 26%),
+    radial-gradient(circle at 82% 18%, rgba(15, 118, 110, 0.12), transparent 28%),
+    linear-gradient(180deg, #f8fafc 0%, #eef3f8 48%, #f7f8fb 100%);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+  background-image:
+    linear-gradient(rgba(15, 23, 42, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.7), transparent 72%);
 }
 
 a {
@@ -75,8 +91,18 @@ a {
 .hero {
   display: grid;
   place-items: center;
-  min-height: 680px;
+  min-height: 650px;
   text-align: center;
+}
+
+.hero-panel {
+  width: 100%;
+  padding: clamp(44px, 7vw, 76px) clamp(22px, 5vw, 64px);
+  border: 1px solid rgba(255,255,255,0.72);
+  border-radius: 34px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.86), rgba(255,255,255,0.64));
+  box-shadow: 0 34px 120px rgba(15, 23, 42, 0.1);
+  backdrop-filter: blur(18px);
 }
 
 .eyebrow {
@@ -96,7 +122,7 @@ h1 {
 }
 
 .lead {
-  max-width: 760px;
+  max-width: 680px;
   margin: 24px auto 0;
   color: #374151;
   font-size: clamp(18px, 1.7vw, 24px);
@@ -188,7 +214,7 @@ h1 {
 }
 
 .module-card {
-  min-height: 220px;
+  min-height: 190px;
 }
 
 .tag {
