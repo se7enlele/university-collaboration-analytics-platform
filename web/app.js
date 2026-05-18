@@ -567,9 +567,10 @@ function renderLogin() {
           </div>
         </div>
         <div class="auth-card">
-          <div class="auth-tabs" aria-label="账号操作">
-            <button class="active">登录</button>
-            <button>申请开通</button>
+          <div class="auth-card-head">
+            <span class="tag">账号登录</span>
+            <h2>进入工作台</h2>
+            <p>用于导出报告、查看完整样本和管理团队权限。</p>
           </div>
           <div class="auth-form">
             <label>手机号</label>
@@ -582,16 +583,13 @@ function renderLogin() {
             <button class="button auth-submit">登录工作台</button>
           </div>
           <div class="auth-divider"><span>机构开通</span></div>
-          <div class="signup-panel">
-            <label>学校 / 机构名称</label>
-            <input placeholder="请输入学校或机构名称" />
-            <label>联系人</label>
-            <input placeholder="请输入联系人姓名" />
-            <label>职务 / 部门</label>
-            <input placeholder="例如：国际合作处、科研院、学院办公室" />
-            <button class="button secondary auth-submit">提交开通申请</button>
+          <div class="signup-compact">
+            <div>
+              <strong>还没有账号？</strong>
+              <span>提交机构信息后，由平台顾问确认数据范围和开通方式。</span>
+            </div>
+            <a class="button secondary" href="/admin">申请开通</a>
           </div>
-          <p class="auth-note">提交后由平台顾问联系确认数据范围、账号数量和开通方式。</p>
         </div>
       </div>
     </section>
