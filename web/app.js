@@ -119,6 +119,52 @@ async function loadCollaborationAnalysis() {
   }
 }
 
+function institutionTier(item, maxPapers) {
+  if ((item.papers || 0) >= maxPapers * 0.55 && (item.avg_cited || 0) >= 70) return "战略核心";
+  if ((item.papers || 0) >= maxPapers * 0.35) return "高频合作";
+  if ((item.avg_cited || 0) >= 90) return "高影响力";
+  if ((item.last_year || 0) < 2023) return "需重新激活";
+  return "潜力观察";
+}
+
+function buildInstitutionAnalysis(rows) {
+  const list = rows || [];
+  const maxPapers = Math.max(...list.map((item) => item.papers || 0), 1);
+  const countries = new Set(list.map((item) => item.country).filter(Boolean));
+  const avgCited = list.length ? list.reduce((sum, item) => sum + Number(item.avg_cited || 0), 0) / list.length : 0;
+  const active = list.filter((item) => (item.last_year || 0) >= 2024).length;
+  const tiered = list.map((item) => ({ ...item, tier: institutionTier(item, maxPapers) }));
+  const tierCounts = tiered.reduce((acc, item) => {
+    acc[item.tier] = (acc[item.tier] || 0) + 1;
+    return acc;
+  }, {});
+  const countryCounts = list.reduce((acc, item) => {
+    const country = item.country || "未标注";
+    const current = acc.get(country) || { country, papers: 0, institutions: 0 };
+    current.papers += item.papers || 0;
+    current.institutions += 1;
+    acc.set(country, current);
+    return acc;
+  }, new Map());
+  const countriesRank = Array.from(countryCounts.values()).sort((a, b) => b.papers - a.papers);
+  const top = tiered[0] || {};
+  return {
+    rows: tiered,
+    maxPapers,
+    countries: countries.size,
+    avgCited: avgCited.toFixed(1),
+    active,
+    tierCounts,
+    countriesRank,
+    insights: [
+      { title: "核心伙伴明确", text: `${top.institution || "头部机构"} 是当前样例库中合作频次最高的机构，合作论文 ${fmt(top.papers)} 篇。` },
+      { title: "合作质量可分层", text: `已按频次、影响力和活跃度将机构划分为战略核心、高频合作、高影响力和潜力观察。` },
+      { title: "近期活跃度可追踪", text: `${active} 个机构在 2024 年后仍保持合作记录，可优先纳入持续维护清单。` },
+      { title: "国家分布可辅助决策", text: `Top 机构覆盖 ${countries.size} 个国家/地区，可结合国家战略和学科方向制定访问计划。` },
+    ],
+  };
+}
+
 async function renderHome() {
   const overview = await api("/api/overview");
   app.innerHTML = `
@@ -250,17 +296,84 @@ async function renderMap() {
 }
 
 async function renderInstitutions() {
-  const rows = await api("/api/institutions?limit=30");
+  const rows = await api("/api/institutions?limit=50");
+  const analysis = buildInstitutionAnalysis(rows);
+  const tierEntries = Object.entries(analysis.tierCounts);
+  const countryTop = analysis.countriesRank.slice(0, 8);
+  const countryMax = Math.max(...countryTop.map((item) => item.papers), 1);
   shell(
     "机构排行",
-    "识别高频合作机构、国家分布和近年合作状态。",
-    `<div class="card">${table(rows, [
-      { label: "机构", key: "institution" },
-      { label: "国家", key: "country" },
-      { label: "论文数", key: "papers", format: fmt },
-      { label: "平均被引", key: "avg_cited" },
-      { label: "最后合作年份", key: "last_year" },
-    ])}</div>`
+    "识别核心伙伴、合作质量和机构维护优先级。",
+    `
+      <div class="kpis">
+        <div class="kpi"><strong>${fmt(rows.length)}</strong><span>样例合作机构</span></div>
+        <div class="kpi"><strong>${fmt(analysis.countries)}</strong><span>覆盖国家/地区</span></div>
+        <div class="kpi"><strong>${analysis.avgCited}</strong><span>平均被引</span></div>
+        <div class="kpi"><strong>${fmt(analysis.active)}</strong><span>近年活跃机构</span></div>
+      </div>
+      <div class="insight-grid">
+        ${analysis.insights
+          .map(
+            (item) => `
+              <div class="card insight-card">
+                <span class="tag">智能洞察</span>
+                <h3>${item.title}</h3>
+                <p>${item.text}</p>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>机构质量分层</h3>
+          <div class="tier-grid">
+            ${tierEntries
+              .map(
+                ([tier, count]) => `
+                  <div class="tier-card">
+                    <strong>${count}</strong>
+                    <span>${tier}</span>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+        </div>
+        <div class="card">
+          <h3>Top 机构国家分布</h3>
+          <div class="bar-list compact">
+            ${countryTop
+              .map(
+                (item) => `
+                  <div class="bar-row compact">
+                    <span>${item.country}</span>
+                    <div class="bar-track"><div class="bar-fill" style="width:${(item.papers / countryMax) * 100}%"></div></div>
+                    <strong>${fmt(item.papers)}</strong>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>核心合作机构清单</h3>
+        ${table(analysis.rows, [
+          { label: "机构", key: "institution" },
+          { label: "国家", key: "country" },
+          { label: "合作论文", key: "papers", format: fmt },
+          { label: "平均被引", key: "avg_cited" },
+          { label: "最近年份", key: "last_year" },
+          { label: "质量标签", key: "tier" },
+        ])}
+      </div>
+      <div class="card recommendation">
+        <span class="tag">行动建议</span>
+        <h3>把机构排行转化为伙伴维护清单。</h3>
+        <p>优先维护“战略核心”和“高影响力”机构；对“需重新激活”的机构结合学院、学科和历史项目复盘，判断是否恢复访问、联合申报或学生交流合作。</p>
+      </div>
+    `
   );
 }
 
