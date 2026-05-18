@@ -425,7 +425,7 @@ async function renderDashboard() {
 }
 
 async function renderMap() {
-  const [overview, analysis, universities] = await Promise.all([api(withUniversity("/api/overview")), loadCollaborationAnalysis(), loadUniversities()]);
+  const [overview, analysis, universities, works] = await Promise.all([api(withUniversity("/api/overview")), loadCollaborationAnalysis(), loadUniversities(), api(withUniversity("/api/works?limit=8"))]);
   const top = analysis.countries.slice(0, 12);
   const regions = analysis.regions.slice(0, 6);
   const institutions = analysis.institutions.slice(0, 8);
@@ -520,6 +520,16 @@ async function renderMap() {
         <span class="tag">行动建议</span>
         <h3>优先维护高频国家与核心机构，同时追踪区域增长点。</h3>
         <p>建议把国家排行、区域分布和核心机构名单结合使用：先锁定高频合作区域，再下钻到机构和学科方向，形成可执行的访问、续约、联合项目和学科合作清单。</p>
+      </div>
+      <div class="card">
+        <h3>最近国际合作论文样例</h3>
+        ${table(works, [
+          { label: "论文标题", key: "title" },
+          { label: "年份", key: "year" },
+          { label: "期刊/来源", key: "journal" },
+          { label: "学科", key: "domain" },
+          { label: "被引", key: "cited_by", format: fmt },
+        ])}
       </div>
       ${unlockCard("解锁合作格局下钻能力", ["点击国家查看完整机构名单", "查看合作论文标题、年份、期刊和被引次数", "按年份、学科和论文类型筛选", "导出国家与机构合作清单"])}
     `

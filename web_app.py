@@ -256,6 +256,30 @@ def subjects(limit: int = 20, university: str | None = None) -> list[dict]:
     )
 
 
+def sample_works(limit: int = 10, university: str | None = None) -> list[dict]:
+    if not has_data():
+        return []
+    params = (university, limit) if university else (limit,)
+    university_filter = "AND university = ?" if university else ""
+    return rows(
+        f"""
+        SELECT
+            title,
+            year,
+            COALESCE(NULLIF(journal, ''), '-') AS journal,
+            COALESCE(NULLIF(type, ''), '-') AS type,
+            COALESCE(NULLIF(domain, ''), '未分类') AS domain,
+            cited_by
+        FROM works
+        WHERE is_international = 1
+        {university_filter}
+        ORDER BY year DESC, cited_by DESC
+        LIMIT ?
+        """,
+        params,
+    )
+
+
 def benchmark() -> list[dict]:
     if not has_data():
         return []
@@ -401,6 +425,7 @@ API = {
     "/api/collaboration": collaboration_analysis,
     "/api/institutions": institution_rank,
     "/api/subjects": subjects,
+    "/api/works": sample_works,
     "/api/benchmark": benchmark,
     "/api/zombies": zombie_partners,
     "/api/performance": performance_dashboard,
@@ -418,7 +443,7 @@ class Handler(SimpleHTTPRequestHandler):
             limit = int(query.get("limit", ["20"])[0])
             university = query.get("university", [None])[0]
             handler = API[parsed.path]
-            if parsed.path in {"/api/institutions", "/api/subjects"}:
+            if parsed.path in {"/api/institutions", "/api/subjects", "/api/works"}:
                 payload = handler(limit, university)
             elif parsed.path in {"/api/overview", "/api/map", "/api/collaboration", "/api/zombies", "/api/performance"}:
                 payload = handler(university)
