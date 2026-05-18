@@ -165,6 +165,59 @@ function buildInstitutionAnalysis(rows) {
   };
 }
 
+function buildSubjectAnalysis(data) {
+  const rows = data || [];
+  const total = rows.reduce((sum, item) => sum + Number(item.papers || 0), 0);
+  const max = Math.max(...rows.map((item) => item.papers || 0), 1);
+  const top = rows[0] || {};
+  const topShare = total ? ((top.papers || 0) / total * 100).toFixed(1) : 0;
+  const highImpact = rows.filter((item) => Number(item.avg_cited || 0) >= 50).length;
+  const opportunity = rows.find((item) => Number(item.avg_cited || 0) >= 50 && item !== top) || rows[1] || top;
+  return {
+    rows,
+    total,
+    max,
+    top,
+    topShare,
+    highImpact,
+    opportunity,
+    insights: [
+      { title: "优势方向集中", text: `${top.domain || "重点学科"} 是当前样例库中合作最集中的方向，占学科样例论文约 ${topShare}%。` },
+      { title: "高影响领域可优先布局", text: `${highImpact} 个方向平均被引较高，适合结合学院优势判断联合项目机会。` },
+      { title: "潜力方向值得下钻", text: `${opportunity.domain || "潜力方向"} 同时具备合作规模和影响力，可作为重点观察方向。` },
+      { title: "学科组合可服务决策", text: "将学科热度与合作国家、机构排行结合，可形成更清晰的国际合作路线图。" },
+    ],
+  };
+}
+
+function buildBenchmarkAnalysis(rows) {
+  const list = rows || [];
+  const topPapers = [...list].sort((a, b) => (b.international_papers || 0) - (a.international_papers || 0))[0] || {};
+  const topCountries = [...list].sort((a, b) => (b.countries || 0) - (a.countries || 0))[0] || {};
+  const topInstitutions = [...list].sort((a, b) => (b.institutions || 0) - (a.institutions || 0))[0] || {};
+  const topLead = [...list].sort((a, b) => (b.lead_rate || 0) - (a.lead_rate || 0))[0] || {};
+  const avgLead = list.length ? list.reduce((sum, item) => sum + Number(item.lead_rate || 0), 0) / list.length : 0;
+  const avgInternational = list.length ? list.reduce((sum, item) => sum + Number(item.international_papers || 0), 0) / list.length : 0;
+  const scored = list.map((item) => ({
+    ...item,
+    tier: (item.lead_rate || 0) >= avgLead && (item.international_papers || 0) >= avgInternational ? "综合领先" : (item.lead_rate || 0) >= avgLead ? "主导优势" : (item.international_papers || 0) >= avgInternational ? "规模优势" : "追赶提升",
+  }));
+  return {
+    rows: scored,
+    topPapers,
+    topCountries,
+    topInstitutions,
+    topLead,
+    avgLead: avgLead.toFixed(1),
+    insights: [
+      { title: "规模标杆", text: `${topPapers.university || "标杆学校"} 在样例国际合作论文规模上领先，可作为合作规模对标对象。` },
+      { title: "覆盖标杆", text: `${topCountries.university || "标杆学校"} 的合作国家覆盖更广，适合参考其区域布局。` },
+      { title: "网络标杆", text: `${topInstitutions.university || "标杆学校"} 的合作机构覆盖更强，可用于比较伙伴网络广度。` },
+      { title: "主导标杆", text: `${topLead.university || "标杆学校"} 的主导率较高，适合分析其牵头合作模式。` },
+    ],
+  };
+}
+
 async function renderHome() {
   const overview = await api("/api/overview");
   app.innerHTML = `
@@ -379,24 +432,64 @@ async function renderInstitutions() {
 
 async function renderSubjects() {
   const data = await api("/api/subjects?limit=12");
-  const max = Math.max(...data.map((item) => item.papers), 1);
+  const analysis = buildSubjectAnalysis(data);
   shell(
     "学科热力",
-    "查看国际合作论文集中在哪些学科领域。",
+    "识别国际合作中的优势学科、高影响方向和潜在增长点。",
     `
+      <div class="kpis">
+        <div class="kpi"><strong>${fmt(analysis.total)}</strong><span>样例学科论文</span></div>
+        <div class="kpi"><strong>${fmt(analysis.rows.length)}</strong><span>学科方向</span></div>
+        <div class="kpi"><strong>${analysis.topShare}%</strong><span>第一方向占比</span></div>
+        <div class="kpi"><strong>${fmt(analysis.highImpact)}</strong><span>高影响方向</span></div>
+      </div>
+      <div class="insight-grid">
+        ${analysis.insights
+          .map(
+            (item) => `
+              <div class="card insight-card">
+                <span class="tag">智能洞察</span>
+                <h3>${item.title}</h3>
+                <p>${item.text}</p>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
       <div class="card">
+        <h3>学科合作热度</h3>
         <div class="bar-list">
-          ${data
+          ${analysis.rows
             .map(
               (item) => `
                 <div class="bar-row">
                   <span>${item.domain}</span>
-                  <div class="bar-track"><div class="bar-fill green" style="width:${(item.papers / max) * 100}%"></div></div>
+                  <div class="bar-track"><div class="bar-fill green" style="width:${(item.papers / analysis.max) * 100}%"></div></div>
                   <strong>${fmt(item.papers)}</strong>
                 </div>
               `
             )
             .join("")}
+        </div>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>高影响方向</h3>
+          ${table(
+            analysis.rows
+              .filter((item) => Number(item.avg_cited || 0) >= 50)
+              .slice(0, 8),
+            [
+              { label: "学科方向", key: "domain" },
+              { label: "论文数", key: "papers", format: fmt },
+              { label: "平均被引", key: "avg_cited" },
+            ]
+          )}
+        </div>
+        <div class="card recommendation">
+          <span class="tag">行动建议</span>
+          <h3>用学科热度确定合作优先级。</h3>
+          <p>优先选择“规模较高 + 影响力较高”的方向进入学院层面复盘，再结合国家和机构排行形成目标伙伴清单。</p>
         </div>
       </div>
     `
@@ -405,17 +498,48 @@ async function renderSubjects() {
 
 async function renderBenchmark() {
   const rows = await api("/api/benchmark");
+  const analysis = buildBenchmarkAnalysis(rows);
   shell(
     "多校对标分析",
-    "基于样例数据比较高校国际合作规模、机构覆盖和主导能力。",
-    `<div class="card">${table(rows, [
-      { label: "学校", key: "university" },
-      { label: "样例论文数", key: "papers", format: fmt },
-      { label: "国际合作论文", key: "international_papers", format: fmt },
-      { label: "合作国家", key: "countries", format: fmt },
-      { label: "合作机构", key: "institutions", format: fmt },
-      { label: "主导率", key: "lead_rate", format: (value) => `${value || 0}%` },
-    ])}</div>`
+    "比较高校国际合作规模、覆盖能力、伙伴网络和主导能力。",
+    `
+      <div class="kpis">
+        <div class="kpi"><strong>${analysis.topPapers.university || "-"}</strong><span>规模标杆</span></div>
+        <div class="kpi"><strong>${analysis.topCountries.university || "-"}</strong><span>覆盖标杆</span></div>
+        <div class="kpi"><strong>${analysis.topLead.university || "-"}</strong><span>主导标杆</span></div>
+        <div class="kpi"><strong>${analysis.avgLead}%</strong><span>平均主导率</span></div>
+      </div>
+      <div class="insight-grid">
+        ${analysis.insights
+          .map(
+            (item) => `
+              <div class="card insight-card">
+                <span class="tag">智能洞察</span>
+                <h3>${item.title}</h3>
+                <p>${item.text}</p>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
+      <div class="card">
+        <h3>高校对标矩阵</h3>
+        ${table(analysis.rows, [
+          { label: "学校", key: "university" },
+          { label: "样例论文数", key: "papers", format: fmt },
+          { label: "国际合作论文", key: "international_papers", format: fmt },
+          { label: "合作国家", key: "countries", format: fmt },
+          { label: "合作机构", key: "institutions", format: fmt },
+          { label: "主导率", key: "lead_rate", format: (value) => `${value || 0}%` },
+          { label: "对标类型", key: "tier" },
+        ])}
+      </div>
+      <div class="card recommendation">
+        <span class="tag">行动建议</span>
+        <h3>把对标结果拆成规模、覆盖、网络和主导四类目标。</h3>
+        <p>规模落后时优先扩大合作产出；覆盖不足时拓展国家和机构网络；主导率不足时重点提升牵头项目、通讯作者和联合平台建设能力。</p>
+      </div>
+    `
   );
 }
 
