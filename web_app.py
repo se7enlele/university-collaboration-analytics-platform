@@ -1,5 +1,7 @@
 import json
+import os
 import sqlite3
+from datetime import datetime
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
@@ -85,6 +87,22 @@ def country_map() -> list[dict]:
     )
 
 
+def region_name(country: str) -> str:
+    europe = {"United Kingdom", "Germany", "France", "Italy", "Spain", "Sweden", "Netherlands", "Switzerland", "Russian Federation", "Portugal", "Poland", "Greece", "Belgium", "Denmark", "Finland", "Norway", "Austria", "Ireland", "Czechia", "Hungary"}
+    asia = {"Japan", "Singapore", "Hong Kong", "South Korea", "India", "Malaysia", "Thailand", "Pakistan", "Saudi Arabia", "United Arab Emirates", "Israel", "Turkey", "Iran", "Indonesia"}
+    north_america = {"United States", "Canada", "Mexico"}
+    oceania = {"Australia", "New Zealand"}
+    if country in europe:
+        return "欧洲"
+    if country in asia:
+        return "亚洲"
+    if country in north_america:
+        return "北美"
+    if country in oceania:
+        return "大洋洲"
+    return "其他地区"
+
+
 def institution_rank(limit: int = 20) -> list[dict]:
     if not has_data():
         return []
@@ -105,6 +123,70 @@ def institution_rank(limit: int = 20) -> list[dict]:
         """,
         (limit,),
     )
+
+
+def collaboration_analysis() -> dict:
+    if not has_data():
+        return {"countries": [], "regions": [], "institutions": [], "trend": [], "insights": []}
+
+    countries_all = country_map()
+    countries = countries_all[:20]
+    institutions = institution_rank(10)
+    trend = rows(
+        """
+        SELECT
+            w.year AS year,
+            COUNT(DISTINCT w.id) AS papers,
+            COUNT(DISTINCT c.collab_country) AS countries,
+            COUNT(DISTINCT c.collab_institution) AS institutions
+        FROM works w
+        JOIN collaborations c ON w.id = c.work_id
+        WHERE w.is_international = 1 AND w.year IS NOT NULL AND w.year < ?
+        GROUP BY w.year
+        ORDER BY w.year DESC
+        LIMIT 8
+        """,
+        (datetime.now().year,),
+    )
+    trend = list(reversed(trend))
+
+    region_totals: dict[str, dict] = {}
+    for item in countries_all:
+        region = region_name(item.get("name") or "")
+        current = region_totals.setdefault(region, {"region": region, "papers": 0, "countries": 0, "institutions": 0})
+        current["papers"] += item.get("papers") or 0
+        current["countries"] += 1
+        current["institutions"] += item.get("institutions") or 0
+    regions = sorted(region_totals.values(), key=lambda item: item["papers"], reverse=True)
+
+    top_country = countries[0] if countries else {}
+    top_region = regions[0] if regions else {}
+    top_institution = institutions[0] if institutions else {}
+    latest = trend[-1] if trend else {}
+    earliest = trend[0] if trend else {}
+    growth = 0
+    if earliest.get("papers"):
+        growth = round((latest.get("papers", 0) - earliest["papers"]) / earliest["papers"] * 100, 1)
+
+    insights = [
+        {
+            "title": "合作重心清晰",
+            "text": f"{top_country.get('name', '重点国家')} 是当前样例库中最核心的合作国家，贡献 {top_country.get('papers', 0):,} 篇合作论文。",
+        },
+        {
+            "title": "区域集聚明显",
+            "text": f"{top_region.get('region', '重点区域')} 是合作最集中的区域，覆盖 {top_region.get('countries', 0)} 个国家/地区。",
+        },
+        {
+            "title": "核心机构可优先维护",
+            "text": f"{top_institution.get('institution', '高频合作机构')} 是高频合作伙伴，可作为稳定合作关系维护对象。",
+        },
+        {
+            "title": "趋势变化可追踪",
+            "text": f"样例库近年合作论文变化约为 {growth}%，适合继续结合学院和学科维度判断增长来源。",
+        },
+    ]
+    return {"countries": countries, "regions": regions, "institutions": institutions, "trend": trend, "insights": insights}
 
 
 def subjects(limit: int = 20) -> list[dict]:
@@ -163,6 +245,7 @@ def benchmark() -> list[dict]:
 API = {
     "/api/overview": overview,
     "/api/map": country_map,
+    "/api/collaboration": collaboration_analysis,
     "/api/institutions": institution_rank,
     "/api/subjects": subjects,
     "/api/benchmark": benchmark,
@@ -197,8 +280,9 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main() -> None:
-    server = ThreadingHTTPServer(("0.0.0.0", 8000), Handler)
-    print("Web app running at http://127.0.0.1:8000")
+    port = int(os.getenv("WEB_PORT", "8000"))
+    server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
+    print(f"Web app running at http://127.0.0.1:{port}")
     server.serve_forever()
 
 

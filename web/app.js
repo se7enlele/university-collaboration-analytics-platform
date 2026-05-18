@@ -105,14 +105,31 @@ async function renderHome() {
 }
 
 async function renderMap() {
-  const [overview, data] = await Promise.all([api("/api/overview"), api("/api/map")]);
-  const top = data.slice(0, 12);
+  const [overview, analysis] = await Promise.all([api("/api/overview"), api("/api/collaboration")]);
+  const top = analysis.countries.slice(0, 12);
+  const regions = analysis.regions.slice(0, 6);
+  const institutions = analysis.institutions.slice(0, 8);
+  const trend = analysis.trend;
   const max = Math.max(...top.map((item) => item.papers), 1);
+  const regionMax = Math.max(...regions.map((item) => item.papers), 1);
   shell(
     "合作格局",
-    "查看样例数据中的国家覆盖、机构覆盖和论文规模。",
+    "从国家、区域、机构和趋势四个维度识别国际合作机会。",
     `
       ${sampleKpis(overview)}
+      <div class="insight-grid">
+        ${analysis.insights
+          .map(
+            (item) => `
+              <div class="card insight-card">
+                <span class="tag">智能洞察</span>
+                <h3>${item.title}</h3>
+                <p>${item.text}</p>
+              </div>
+            `
+          )
+          .join("")}
+      </div>
       <div class="grid two">
         <div class="card">
           <h3>合作国家排行</h3>
@@ -131,10 +148,53 @@ async function renderMap() {
           </div>
         </div>
         <div class="card">
-          <h3>合作覆盖</h3>
-          <p class="muted">样例库已识别 ${fmt(overview.sample_countries || 0)} 个合作国家/地区，覆盖 ${fmt(overview.sample_institutions || 0)} 个合作机构。</p>
-          <p class="muted">全量接入后，可按学校、学院、学科、国家和机构进行穿透分析。</p>
+          <h3>区域分布</h3>
+          <div class="bar-list compact">
+            ${regions
+              .map(
+                (item) => `
+                  <div class="bar-row compact">
+                    <span>${item.region}</span>
+                    <div class="bar-track"><div class="bar-fill green" style="width:${(item.papers / regionMax) * 100}%"></div></div>
+                    <strong>${fmt(item.papers)}</strong>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
         </div>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>核心合作机构</h3>
+          ${table(institutions, [
+            { label: "机构", key: "institution" },
+            { label: "国家", key: "country" },
+            { label: "论文数", key: "papers", format: fmt },
+            { label: "平均被引", key: "avg_cited" },
+          ])}
+        </div>
+        <div class="card">
+          <h3>近年合作趋势</h3>
+          <div class="trend-list">
+            ${trend
+              .map(
+                (item) => `
+                  <div class="trend-row">
+                    <span>${item.year}</span>
+                    <strong>${fmt(item.papers)}</strong>
+                    <small>${fmt(item.countries)} 国 / ${fmt(item.institutions)} 机构</small>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+        </div>
+      </div>
+      <div class="card recommendation">
+        <span class="tag">行动建议</span>
+        <h3>优先维护高频国家与核心机构，同时追踪区域增长点。</h3>
+        <p>建议把国家排行、区域分布和核心机构名单结合使用：先锁定高频合作区域，再下钻到机构和学科方向，形成可执行的访问、续约、联合项目和学科合作清单。</p>
       </div>
     `
   );
