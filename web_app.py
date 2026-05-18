@@ -348,6 +348,52 @@ def zombie_partners(university: str | None = None) -> dict:
     return {"summary": summary, "partners": [*zombies, *warnings, *active]}
 
 
+def performance_dashboard(university: str | None = None) -> dict:
+    if not has_data():
+        return {"metrics": {}, "trend": [], "benchmarks": []}
+    params = (university,) if university else ()
+    work_where = "WHERE university = ?" if university else ""
+    metrics = one(
+        f"""
+        SELECT
+            COUNT(*) AS papers,
+            COUNT(CASE WHEN is_international = 1 THEN 1 END) AS international_papers,
+            ROUND(100.0 * COUNT(CASE WHEN is_international = 1 THEN 1 END) / NULLIF(COUNT(*), 0), 1) AS international_share,
+            COUNT(CASE WHEN is_international = 1 AND cited_by = 0 THEN 1 END) AS zero_cited,
+            ROUND(100.0 * COUNT(CASE WHEN is_international = 1 AND cited_by = 0 THEN 1 END) / NULLIF(COUNT(CASE WHEN is_international = 1 THEN 1 END), 0), 1) AS zero_cited_rate,
+            COUNT(CASE WHEN is_international = 1 AND is_lead = 1 THEN 1 END) AS lead_papers,
+            ROUND(100.0 * COUNT(CASE WHEN is_international = 1 AND is_lead = 1 THEN 1 END) / NULLIF(COUNT(CASE WHEN is_international = 1 THEN 1 END), 0), 1) AS lead_rate
+        FROM works
+        {work_where}
+        """,
+        params,
+    )
+    trend_params = (university, datetime.now().year) if university else (datetime.now().year,)
+    trend_filter = "AND university = ?" if university else ""
+    trend = rows(
+        f"""
+        SELECT
+            year,
+            COUNT(CASE WHEN is_international = 1 THEN 1 END) AS international_papers
+        FROM works
+        WHERE year IS NOT NULL
+        {trend_filter}
+        AND year < ?
+        GROUP BY year
+        ORDER BY year DESC
+        LIMIT 5
+        """,
+        trend_params,
+    )
+    trend = list(reversed(trend))
+    growth = 0
+    if len(trend) >= 2 and trend[0].get("international_papers"):
+        growth = round((trend[-1]["international_papers"] - trend[0]["international_papers"]) / trend[0]["international_papers"] * 100, 1)
+    metrics["growth_rate"] = growth
+    metrics["selected_university"] = university
+    return {"metrics": metrics, "trend": trend, "benchmarks": benchmark()}
+
+
 API = {
     "/api/universities": universities,
     "/api/overview": overview,
@@ -357,6 +403,7 @@ API = {
     "/api/subjects": subjects,
     "/api/benchmark": benchmark,
     "/api/zombies": zombie_partners,
+    "/api/performance": performance_dashboard,
 }
 
 
@@ -373,14 +420,14 @@ class Handler(SimpleHTTPRequestHandler):
             handler = API[parsed.path]
             if parsed.path in {"/api/institutions", "/api/subjects"}:
                 payload = handler(limit, university)
-            elif parsed.path in {"/api/overview", "/api/map", "/api/collaboration", "/api/zombies"}:
+            elif parsed.path in {"/api/overview", "/api/map", "/api/collaboration", "/api/zombies", "/api/performance"}:
                 payload = handler(university)
             else:
                 payload = handler()
             self.send_json(payload)
             return
 
-        if parsed.path in {"/", "/map", "/institutions", "/subjects", "/benchmark", "/zombies", "/admin", "/login"}:
+        if parsed.path in {"/", "/map", "/institutions", "/subjects", "/benchmark", "/zombies", "/dashboard", "/admin", "/login"}:
             self.path = "/index.html"
         super().do_GET()
 

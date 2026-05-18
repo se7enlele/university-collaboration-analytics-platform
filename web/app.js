@@ -341,14 +341,86 @@ async function renderHome() {
       <p class="section-copy">公开页面先展示国家、机构、学科和对标的宏观结果；具体机构名单、历史明细、导出报告和后台权限在登录后开放。</p>
       <div class="grid">
         ${moduleCard("合作格局", "国家、机构与论文成果覆盖。", "/map")}
+        ${moduleCard("绩效驾驶舱", "形成面向领导汇报的指标看板。", "/dashboard")}
         ${moduleCard("机构排行", "识别核心伙伴与潜力机构。", "/institutions")}
         ${moduleCard("沉默关系", "找出长期无产出的合作伙伴。", "/zombies")}
         ${moduleCard("学科热力", "发现优势学科和增长方向。", "/subjects")}
         ${moduleCard("对标分析", "比较合作规模、覆盖和主导能力。", "/benchmark")}
-        ${moduleCard("账号开通", "解锁完整数据与导出报告。", "/login")}
       </div>
     </section>
   `;
+  bindSchoolSelector();
+}
+
+async function renderDashboard() {
+  const [data, universities] = await Promise.all([api(withUniversity("/api/performance")), loadUniversities()]);
+  const metrics = data.metrics || {};
+  const trend = data.trend || [];
+  const benchmarkRows = data.benchmarks || [];
+  shell(
+    "绩效驾驶舱",
+    "把国际合作成果转化为处长和校领导能快速理解的绩效指标、趋势变化和汇报素材。",
+    `
+      <div class="kpis">
+        <div class="kpi"><strong>${fmt(metrics.international_papers)}</strong><span>国际合作论文</span></div>
+        <div class="kpi"><strong>${metrics.international_share || 0}%</strong><span>国际合著占比</span></div>
+        <div class="kpi"><strong>${metrics.growth_rate || 0}%</strong><span>近五年变化</span></div>
+        <div class="kpi"><strong>${metrics.zero_cited_rate || 0}%</strong><span>零被引风险</span></div>
+      </div>
+      ${schoolSelector(universities)}
+      <div class="insight-grid">
+        <div class="card insight-card">
+          <span class="tag">领导视角</span>
+          <h3>先看成果，再看问题</h3>
+          <p>用国际合作论文、合著占比和增长变化说明国际化工作的实际产出。</p>
+        </div>
+        <div class="card insight-card">
+          <span class="tag">质量视角</span>
+          <h3>关注零被引和主导性</h3>
+          <p>零被引率和主导率可以帮助判断合作是否真正形成高质量成果。</p>
+        </div>
+        <div class="card insight-card">
+          <span class="tag">汇报视角</span>
+          <h3>指标要能直接复用</h3>
+          <p>驾驶舱指标适合进入年终总结、双一流评估和国际处工作汇报。</p>
+        </div>
+        <div class="card insight-card">
+          <span class="tag">下一步</span>
+          <h3>从看板进入行动</h3>
+          <p>发现问题后，可继续下钻到合作国家、机构质量和沉默关系清单。</p>
+        </div>
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>近年国际合作产出</h3>
+          <div class="trend-list">
+            ${trend.map((item) => `
+              <div class="trend-row">
+                <span>${item.year}</span>
+                <strong>${fmt(item.international_papers)}</strong>
+                <small>国际合作论文</small>
+              </div>
+            `).join("")}
+          </div>
+        </div>
+        <div class="card">
+          <h3>同批高校对标</h3>
+          ${table(benchmarkRows, [
+            { label: "学校", key: "university" },
+            { label: "国际合作论文", key: "international_papers", format: fmt },
+            { label: "合作国家", key: "countries", format: fmt },
+            { label: "主导率", key: "lead_rate", format: (value) => `${value || 0}%` },
+          ])}
+        </div>
+      </div>
+      <div class="card recommendation">
+        <span class="tag">汇报建议</span>
+        <h3>用一页讲清国际化工作成效。</h3>
+        <p>建议围绕“规模、质量、趋势、问题、下一步行动”组织汇报：先证明产出，再指出沉默关系、低主导合作和潜力方向，最后形成年度合作策略。</p>
+      </div>
+      ${unlockCard("解锁一键绩效报告", ["生成 PDF/Word 领导简报", "导出全部图表和指标解释", "与全国均值和全球基准对比", "保存年度汇报模板和历史版本"])}
+    `
+  );
   bindSchoolSelector();
 }
 
@@ -794,6 +866,7 @@ function renderAdmin() {
 const routes = {
   "/": renderHome,
   "/map": renderMap,
+  "/dashboard": renderDashboard,
   "/institutions": renderInstitutions,
   "/zombies": renderZombies,
   "/subjects": renderSubjects,
