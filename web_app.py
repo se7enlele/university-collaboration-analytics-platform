@@ -45,45 +45,77 @@ def one(sql: str, params: tuple = ()) -> dict:
     return result[0] if result else {}
 
 
-def overview() -> dict:
-    if not has_data():
-        return {"ready": False, **PLATFORM_TOTALS, "lead_rate": 0}
-
-    sample = one(
-        """
-        SELECT
-            COUNT(DISTINCT w.id) AS sample_papers,
-            COUNT(DISTINCT CASE WHEN w.is_international = 1 THEN w.id END) AS sample_international_papers,
-            COUNT(DISTINCT c.collab_country) AS sample_countries,
-            COUNT(DISTINCT c.collab_institution) AS sample_institutions,
-            ROUND(
-                100.0 * COUNT(DISTINCT CASE WHEN w.is_international = 1 AND w.is_lead = 1 THEN w.id END)
-                / NULLIF(COUNT(DISTINCT CASE WHEN w.is_international = 1 THEN w.id END), 0),
-                1
-            ) AS lead_rate
-        FROM works w
-        LEFT JOIN collaborations c ON w.id = c.work_id
-        """
-    )
-    return {"ready": True, **PLATFORM_TOTALS, **sample}
-
-
-def country_map() -> list[dict]:
+def universities() -> list[dict]:
     if not has_data():
         return []
     return rows(
         """
         SELECT
-            c.collab_country AS code,
-            c.collab_country_name AS name,
-            COUNT(DISTINCT w.id) AS papers,
-            COUNT(DISTINCT c.collab_institution) AS institutions
-        FROM works w
-        JOIN collaborations c ON w.id = c.work_id
-        WHERE c.collab_country != ''
-        GROUP BY c.collab_country, c.collab_country_name
-        ORDER BY papers DESC
+            university,
+            COUNT(DISTINCT id) AS papers,
+            COUNT(DISTINCT CASE WHEN is_international = 1 THEN id END) AS international_papers
+        FROM works
+        WHERE university IS NOT NULL AND university != ''
+        GROUP BY university
+        ORDER BY international_papers DESC, papers DESC
         """
+    )
+
+
+def overview(university: str | None = None) -> dict:
+    if not has_data():
+        return {"ready": False, **PLATFORM_TOTALS, "lead_rate": 0}
+
+    work_where = "WHERE university = ?" if university else ""
+    collab_where = "WHERE university = ?" if university else ""
+    params = (university,) if university else ()
+    work_sample = one(
+        f"""
+        SELECT
+            COUNT(*) AS sample_papers,
+            COUNT(CASE WHEN is_international = 1 THEN 1 END) AS sample_international_papers,
+            ROUND(
+                100.0 * COUNT(CASE WHEN is_international = 1 AND is_lead = 1 THEN 1 END)
+                / NULLIF(COUNT(CASE WHEN is_international = 1 THEN 1 END), 0),
+                1
+            ) AS lead_rate
+        FROM works
+        {work_where}
+        """,
+        params,
+    )
+    collab_sample = one(
+        f"""
+        SELECT
+            COUNT(DISTINCT collab_country) AS sample_countries,
+            COUNT(DISTINCT collab_institution) AS sample_institutions
+        FROM collaborations
+        {collab_where}
+        """,
+        params,
+    )
+    return {"ready": True, **PLATFORM_TOTALS, "selected_university": university, **work_sample, **collab_sample}
+
+
+def country_map(university: str | None = None) -> list[dict]:
+    if not has_data():
+        return []
+    params = (university,) if university else ()
+    university_filter = "AND university = ?" if university else ""
+    return rows(
+        f"""
+        SELECT
+            collab_country AS code,
+            collab_country_name AS name,
+            COUNT(DISTINCT work_id) AS papers,
+            COUNT(DISTINCT collab_institution) AS institutions
+        FROM collaborations
+        WHERE collab_country != ''
+        {university_filter}
+        GROUP BY collab_country, collab_country_name
+        ORDER BY papers DESC
+        """,
+        params,
     )
 
 
@@ -103,11 +135,13 @@ def region_name(country: str) -> str:
     return "其他地区"
 
 
-def institution_rank(limit: int = 20) -> list[dict]:
+def institution_rank(limit: int = 20, university: str | None = None) -> list[dict]:
     if not has_data():
         return []
+    params = (university, limit) if university else (limit,)
+    university_filter = "AND c.university = ?" if university else ""
     return rows(
-        """
+        f"""
         SELECT
             c.collab_institution AS institution,
             c.collab_country_name AS country,
@@ -117,23 +151,26 @@ def institution_rank(limit: int = 20) -> list[dict]:
         FROM works w
         JOIN collaborations c ON w.id = c.work_id
         WHERE w.is_international = 1
+        {university_filter}
         GROUP BY c.collab_institution, c.collab_country_name
         ORDER BY papers DESC
         LIMIT ?
         """,
-        (limit,),
+        params,
     )
 
 
-def collaboration_analysis() -> dict:
+def collaboration_analysis(university: str | None = None) -> dict:
     if not has_data():
         return {"countries": [], "regions": [], "institutions": [], "trend": [], "insights": []}
 
-    countries_all = country_map()
+    countries_all = country_map(university)
     countries = countries_all[:20]
-    institutions = institution_rank(10)
+    institutions = institution_rank(10, university)
+    params = (university, datetime.now().year) if university else (datetime.now().year,)
+    university_filter = "AND w.university = ?" if university else ""
     trend = rows(
-        """
+        f"""
         SELECT
             w.year AS year,
             COUNT(DISTINCT w.id) AS papers,
@@ -141,12 +178,14 @@ def collaboration_analysis() -> dict:
             COUNT(DISTINCT c.collab_institution) AS institutions
         FROM works w
         JOIN collaborations c ON w.id = c.work_id
-        WHERE w.is_international = 1 AND w.year IS NOT NULL AND w.year < ?
+        WHERE w.is_international = 1
+        {university_filter}
+        AND w.year IS NOT NULL AND w.year < ?
         GROUP BY w.year
         ORDER BY w.year DESC
         LIMIT 8
         """,
-        (datetime.now().year,),
+        params,
     )
     trend = list(reversed(trend))
 
@@ -189,22 +228,25 @@ def collaboration_analysis() -> dict:
     return {"countries": countries, "regions": regions, "institutions": institutions, "trend": trend, "insights": insights}
 
 
-def subjects(limit: int = 20) -> list[dict]:
+def subjects(limit: int = 20, university: str | None = None) -> list[dict]:
     if not has_data():
         return []
+    params = (university, limit) if university else (limit,)
+    university_filter = "AND university = ?" if university else ""
     return rows(
-        """
+        f"""
         SELECT
             COALESCE(NULLIF(domain, ''), '未分类') AS domain,
             COUNT(*) AS papers,
             ROUND(AVG(cited_by), 1) AS avg_cited
         FROM works
         WHERE is_international = 1
+        {university_filter}
         GROUP BY COALESCE(NULLIF(domain, ''), '未分类')
         ORDER BY papers DESC
         LIMIT ?
         """,
-        (limit,),
+        params,
     )
 
 
@@ -243,6 +285,7 @@ def benchmark() -> list[dict]:
 
 
 API = {
+    "/api/universities": universities,
     "/api/overview": overview,
     "/api/map": country_map,
     "/api/collaboration": collaboration_analysis,
@@ -261,8 +304,14 @@ class Handler(SimpleHTTPRequestHandler):
         if parsed.path in API:
             query = parse_qs(parsed.query)
             limit = int(query.get("limit", ["20"])[0])
+            university = query.get("university", [None])[0]
             handler = API[parsed.path]
-            payload = handler(limit) if parsed.path in {"/api/institutions", "/api/subjects"} else handler()
+            if parsed.path in {"/api/institutions", "/api/subjects"}:
+                payload = handler(limit, university)
+            elif parsed.path in {"/api/overview", "/api/map", "/api/collaboration"}:
+                payload = handler(university)
+            else:
+                payload = handler()
             self.send_json(payload)
             return
 

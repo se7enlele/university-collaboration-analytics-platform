@@ -185,6 +185,43 @@ h1 {
   color: var(--blue);
 }
 
+.school-selector {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  width: min(720px, 100%);
+  margin: 34px auto 0;
+  padding: 14px 16px 14px 18px;
+  border: 1px solid rgba(138, 150, 168, 0.22);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 18px 54px rgba(15, 23, 42, 0.08);
+  text-align: left;
+}
+
+.section > .school-selector {
+  margin: 0 0 24px;
+}
+
+.school-selector strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+}
+
+.school-selector select {
+  width: min(280px, 100%);
+  height: 46px;
+  padding: 0 42px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+}
+
 .section-title {
   margin: 0 0 12px;
   font-size: clamp(34px, 4vw, 48px);
@@ -670,6 +707,15 @@ h1 {
   .auth-layout,
   .auth-benefits {
     grid-template-columns: 1fr;
+  }
+
+  .school-selector {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .school-selector select {
+    width: 100%;
   }
 
   .auth-copy h1 {

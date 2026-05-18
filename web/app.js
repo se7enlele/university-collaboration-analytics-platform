@@ -1,5 +1,7 @@
 const app = document.querySelector("#app");
 const nf = new Intl.NumberFormat("zh-CN");
+let universitiesCache = null;
+let selectedUniversity = localStorage.getItem("selectedUniversity") || "山东大学";
 
 async function api(path) {
   const response = await fetch(path);
@@ -9,6 +11,11 @@ async function api(path) {
 
 function fmt(value) {
   return nf.format(Number(value || 0));
+}
+
+function withUniversity(path) {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}university=${encodeURIComponent(selectedUniversity)}`;
 }
 
 function big(value) {
@@ -74,6 +81,39 @@ function moduleCard(title, copy, href) {
   `;
 }
 
+async function loadUniversities() {
+  if (!universitiesCache) universitiesCache = await api("/api/universities");
+  if (!universitiesCache.some((item) => item.university === selectedUniversity) && universitiesCache[0]) {
+    selectedUniversity = universitiesCache[0].university;
+    localStorage.setItem("selectedUniversity", selectedUniversity);
+  }
+  return universitiesCache;
+}
+
+function schoolSelector(universities) {
+  return `
+    <div class="school-selector">
+      <div>
+        <span class="tag">当前学校</span>
+        <strong>${selectedUniversity}</strong>
+      </div>
+      <select id="schoolSelect" aria-label="选择学校">
+        ${universities.map((item) => `<option value="${item.university}" ${item.university === selectedUniversity ? "selected" : ""}>${item.university}</option>`).join("")}
+      </select>
+    </div>
+  `;
+}
+
+function bindSchoolSelector() {
+  const select = document.querySelector("#schoolSelect");
+  if (!select) return;
+  select.addEventListener("change", () => {
+    selectedUniversity = select.value;
+    localStorage.setItem("selectedUniversity", selectedUniversity);
+    (routes[location.pathname] || renderHome)();
+  });
+}
+
 function scenarioCard(title, copy, action, href) {
   return `
     <a class="card scenario-card" href="${href}">
@@ -98,9 +138,9 @@ function regionName(country) {
 
 async function loadCollaborationAnalysis() {
   try {
-    return await api("/api/collaboration");
+    return await api(withUniversity("/api/collaboration"));
   } catch (_) {
-    const [countries, institutions] = await Promise.all([api("/api/map"), api("/api/institutions?limit=10")]);
+    const [countries, institutions] = await Promise.all([api(withUniversity("/api/map")), api(withUniversity("/api/institutions?limit=10"))]);
     const regionMap = new Map();
     countries.forEach((item) => {
       const region = regionName(item.name || "");
@@ -229,7 +269,7 @@ function buildBenchmarkAnalysis(rows) {
 }
 
 async function renderHome() {
-  const overview = await api("/api/overview");
+  const [overview, universities] = await Promise.all([api(withUniversity("/api/overview")), loadUniversities()]);
   app.innerHTML = `
     <section class="section hero">
       <div class="hero-panel">
@@ -240,6 +280,7 @@ async function renderHome() {
           <a class="button" href="/map">先看合作格局</a>
           <a class="button secondary" href="/login">开通完整工作台</a>
         </div>
+        ${schoolSelector(universities)}
         <div class="kpis value-kpis">
           <div class="kpi"><strong>${big(overview.papers)}</strong><span>全球科研成果底座</span></div>
           <div class="kpi"><strong>${fmt(overview.universities)}+</strong><span>可扩展国内高校机构</span></div>
@@ -271,10 +312,11 @@ async function renderHome() {
       </div>
     </section>
   `;
+  bindSchoolSelector();
 }
 
 async function renderMap() {
-  const [overview, analysis] = await Promise.all([api("/api/overview"), loadCollaborationAnalysis()]);
+  const [overview, analysis, universities] = await Promise.all([api(withUniversity("/api/overview")), loadCollaborationAnalysis(), loadUniversities()]);
   const top = analysis.countries.slice(0, 12);
   const regions = analysis.regions.slice(0, 6);
   const institutions = analysis.institutions.slice(0, 8);
@@ -286,6 +328,7 @@ async function renderMap() {
     "从国家、区域、机构和趋势四个维度识别国际合作机会。",
     `
       ${sampleKpis(overview)}
+      ${schoolSelector(universities)}
       <div class="insight-grid">
         ${analysis.insights
           .map(
@@ -371,10 +414,11 @@ async function renderMap() {
       </div>
     `
   );
+  bindSchoolSelector();
 }
 
 async function renderInstitutions() {
-  const rows = await api("/api/institutions?limit=50");
+  const [rows, universities] = await Promise.all([api(withUniversity("/api/institutions?limit=50")), loadUniversities()]);
   const analysis = buildInstitutionAnalysis(rows);
   const tierEntries = Object.entries(analysis.tierCounts);
   const countryTop = analysis.countriesRank.slice(0, 8);
@@ -389,6 +433,7 @@ async function renderInstitutions() {
         <div class="kpi"><strong>${analysis.avgCited}</strong><span>平均被引</span></div>
         <div class="kpi"><strong>${fmt(analysis.active)}</strong><span>近年活跃机构</span></div>
       </div>
+      ${schoolSelector(universities)}
       <div class="insight-grid">
         ${analysis.insights
           .map(
@@ -453,10 +498,11 @@ async function renderInstitutions() {
       </div>
     `
   );
+  bindSchoolSelector();
 }
 
 async function renderSubjects() {
-  const data = await api("/api/subjects?limit=12");
+  const [data, universities] = await Promise.all([api(withUniversity("/api/subjects?limit=12")), loadUniversities()]);
   const analysis = buildSubjectAnalysis(data);
   shell(
     "学科热力",
@@ -468,6 +514,7 @@ async function renderSubjects() {
         <div class="kpi"><strong>${analysis.topShare}%</strong><span>第一方向占比</span></div>
         <div class="kpi"><strong>${fmt(analysis.highImpact)}</strong><span>高影响方向</span></div>
       </div>
+      ${schoolSelector(universities)}
       <div class="insight-grid">
         ${analysis.insights
           .map(
@@ -519,6 +566,7 @@ async function renderSubjects() {
       </div>
     `
   );
+  bindSchoolSelector();
 }
 
 async function renderBenchmark() {
