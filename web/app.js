@@ -136,6 +136,22 @@ function scenarioCard(title, copy, action, href) {
   `;
 }
 
+function unlockCard(title, items) {
+  return `
+    <div class="card unlock-card">
+      <div>
+        <span class="tag">登录解锁</span>
+        <h3>${title}</h3>
+        <p>公开页面先展示判断轮廓；登录后可继续查看完整明细、导出结果和生成汇报材料。</p>
+      </div>
+      <ul>
+        ${items.map((item) => `<li>${item}</li>`).join("")}
+      </ul>
+      <a class="button" href="/login">开通完整工作台</a>
+    </div>
+  `;
+}
+
 function regionName(country) {
   const europe = new Set(["United Kingdom", "Germany", "France", "Italy", "Spain", "Sweden", "Netherlands", "Switzerland", "Russian Federation", "Portugal", "Poland", "Greece"]);
   const asia = new Set(["Japan", "Singapore", "Hong Kong", "Korea, Republic of", "India", "Malaysia", "Thailand", "Israel", "Türkiye"]);
@@ -433,6 +449,7 @@ async function renderMap() {
         <h3>优先维护高频国家与核心机构，同时追踪区域增长点。</h3>
         <p>建议把国家排行、区域分布和核心机构名单结合使用：先锁定高频合作区域，再下钻到机构和学科方向，形成可执行的访问、续约、联合项目和学科合作清单。</p>
       </div>
+      ${unlockCard("解锁合作格局下钻能力", ["点击国家查看完整机构名单", "查看合作论文标题、年份、期刊和被引次数", "按年份、学科和论文类型筛选", "导出国家与机构合作清单"])}
     `
   );
   bindSchoolSelector();
@@ -518,6 +535,7 @@ async function renderInstitutions() {
         <h3>把机构排行转化为伙伴维护清单。</h3>
         <p>优先维护“核心伙伴”和“高潜力伙伴”；对“灌水风险”要判断是否只是挂名参与；对“沉默伙伴”结合学院、学科和历史项目复盘，决定激活、观察或减少维护投入。</p>
       </div>
+      ${unlockCard("解锁机构质量分析", ["查看 Top 100 合作机构完整名单", "打开机构详情页查看年度趋势和学科分布", "导出伙伴维护优先级清单", "按学院或学科拆分合作机构"])}
     `
   );
   bindSchoolSelector();
@@ -589,6 +607,7 @@ async function renderZombies() {
         <h3>把沉默关系分成三类处理：激活、观察、清理。</h3>
         <p>历史产出高但沉默时间长的机构，优先安排学院复盘和外方沟通；历史产出低且长期无后续的机构，可减少维护投入，把资源转向高潜力伙伴。</p>
       </div>
+      ${unlockCard("解锁完整沉默关系名单", ["导出全部僵尸合作机构 Excel", "按国家、学院和学科筛选沉默关系", "生成激活、观察、清理三类处理清单", "沉默关系跟进记录和权限协作"])}
     `
   );
   bindSchoolSelector();
@@ -657,6 +676,7 @@ async function renderSubjects() {
           <p>优先选择“规模较高 + 影响力较高”的方向进入学院层面复盘，再结合国家和机构排行形成目标伙伴清单。</p>
         </div>
       </div>
+      ${unlockCard("解锁学科穿透分析", ["查看细分学科和主题方向", "按学科下钻到国家和机构", "发现高影响但合作不足的潜力方向", "导出学院级合作建议"])}
     `
   );
   bindSchoolSelector();
@@ -705,6 +725,7 @@ async function renderBenchmark() {
         <h3>把对标结果拆成规模、覆盖、网络和主导四类目标。</h3>
         <p>规模落后时优先扩大合作产出；覆盖不足时拓展国家和机构网络；主导率不足时重点提升牵头项目、通讯作者和联合平台建设能力。</p>
       </div>
+      ${unlockCard("解锁完整对标报告", ["查看逐项差距解释和追赶建议", "比较独家合作机构和拓展目标", "生成近五年增速对比图", "导出 PDF/Word 汇报简报"])}
     `
   );
 }

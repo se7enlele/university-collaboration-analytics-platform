@@ -475,6 +475,50 @@ h1 {
   background: linear-gradient(135deg, #ffffff, #eef7ff);
 }
 
+.unlock-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.9fr) auto;
+  gap: 24px;
+  align-items: center;
+  margin-top: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 110, 219, 0.18);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(237, 247, 255, 0.88)),
+    radial-gradient(circle at 100% 0%, rgba(0, 110, 219, 0.16), transparent 32%);
+}
+
+.unlock-card::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  background: repeating-linear-gradient(-45deg, rgba(0, 110, 219, 0.035) 0 8px, transparent 8px 18px);
+}
+
+.unlock-card > * {
+  position: relative;
+}
+
+.unlock-card h3 {
+  margin: 12px 0 8px;
+  font-size: 24px;
+}
+
+.unlock-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.unlock-card ul {
+  margin: 0;
+  padding-left: 20px;
+  color: #374151;
+  line-height: 1.85;
+}
+
 .form {
   max-width: 520px;
   margin: 0 auto;
@@ -696,7 +740,8 @@ h1 {
 
   .bar-row.compact,
   .trend-row,
-  .tier-grid {
+  .tier-grid,
+  .unlock-card {
     grid-template-columns: 1fr;
   }
 
