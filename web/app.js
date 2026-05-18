@@ -74,6 +74,51 @@ function moduleCard(title, copy, href) {
   `;
 }
 
+function regionName(country) {
+  const europe = new Set(["United Kingdom", "Germany", "France", "Italy", "Spain", "Sweden", "Netherlands", "Switzerland", "Russian Federation", "Portugal", "Poland", "Greece"]);
+  const asia = new Set(["Japan", "Singapore", "Hong Kong", "Korea, Republic of", "India", "Malaysia", "Thailand", "Israel", "Türkiye"]);
+  const northAmerica = new Set(["United States", "Canada", "Mexico"]);
+  const oceania = new Set(["Australia", "New Zealand"]);
+  if (europe.has(country)) return "欧洲";
+  if (asia.has(country)) return "亚洲";
+  if (northAmerica.has(country)) return "北美";
+  if (oceania.has(country)) return "大洋洲";
+  return "其他地区";
+}
+
+async function loadCollaborationAnalysis() {
+  try {
+    return await api("/api/collaboration");
+  } catch (_) {
+    const [countries, institutions] = await Promise.all([api("/api/map"), api("/api/institutions?limit=10")]);
+    const regionMap = new Map();
+    countries.forEach((item) => {
+      const region = regionName(item.name || "");
+      const current = regionMap.get(region) || { region, papers: 0, countries: 0, institutions: 0 };
+      current.papers += item.papers || 0;
+      current.countries += 1;
+      current.institutions += item.institutions || 0;
+      regionMap.set(region, current);
+    });
+    const regions = Array.from(regionMap.values()).sort((a, b) => b.papers - a.papers);
+    const topCountry = countries[0] || {};
+    const topRegion = regions[0] || {};
+    const topInstitution = institutions[0] || {};
+    return {
+      countries: countries.slice(0, 20),
+      regions,
+      institutions,
+      trend: [],
+      insights: [
+        { title: "合作重心清晰", text: `${topCountry.name || "重点国家"} 是当前样例库中最核心的合作国家，贡献 ${fmt(topCountry.papers)} 篇合作论文。` },
+        { title: "区域集聚明显", text: `${topRegion.region || "重点区域"} 是合作最集中的区域，覆盖 ${fmt(topRegion.countries)} 个国家/地区。` },
+        { title: "核心机构可优先维护", text: `${topInstitution.institution || "高频合作机构"} 是高频合作伙伴，可作为稳定合作关系维护对象。` },
+        { title: "分析能力可继续下钻", text: "全量接入后，可按学校、学院、学科、国家和机构进行多维筛选与穿透分析。" },
+      ],
+    };
+  }
+}
+
 async function renderHome() {
   const overview = await api("/api/overview");
   app.innerHTML = `
@@ -105,7 +150,7 @@ async function renderHome() {
 }
 
 async function renderMap() {
-  const [overview, analysis] = await Promise.all([api("/api/overview"), api("/api/collaboration")]);
+  const [overview, analysis] = await Promise.all([api("/api/overview"), loadCollaborationAnalysis()]);
   const top = analysis.countries.slice(0, 12);
   const regions = analysis.regions.slice(0, 6);
   const institutions = analysis.institutions.slice(0, 8);
@@ -177,17 +222,21 @@ async function renderMap() {
         <div class="card">
           <h3>近年合作趋势</h3>
           <div class="trend-list">
-            ${trend
-              .map(
-                (item) => `
-                  <div class="trend-row">
-                    <span>${item.year}</span>
-                    <strong>${fmt(item.papers)}</strong>
-                    <small>${fmt(item.countries)} 国 / ${fmt(item.institutions)} 机构</small>
-                  </div>
-                `
-              )
-              .join("")}
+            ${
+              trend.length
+                ? trend
+                    .map(
+                      (item) => `
+                        <div class="trend-row">
+                          <span>${item.year}</span>
+                          <strong>${fmt(item.papers)}</strong>
+                          <small>${fmt(item.countries)} 国 / ${fmt(item.institutions)} 机构</small>
+                        </div>
+                      `
+                    )
+                    .join("")
+                : '<p class="muted">趋势数据正在整理中，当前可先查看国家、区域和机构分布。</p>'
+            }
           </div>
         </div>
       </div>
