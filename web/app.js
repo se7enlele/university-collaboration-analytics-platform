@@ -179,6 +179,28 @@ function unlockCard(title, items) {
   `;
 }
 
+function decisionPanel(title, question, judgment, actions) {
+  return `
+    <div class="decision-panel">
+      <div class="decision-main">
+        <span class="tag">本页解决的问题</span>
+        <h2>${title}</h2>
+        <p>${question}</p>
+      </div>
+      <div class="decision-judgment">
+        <strong>业务判断</strong>
+        <p>${judgment}</p>
+      </div>
+      <div class="decision-actions">
+        <strong>下一步行动</strong>
+        <ol>
+          ${actions.map((item) => `<li>${item}</li>`).join("")}
+        </ol>
+      </div>
+    </div>
+  `;
+}
+
 function regionName(country) {
   const europe = new Set(["United Kingdom", "Germany", "France", "Italy", "Spain", "Sweden", "Netherlands", "Switzerland", "Russian Federation", "Portugal", "Poland", "Greece"]);
   const asia = new Set(["Japan", "Singapore", "Hong Kong", "Korea, Republic of", "India", "Malaysia", "Thailand", "Israel", "Türkiye"]);
@@ -388,6 +410,12 @@ async function renderDashboard() {
     "绩效驾驶舱",
     "把国际合作成果转化为处长和校领导能快速理解的绩效指标、趋势变化和汇报素材。",
     `
+      ${decisionPanel(
+        "把数据变成可汇报的年度结论",
+        "国际处最常见的压力不是缺少数据，而是要在汇报、评估和预算讨论中说明“今年国际合作到底产生了什么价值”。",
+        `当前样例显示国际合作论文 ${fmt(metrics.international_papers)} 篇，国际合著占比 ${metrics.international_share || 0}%，需要同时解释规模、质量、增长和风险。`,
+        ["先用核心指标证明工作产出", "再用趋势和零被引风险指出问题", "最后形成下一年度资源投向和伙伴维护建议"]
+      )}
       <div class="kpis">
         <div class="kpi"><strong>${fmt(metrics.international_papers)}</strong><span>国际合作论文</span></div>
         <div class="kpi"><strong>${metrics.international_share || 0}%</strong><span>国际合著占比</span></div>
@@ -468,6 +496,12 @@ async function renderMap() {
     "合作格局",
     "从国家、区域、机构和趋势四个维度识别国际合作机会。",
     `
+      ${decisionPanel(
+        "判断国际合作资源应该投向哪里",
+        "合作格局页不只是看哪个国家论文多，而是帮助国际处决定下一轮出访、续约、联合项目和重点伙伴维护的优先级。",
+        `${top[0]?.name || "重点国家"} 是当前最集中的合作国家，${regions[0]?.region || "重点区域"} 是主要合作区域，应继续下钻到机构和学科确认是否值得加大投入。`,
+        ["锁定高频国家和区域", "筛出核心机构与高影响学科", "形成访问、续约、联合项目三类行动清单"]
+      )}
       ${sampleKpis(overview)}
       <div class="insight-grid">
         ${analysis.insights
@@ -579,6 +613,12 @@ async function renderInstitutions() {
     "机构排行",
     "识别核心伙伴、合作质量和机构维护优先级。",
     `
+      ${decisionPanel(
+        "把机构名单变成伙伴管理策略",
+        "国际处真正需要的不是机构排名本身，而是知道哪些伙伴应该重点维护、哪些需要复盘、哪些只是低价值参与。",
+        `当前样例中有 ${fmt(analysis.lowLead)} 个低主导风险机构、${fmt(analysis.dormant)} 个沉默伙伴，说明机构关系需要分层管理。`,
+        ["核心伙伴进入年度维护名单", "低主导伙伴交给学院判断合作价值", "沉默伙伴进入激活、观察或清理流程"]
+      )}
       <div class="kpis">
         <div class="kpi"><strong>${fmt(rows.length)}</strong><span>样例合作机构</span></div>
         <div class="kpi"><strong>${fmt(analysis.lowLead)}</strong><span>低主导风险</span></div>
@@ -665,6 +705,12 @@ async function renderZombies() {
     "沉默关系识别",
     "找出签过协议或曾经合作、但近年没有继续产出的机构，帮助国际处判断是否激活、维护或清理。",
     `
+      ${decisionPanel(
+        "识别名义合作和无效维护成本",
+        "很多高校有大量历史合作协议和伙伴名单，但真正持续产生科研成果的关系有限。本页帮助判断哪些关系还值得投入时间和资源。",
+        `当前样例识别出 ${fmt(summary.zombie)} 个僵尸关系和 ${fmt(summary.warning)} 个警告关系，应优先复盘历史产出高但近期无新成果的机构。`,
+        ["把沉默关系按历史价值排序", "分配到学院或项目负责人复盘", "形成激活、观察、清理三类处理结果"]
+      )}
       <div class="kpis">
         <div class="kpi"><strong>${fmt(summary.total)}</strong><span>样例合作机构</span></div>
         <div class="kpi"><strong>${fmt(summary.zombie)}</strong><span>僵尸关系</span></div>
@@ -734,6 +780,12 @@ async function renderSubjects() {
     "学科热力",
     "识别国际合作中的优势学科、高影响方向和潜在增长点。",
     `
+      ${decisionPanel(
+        "找到国际合作最值得投入的学科方向",
+        "学科热力页要回答的是：学校应该在哪些学科上加强国际合作，哪些方向已经有基础，哪些方向影响力高但合作不足。",
+        `${analysis.top.domain || "重点学科"} 是当前合作最集中的方向，高影响方向共 ${fmt(analysis.highImpact)} 个，适合与学院共同制定重点伙伴拓展计划。`,
+        ["先定位优势学科和高影响方向", "再联动国家与机构数据寻找伙伴", "最后形成学院级国际合作建议"]
+      )}
       <div class="kpis">
         <div class="kpi"><strong>${fmt(analysis.total)}</strong><span>样例学科论文</span></div>
         <div class="kpi"><strong>${fmt(analysis.rows.length)}</strong><span>学科方向</span></div>
@@ -803,6 +855,12 @@ async function renderBenchmark() {
     "多校对标分析",
     "比较高校国际合作规模、覆盖能力、伙伴网络和主导能力。",
     `
+      ${decisionPanel(
+        "判断学校和同层次高校的差距在哪里",
+        "对标分析不应只比较谁的论文多，而是拆解规模、覆盖、伙伴网络和主导能力，找到可追赶的具体方向。",
+        `${analysis.topPapers.university || "规模标杆"} 在合作规模上领先，${analysis.topLead.university || "主导标杆"} 在主导能力上领先，可以分别作为不同追赶目标。`,
+        ["选择同层次高校作为参照组", "按规模、覆盖、网络、主导四类拆解差距", "把差距转成年度目标和重点合作策略"]
+      )}
       <div class="kpis">
         <div class="kpi"><strong>${analysis.topPapers.university || "-"}</strong><span>规模标杆</span></div>
         <div class="kpi"><strong>${analysis.topCountries.university || "-"}</strong><span>覆盖标杆</span></div>
