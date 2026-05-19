@@ -50,11 +50,16 @@ function big(value) {
   return fmt(number);
 }
 
-function shell(title, copy, content) {
+function shell(title, copy, content, options = {}) {
   app.innerHTML = `
     <section class="section">
-      <h1 class="section-title">${title}</h1>
-      <p class="section-copy">${copy}</p>
+      <div class="page-head">
+        <div>
+          <h1 class="section-title">${title}</h1>
+          <p class="section-copy">${copy}</p>
+        </div>
+        ${options.universities ? schoolSelector(options.universities) : ""}
+      </div>
       ${content}
     </section>
   `;
@@ -126,7 +131,7 @@ function schoolSelector(universities) {
   return `
     <div class="school-selector">
       <div>
-        <span class="tag">当前学校</span>
+        <span>分析对象</span>
         <strong>${selectedUniversity}</strong>
       </div>
       <select id="schoolSelect" aria-label="选择学校">
@@ -389,7 +394,6 @@ async function renderDashboard() {
         <div class="kpi"><strong>${metrics.growth_rate || 0}%</strong><span>近五年变化</span></div>
         <div class="kpi"><strong>${metrics.zero_cited_rate || 0}%</strong><span>零被引风险</span></div>
       </div>
-      ${schoolSelector(universities)}
       <div class="insight-grid">
         <div class="card insight-card">
           <span class="tag">领导视角</span>
@@ -441,7 +445,8 @@ async function renderDashboard() {
         <p>建议围绕“规模、质量、趋势、问题、下一步行动”组织汇报：先证明产出，再指出沉默关系、低主导合作和潜力方向，最后形成年度合作策略。</p>
       </div>
       ${unlockCard("解锁一键绩效报告", ["生成 PDF/Word 领导简报", "导出全部图表和指标解释", "与全国均值和全球基准对比", "保存年度汇报模板和历史版本"])}
-    `
+    `,
+    { universities }
   );
   bindSchoolSelector();
 }
@@ -464,7 +469,6 @@ async function renderMap() {
     "从国家、区域、机构和趋势四个维度识别国际合作机会。",
     `
       ${sampleKpis(overview)}
-      ${schoolSelector(universities)}
       <div class="insight-grid">
         ${analysis.insights
           .map(
@@ -559,7 +563,8 @@ async function renderMap() {
         ])}
       </div>
       ${unlockCard("解锁合作格局下钻能力", ["点击国家查看完整机构名单", "查看合作论文标题、年份、期刊和被引次数", "按年份、学科和论文类型筛选", "导出国家与机构合作清单"])}
-    `
+    `,
+    { universities }
   );
   bindSchoolSelector();
 }
@@ -580,7 +585,6 @@ async function renderInstitutions() {
         <div class="kpi"><strong>${fmt(analysis.dormant)}</strong><span>沉默伙伴</span></div>
         <div class="kpi"><strong>${fmt(analysis.active)}</strong><span>仍然活跃</span></div>
       </div>
-      ${schoolSelector(universities)}
       <div class="insight-grid">
         ${analysis.insights
           .map(
@@ -645,7 +649,8 @@ async function renderInstitutions() {
         <p>优先维护“核心伙伴”和“高潜力伙伴”；对“灌水风险”要判断是否只是挂名参与；对“沉默伙伴”结合学院、学科和历史项目复盘，决定激活、观察或减少维护投入。</p>
       </div>
       ${unlockCard("解锁机构质量分析", ["查看 Top 100 合作机构完整名单", "打开机构详情页查看年度趋势和学科分布", "导出伙伴维护优先级清单", "按学院或学科拆分合作机构"])}
-    `
+    `,
+    { universities }
   );
   bindSchoolSelector();
 }
@@ -666,7 +671,6 @@ async function renderZombies() {
         <div class="kpi"><strong>${fmt(summary.warning)}</strong><span>警告关系</span></div>
         <div class="kpi"><strong>${fmt(summary.active)}</strong><span>仍然活跃</span></div>
       </div>
-      ${schoolSelector(universities)}
       <div class="insight-grid">
         <div class="card insight-card">
           <span class="tag">痛点识别</span>
@@ -717,7 +721,8 @@ async function renderZombies() {
         <p>历史产出高但沉默时间长的机构，优先安排学院复盘和外方沟通；历史产出低且长期无后续的机构，可减少维护投入，把资源转向高潜力伙伴。</p>
       </div>
       ${unlockCard("解锁完整沉默关系名单", ["导出全部僵尸合作机构 Excel", "按国家、学院和学科筛选沉默关系", "生成激活、观察、清理三类处理清单", "沉默关系跟进记录和权限协作"])}
-    `
+    `,
+    { universities }
   );
   bindSchoolSelector();
 }
@@ -735,7 +740,6 @@ async function renderSubjects() {
         <div class="kpi"><strong>${analysis.topShare}%</strong><span>第一方向占比</span></div>
         <div class="kpi"><strong>${fmt(analysis.highImpact)}</strong><span>高影响方向</span></div>
       </div>
-      ${schoolSelector(universities)}
       <div class="insight-grid">
         ${analysis.insights
           .map(
@@ -786,7 +790,8 @@ async function renderSubjects() {
         </div>
       </div>
       ${unlockCard("解锁学科穿透分析", ["查看细分学科和主题方向", "按学科下钻到国家和机构", "发现高影响但合作不足的潜力方向", "导出学院级合作建议"])}
-    `
+    `,
+    { universities }
   );
   bindSchoolSelector();
 }
