@@ -2,6 +2,7 @@ const app = document.querySelector("#app");
 const nf = new Intl.NumberFormat("zh-CN");
 let universitiesCache = null;
 let selectedUniversity = localStorage.getItem("selectedUniversity") || "山东大学";
+let currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
 const fallbackUniversities = [
   { university: "山东大学" },
   { university: "中山大学" },
@@ -24,6 +25,24 @@ function withUniversity(path) {
   return `${path}${separator}university=${encodeURIComponent(selectedUniversity)}`;
 }
 
+function saveUser(user) {
+  currentUser = user;
+  localStorage.setItem("currentUser", JSON.stringify(user));
+}
+
+function clearUser() {
+  currentUser = null;
+  localStorage.removeItem("currentUser");
+}
+
+function updateAuthNav() {
+  const slot = document.querySelector("#authNav");
+  if (!slot) return;
+  slot.innerHTML = currentUser
+    ? `<a class="pill logged" href="/login">${currentUser.name || currentUser.phone} · 已登录</a>`
+    : `<a class="pill" href="/login">登录 / 开通</a>`;
+}
+
 function big(value) {
   const number = Number(value || 0);
   if (number >= 100000000) return `${(number / 100000000).toFixed(number % 100000000 === 0 ? 0 : 1)}亿+`;
@@ -39,6 +58,7 @@ function shell(title, copy, content) {
       ${content}
     </section>
   `;
+  updateAuthNav();
 }
 
 function table(rows, columns) {
@@ -841,33 +861,112 @@ function renderLogin() {
           </div>
         </div>
         <div class="auth-card">
-          <div class="auth-card-head">
-            <span class="tag">账号登录</span>
-            <h2>进入工作台</h2>
-            <p>用于导出报告、查看完整样本和管理团队权限。</p>
-          </div>
-          <div class="auth-form">
-            <label>手机号</label>
-            <input type="tel" inputmode="tel" placeholder="请输入手机号" />
-            <label>验证码</label>
-            <div class="input-action">
-              <input inputmode="numeric" placeholder="请输入验证码" />
-              <button>获取验证码</button>
-            </div>
-            <button class="button auth-submit">登录工作台</button>
-          </div>
-          <div class="auth-divider"><span>机构开通</span></div>
-          <div class="signup-compact">
-            <div>
-              <strong>还没有账号？</strong>
-              <span>提交机构信息后，由平台顾问确认数据范围和开通方式。</span>
-            </div>
-            <a class="button secondary" href="/admin">申请开通</a>
-          </div>
+          ${
+            currentUser
+              ? `
+                <div class="auth-card-head">
+                  <span class="tag">当前账号</span>
+                  <h2>${currentUser.name || currentUser.phone}</h2>
+                  <p>${currentUser.organization || selectedUniversity} · ${currentUser.plan || "本地测试账号"}</p>
+                </div>
+                <div class="account-status">
+                  <div><strong>登录状态</strong><span>已登录</span></div>
+                  <div><strong>账号权限</strong><span>${currentUser.status || "已开通"}</span></div>
+                  <div><strong>当前学校</strong><span>${selectedUniversity}</span></div>
+                </div>
+                <div class="actions auth-actions">
+                  <a class="button" href="/dashboard">进入绩效驾驶舱</a>
+                  <button class="button secondary" id="logoutBtn">退出登录</button>
+                </div>
+              `
+              : `
+                <div class="auth-card-head">
+                  <span class="tag">账号登录</span>
+                  <h2>进入工作台</h2>
+                  <p>用于导出报告、查看完整样本和管理团队权限。</p>
+                </div>
+                <form class="auth-form" id="loginForm">
+                  <label>手机号</label>
+                  <input id="loginPhone" type="tel" inputmode="tel" placeholder="请输入手机号" value="13800000000" />
+                  <label>验证码</label>
+                  <div class="input-action">
+                    <input id="loginCode" inputmode="numeric" placeholder="请输入验证码" value="123456" />
+                    <button type="button" id="sendCodeBtn">获取验证码</button>
+                  </div>
+                  <button class="button auth-submit" type="submit">登录工作台</button>
+                </form>
+                <div class="auth-divider"><span>机构开通</span></div>
+                <form class="signup-panel" id="signupForm">
+                  <label>学校 / 机构名称</label>
+                  <input id="signupOrg" placeholder="请输入学校或机构名称" value="${selectedUniversity}" />
+                  <label>联系人</label>
+                  <input id="signupName" placeholder="请输入联系人姓名" value="本地测试用户" />
+                  <label>职务 / 部门</label>
+                  <input id="signupRole" placeholder="例如：国际合作处、科研院、学院办公室" value="国际合作处" />
+                  <button class="button secondary auth-submit" type="submit">提交开通申请</button>
+                </form>
+              `
+          }
         </div>
       </div>
     </section>
   `;
+  bindAuthForms();
+  updateAuthNav();
+}
+
+function bindAuthForms() {
+  const loginForm = document.querySelector("#loginForm");
+  const signupForm = document.querySelector("#signupForm");
+  const logoutBtn = document.querySelector("#logoutBtn");
+  const sendCodeBtn = document.querySelector("#sendCodeBtn");
+
+  if (sendCodeBtn) {
+    sendCodeBtn.addEventListener("click", () => {
+      sendCodeBtn.textContent = "验证码 123456";
+      sendCodeBtn.disabled = true;
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const phone = document.querySelector("#loginPhone").value.trim() || "13800000000";
+      saveUser({
+        phone,
+        name: "本地测试用户",
+        organization: selectedUniversity,
+        role: "国际合作处",
+        plan: "个人体验版",
+        status: "已开通",
+        loggedAt: new Date().toISOString(),
+      });
+      renderLogin();
+    });
+  }
+
+  if (signupForm) {
+    signupForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      saveUser({
+        phone: "待绑定手机号",
+        name: document.querySelector("#signupName").value.trim() || "本地测试用户",
+        organization: document.querySelector("#signupOrg").value.trim() || selectedUniversity,
+        role: document.querySelector("#signupRole").value.trim() || "国际合作处",
+        plan: "机构申请",
+        status: "待审核",
+        loggedAt: new Date().toISOString(),
+      });
+      renderLogin();
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      clearUser();
+      renderLogin();
+    });
+  }
 }
 
 function renderAdmin() {
@@ -889,6 +988,8 @@ const routes = {
   "/login": renderLogin,
   "/admin": renderAdmin,
 };
+
+updateAuthNav();
 
 (routes[location.pathname] || renderHome)().catch((error) => {
   app.innerHTML = `<section class="section"><div class="card status">页面加载失败：${error.message}</div></section>`;
