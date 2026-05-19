@@ -875,7 +875,7 @@ function renderLogin() {
                   <div><strong>当前学校</strong><span>${selectedUniversity}</span></div>
                 </div>
                 <div class="actions auth-actions">
-                  <a class="button" href="/dashboard">进入绩效驾驶舱</a>
+                  <button class="button" id="enterDashboardBtn">进入绩效驾驶舱</button>
                   <button class="button secondary" id="logoutBtn">退出登录</button>
                 </div>
               `
@@ -920,6 +920,7 @@ function bindAuthForms() {
   const signupForm = document.querySelector("#signupForm");
   const logoutBtn = document.querySelector("#logoutBtn");
   const sendCodeBtn = document.querySelector("#sendCodeBtn");
+  const enterDashboardBtn = document.querySelector("#enterDashboardBtn");
 
   if (sendCodeBtn) {
     sendCodeBtn.addEventListener("click", () => {
@@ -967,6 +968,13 @@ function bindAuthForms() {
       renderLogin();
     });
   }
+
+  if (enterDashboardBtn) {
+    enterDashboardBtn.addEventListener("click", () => {
+      history.pushState({}, "", "/dashboard");
+      renderDashboard();
+    });
+  }
 }
 
 function renderAdmin() {
@@ -981,6 +989,7 @@ const routes = {
   "/": renderHome,
   "/map": renderMap,
   "/dashboard": renderDashboard,
+  "/performance": renderDashboard,
   "/institutions": renderInstitutions,
   "/zombies": renderZombies,
   "/subjects": renderSubjects,
