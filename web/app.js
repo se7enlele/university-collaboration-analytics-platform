@@ -50,6 +50,29 @@ function big(value) {
   return fmt(number);
 }
 
+function highlightMetrics(text) {
+  return String(text).replace(/(\d[\d,]*(?:\.\d+)?%?|\d+(?:\.\d+)?\s*个|\d+(?:\.\d+)?\s*篇)/g, '<mark class="metric-highlight">$1</mark>');
+}
+
+function sparkline(seed = 1, tone = "blue") {
+  const patterns = [
+    "6,30 28,24 50,27 72,15 94,18",
+    "6,26 28,20 50,22 72,13 94,9",
+    "6,18 28,24 50,16 72,22 94,14",
+    "6,25 28,27 50,23 72,28 94,26",
+  ];
+  const path = patterns[Math.abs(Number(seed) || 0) % patterns.length];
+  return `
+    <svg class="sparkline ${tone}" viewBox="0 0 100 36" aria-hidden="true">
+      <polyline points="${path}" />
+    </svg>
+  `;
+}
+
+function kpiCard(value, label, seed = 1, tone = "blue") {
+  return `<div class="kpi"><div><strong>${value}</strong><span>${label}</span></div>${sparkline(seed, tone)}</div>`;
+}
+
 function shell(title, copy, content, options = {}) {
   app.innerHTML = `
     <section class="section">
@@ -83,10 +106,10 @@ function table(rows, columns) {
 function platformKpis(overview) {
   return `
     <div class="kpis">
-      <div class="kpi"><strong>${big(overview.papers)}</strong><span>全球科研成果</span></div>
-      <div class="kpi"><strong>${big(overview.international_papers)}</strong><span>国际合作论文</span></div>
-      <div class="kpi"><strong>${fmt(overview.universities)}</strong><span>国内高校与机构</span></div>
-      <div class="kpi"><strong>${big(overview.institutions)}</strong><span>全球合作机构</span></div>
+      ${kpiCard(big(overview.papers), "全球科研成果", 1)}
+      ${kpiCard(big(overview.international_papers), "国际合作论文", 2)}
+      ${kpiCard(fmt(overview.universities), "国内高校与机构", 3, "green")}
+      ${kpiCard(big(overview.institutions), "全球合作机构", 4)}
     </div>
   `;
 }
@@ -94,10 +117,10 @@ function platformKpis(overview) {
 function sampleKpis(overview) {
   return `
     <div class="kpis">
-      <div class="kpi"><strong>${fmt(overview.sample_international_papers || 0)}</strong><span>样例合作论文</span></div>
-      <div class="kpi"><strong>${fmt(overview.sample_countries || 0)}</strong><span>合作国家/地区</span></div>
-      <div class="kpi"><strong>${fmt(overview.sample_institutions || 0)}</strong><span>合作机构</span></div>
-      <div class="kpi"><strong>${overview.lead_rate || 0}%</strong><span>主导率</span></div>
+      ${kpiCard(fmt(overview.sample_international_papers || 0), "样例合作论文", 1)}
+      ${kpiCard(fmt(overview.sample_countries || 0), "合作国家/地区", 2, "green")}
+      ${kpiCard(fmt(overview.sample_institutions || 0), "合作机构", 3)}
+      ${kpiCard(`${overview.lead_rate || 0}%`, "主导率", 4, "green")}
     </div>
   `;
 }
@@ -203,7 +226,7 @@ function decisionPanel(title, question, judgment, actions) {
       </div>
       <div class="decision-judgment">
         <strong>业务判断</strong>
-        <p>${judgment}</p>
+        <p>${highlightMetrics(judgment)}</p>
       </div>
       <div class="decision-actions">
         <strong>下一步行动</strong>
@@ -382,10 +405,10 @@ async function renderHome() {
         </div>
         ${schoolSelector(universities)}
         <div class="kpis value-kpis">
-          <div class="kpi"><strong>${big(overview.papers)}</strong><span>全球科研成果底座</span></div>
-          <div class="kpi"><strong>${fmt(overview.universities)}+</strong><span>可扩展国内高校机构</span></div>
-          <div class="kpi"><strong>4类</strong><span>合作格局分析维度</span></div>
-          <div class="kpi"><strong>1键</strong><span>形成汇报与行动清单</span></div>
+          ${kpiCard(big(overview.papers), "全球科研成果底座", 1)}
+          ${kpiCard(`${fmt(overview.universities)}+`, "可扩展国内高校机构", 2, "green")}
+          ${kpiCard("4类", "合作格局分析维度", 3)}
+          ${kpiCard("1键", "形成汇报与行动清单", 4, "green")}
         </div>
       </div>
     </section>
@@ -459,10 +482,10 @@ async function renderDashboard() {
         ["先用核心指标证明工作产出", "再用趋势和零被引风险指出问题", "最后形成下一年度资源投向和伙伴维护建议"]
       )}
       <div class="kpis">
-        <div class="kpi"><strong>${fmt(metrics.international_papers)}</strong><span>国际合作论文</span></div>
-        <div class="kpi"><strong>${metrics.international_share || 0}%</strong><span>国际合著占比</span></div>
-        <div class="kpi"><strong>${metrics.growth_rate || 0}%</strong><span>近五年变化</span></div>
-        <div class="kpi"><strong>${metrics.zero_cited_rate || 0}%</strong><span>零被引风险</span></div>
+        ${kpiCard(fmt(metrics.international_papers), "国际合作论文", 1)}
+        ${kpiCard(`${metrics.international_share || 0}%`, "国际合著占比", 2, "green")}
+        ${kpiCard(`${metrics.growth_rate || 0}%`, "近五年变化", 3)}
+        ${kpiCard(`${metrics.zero_cited_rate || 0}%`, "零被引风险", 4, "red")}
       </div>
       <div class="insight-grid">
         <div class="card insight-card">
@@ -662,10 +685,10 @@ async function renderInstitutions() {
         ["核心伙伴进入年度维护名单", "低主导伙伴交给学院判断合作价值", "沉默伙伴进入激活、观察或清理流程"]
       )}
       <div class="kpis">
-        <div class="kpi"><strong>${fmt(rows.length)}</strong><span>样例合作机构</span></div>
-        <div class="kpi"><strong>${fmt(analysis.lowLead)}</strong><span>低主导风险</span></div>
-        <div class="kpi"><strong>${fmt(analysis.dormant)}</strong><span>沉默伙伴</span></div>
-        <div class="kpi"><strong>${fmt(analysis.active)}</strong><span>仍然活跃</span></div>
+        ${kpiCard(fmt(rows.length), "样例合作机构", 1)}
+        ${kpiCard(fmt(analysis.lowLead), "低主导风险", 2, "red")}
+        ${kpiCard(fmt(analysis.dormant), "沉默伙伴", 3, "red")}
+        ${kpiCard(fmt(analysis.active), "仍然活跃", 4, "green")}
       </div>
       <div class="insight-grid">
         ${analysis.insights
@@ -754,10 +777,10 @@ async function renderZombies() {
         ["把沉默关系按历史价值排序", "分配到学院或项目负责人复盘", "形成激活、观察、清理三类处理结果"]
       )}
       <div class="kpis">
-        <div class="kpi"><strong>${fmt(summary.total)}</strong><span>样例合作机构</span></div>
-        <div class="kpi"><strong>${fmt(summary.zombie)}</strong><span>僵尸关系</span></div>
-        <div class="kpi"><strong>${fmt(summary.warning)}</strong><span>警告关系</span></div>
-        <div class="kpi"><strong>${fmt(summary.active)}</strong><span>仍然活跃</span></div>
+        ${kpiCard(fmt(summary.total), "样例合作机构", 1)}
+        ${kpiCard(fmt(summary.zombie), "僵尸关系", 2, "red")}
+        ${kpiCard(fmt(summary.warning), "警告关系", 3, "red")}
+        ${kpiCard(fmt(summary.active), "仍然活跃", 4, "green")}
       </div>
       <div class="insight-grid">
         <div class="card insight-card">
@@ -829,10 +852,10 @@ async function renderSubjects() {
         ["先定位优势学科和高影响方向", "再联动国家与机构数据寻找伙伴", "最后形成学院级国际合作建议"]
       )}
       <div class="kpis">
-        <div class="kpi"><strong>${fmt(analysis.total)}</strong><span>样例学科论文</span></div>
-        <div class="kpi"><strong>${fmt(analysis.rows.length)}</strong><span>学科方向</span></div>
-        <div class="kpi"><strong>${analysis.topShare}%</strong><span>第一方向占比</span></div>
-        <div class="kpi"><strong>${fmt(analysis.highImpact)}</strong><span>高影响方向</span></div>
+        ${kpiCard(fmt(analysis.total), "样例学科论文", 1)}
+        ${kpiCard(fmt(analysis.rows.length), "学科方向", 2, "green")}
+        ${kpiCard(`${analysis.topShare}%`, "第一方向占比", 3)}
+        ${kpiCard(fmt(analysis.highImpact), "高影响方向", 4, "green")}
       </div>
       <div class="insight-grid">
         ${analysis.insights
@@ -904,10 +927,10 @@ async function renderBenchmark() {
         ["选择同层次高校作为参照组", "按规模、覆盖、网络、主导四类拆解差距", "把差距转成年度目标和重点合作策略"]
       )}
       <div class="kpis">
-        <div class="kpi"><strong>${analysis.topPapers.university || "-"}</strong><span>规模标杆</span></div>
-        <div class="kpi"><strong>${analysis.topCountries.university || "-"}</strong><span>覆盖标杆</span></div>
-        <div class="kpi"><strong>${analysis.topLead.university || "-"}</strong><span>主导标杆</span></div>
-        <div class="kpi"><strong>${analysis.avgLead}%</strong><span>平均主导率</span></div>
+        ${kpiCard(analysis.topPapers.university || "-", "规模标杆", 1)}
+        ${kpiCard(analysis.topCountries.university || "-", "覆盖标杆", 2)}
+        ${kpiCard(analysis.topLead.university || "-", "主导标杆", 3, "green")}
+        ${kpiCard(`${analysis.avgLead}%`, "平均主导率", 4, "green")}
       </div>
       <div class="insight-grid">
         ${analysis.insights
