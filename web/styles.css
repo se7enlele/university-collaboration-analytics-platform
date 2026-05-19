@@ -395,8 +395,8 @@ h1 {
   max-width: 760px;
   margin: 0 0 28px;
   color: var(--muted);
-  font-size: 19px;
-  line-height: 1.6;
+  font-size: 17px;
+  line-height: 1.55;
 }
 
 .grid {
@@ -527,7 +527,7 @@ h1 {
 
 .decision-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(260px, 0.85fr) minmax(280px, 0.9fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(320px, 1.1fr) minmax(260px, 0.85fr);
   gap: 1px;
   margin: 0 0 22px;
   overflow: hidden;
@@ -539,15 +539,15 @@ h1 {
 
 .decision-panel > div {
   min-width: 0;
-  padding: 24px;
+  padding: 22px 24px;
   background:
     linear-gradient(180deg, rgba(255,255,255,0.96), rgba(246,250,255,0.9)),
     radial-gradient(circle at 90% 10%, rgba(20, 184, 166, 0.12), transparent 34%);
 }
 
 .decision-main h2 {
-  margin: 16px 0 12px;
-  font-size: clamp(24px, 2.6vw, 34px);
+  margin: 14px 0 0;
+  font-size: clamp(24px, 2.4vw, 32px);
   line-height: 1.18;
 }
 
@@ -555,7 +555,7 @@ h1 {
 .decision-judgment p,
 .decision-actions li {
   color: var(--muted);
-  line-height: 1.72;
+  line-height: 1.62;
 }
 
 .metric-highlight {
@@ -580,7 +580,7 @@ h1 {
 
 .decision-actions ol {
   display: grid;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   padding-left: 20px;
 }
@@ -593,19 +593,27 @@ h1 {
 }
 
 .insight-card {
-  min-height: 210px;
+  min-height: 178px;
   background: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(241,247,255,0.9));
 }
 
 .insight-card h3 {
-  margin: 18px 0 10px;
+  margin: 16px 0 8px;
   font-size: 21px;
+  line-height: 1.22;
 }
 
 .insight-card p,
 .recommendation p {
   color: var(--muted);
-  line-height: 1.75;
+  line-height: 1.68;
+}
+
+.insight-card p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
 }
 
 .module-card h3 {

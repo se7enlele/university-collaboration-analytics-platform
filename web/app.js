@@ -261,16 +261,15 @@ function decisionPanel(title, question, judgment, actions) {
       <div class="decision-main">
         <span class="tag">本页解决的问题</span>
         <h2>${title}</h2>
-        <p>${question}</p>
       </div>
       <div class="decision-judgment">
-        <strong>业务判断</strong>
+        <strong>关键判断</strong>
         <p>${highlightMetrics(judgment)}</p>
       </div>
       <div class="decision-actions">
-        <strong>下一步行动</strong>
+        <strong>下一步</strong>
         <ol>
-          ${actions.map((item) => `<li>${item}</li>`).join("")}
+          ${actions.slice(0, 2).map((item) => `<li>${item}</li>`).join("")}
         </ol>
       </div>
     </div>
