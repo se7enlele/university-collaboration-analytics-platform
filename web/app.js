@@ -142,7 +142,9 @@ function bindSchoolSelector() {
   select.addEventListener("change", () => {
     selectedUniversity = select.value;
     localStorage.setItem("selectedUniversity", selectedUniversity);
-    (routes[location.pathname] || renderHome)();
+    const queryPage = new URLSearchParams(location.search).get("page");
+    const routeKey = queryPage ? `/${queryPage}` : location.pathname;
+    (routes[routeKey] || renderHome)();
   });
 }
 
@@ -361,7 +363,7 @@ async function renderHome() {
       <p class="section-copy">公开页面先展示国家、机构、学科和对标的宏观结果；具体机构名单、历史明细、导出报告和后台权限在登录后开放。</p>
       <div class="grid">
         ${moduleCard("合作格局", "国家、机构与论文成果覆盖。", "/map")}
-        ${moduleCard("绩效驾驶舱", "形成面向领导汇报的指标看板。", "/dashboard")}
+        ${moduleCard("绩效驾驶舱", "形成面向领导汇报的指标看板。", "/?page=dashboard")}
         ${moduleCard("机构排行", "识别核心伙伴与潜力机构。", "/institutions")}
         ${moduleCard("沉默关系", "找出长期无产出的合作伙伴。", "/zombies")}
         ${moduleCard("学科热力", "发现优势学科和增长方向。", "/subjects")}
@@ -971,7 +973,7 @@ function bindAuthForms() {
 
   if (enterDashboardBtn) {
     enterDashboardBtn.addEventListener("click", () => {
-      history.pushState({}, "", "/dashboard");
+      history.pushState({}, "", "/?page=dashboard");
       renderDashboard();
     });
   }
@@ -1000,6 +1002,9 @@ const routes = {
 
 updateAuthNav();
 
-(routes[location.pathname] || renderHome)().catch((error) => {
+const queryPage = new URLSearchParams(location.search).get("page");
+const routeKey = queryPage ? `/${queryPage}` : location.pathname;
+
+(routes[routeKey] || renderHome)().catch((error) => {
   app.innerHTML = `<section class="section"><div class="card status">页面加载失败：${error.message}</div></section>`;
 });
