@@ -749,21 +749,6 @@ async function renderInstitutions() {
           .join("")}
       </div>
       <div class="grid two institution-summary-grid">
-        <div class="card tier-card-panel">
-          <h3>伙伴质量标签</h3>
-          <div class="tier-grid">
-            ${tierEntries
-              .map(
-                ([tier, count]) => `
-                  <div class="tier-card">
-                    <strong>${count}</strong>
-                    <span>${tier}</span>
-                  </div>
-                `
-              )
-              .join("")}
-          </div>
-        </div>
         <div class="card country-card-panel">
           <h3>Top 机构国家分布</h3>
           <div class="bar-list compact">
@@ -780,8 +765,23 @@ async function renderInstitutions() {
               .join("")}
           </div>
         </div>
+        <div class="card tier-card-panel">
+          <h3>伙伴质量标签</h3>
+          <div class="tier-grid">
+            ${tierEntries
+              .map(
+                ([tier, count]) => `
+                  <div class="tier-card">
+                    <strong>${count}</strong>
+                    <span>${tier}</span>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+        </div>
       </div>
-      <div class="card">
+      <div class="card institution-table-card">
         <h3>核心合作机构清单</h3>
         ${table(analysis.rows, [
           { label: "机构", key: "institution" },
