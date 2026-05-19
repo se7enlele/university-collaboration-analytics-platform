@@ -392,7 +392,7 @@ function buildBenchmarkAnalysis(rows) {
 }
 
 async function renderHome() {
-  const [overview, universities] = await Promise.all([api(withUniversity("/api/overview")), loadUniversities()]);
+  const overview = await api("/api/overview");
   app.innerHTML = `
     <section class="section hero">
       <div class="hero-panel">
@@ -403,12 +403,11 @@ async function renderHome() {
           <a class="button" href="/map">先看合作格局</a>
           <a class="button secondary" href="/pricing">查看开通权益</a>
         </div>
-        ${schoolSelector(universities)}
         <div class="kpis value-kpis">
-          ${kpiCard(big(overview.papers), "全球科研成果底座", 1)}
-          ${kpiCard(`${fmt(overview.universities)}+`, "可扩展国内高校机构", 2, "green")}
-          ${kpiCard("4类", "合作格局分析维度", 3)}
-          ${kpiCard("1键", "形成汇报与行动清单", 4, "green")}
+          <div class="kpi"><strong>${big(overview.papers)}</strong><span>全球科研成果底座</span></div>
+          <div class="kpi"><strong>${fmt(overview.universities)}+</strong><span>可扩展国内高校机构</span></div>
+          <div class="kpi"><strong>4类</strong><span>合作格局分析维度</span></div>
+          <div class="kpi"><strong>1键</strong><span>形成汇报与行动清单</span></div>
         </div>
       </div>
     </section>
