@@ -174,7 +174,7 @@ function unlockCard(title, items) {
       <ul>
         ${items.map((item) => `<li>${item}</li>`).join("")}
       </ul>
-      <a class="button" href="/pricing">查看开通方案</a>
+      <a class="button" href="/pricing">查看开通权益</a>
     </div>
   `;
 }
@@ -378,7 +378,7 @@ async function renderHome() {
         <p class="lead">从公开论文和机构数据出发，快速看清合作现状、识别重点伙伴、发现沉默关系，并形成可汇报的决策依据。</p>
         <div class="actions">
           <a class="button" href="/map">先看合作格局</a>
-          <a class="button secondary" href="/pricing">查看开通方案</a>
+          <a class="button secondary" href="/pricing">查看开通权益</a>
         </div>
         ${schoolSelector(universities)}
         <div class="kpis value-kpis">
@@ -413,29 +413,29 @@ async function renderHome() {
     </section>
     <section class="section commercial-section">
       <div class="commercial-copy">
-        <span class="tag">商业价值</span>
-        <h2 class="section-title">从一次性分析，变成学校年度国际合作管理系统。</h2>
-        <p class="section-copy">免费页面解决“先看一眼”；付费版本解决“持续管理、导出汇报、多人协作和完整数据”。</p>
+        <span class="tag">开通后可用</span>
+        <h2 class="section-title">从浏览概览，到管理全校国际合作。</h2>
+        <p class="section-copy">开通后可查看完整明细、导出报告、管理伙伴清单，并支持国际处、科研院和学院协同使用。</p>
       </div>
       <div class="revenue-grid">
         <div class="card revenue-card">
-          <strong>试用</strong>
-          <span>给国际处老师快速验证价值</span>
-          <p>开放宏观格局、样例机构和部分对标结果，降低首次使用门槛。</p>
+          <strong>看清全局</strong>
+          <span>全校合作概览</span>
+          <p>统一查看国家、机构、学科、论文和对标结果，减少分散整理数据的时间。</p>
         </div>
         <div class="card revenue-card">
-          <strong>机构版</strong>
-          <span>面向学校年度采购</span>
-          <p>完整数据、报告导出、沉默关系清单、学院/学科下钻和团队权限。</p>
+          <strong>形成清单</strong>
+          <span>伙伴维护与沉默关系</span>
+          <p>识别重点伙伴、低质量合作和长期无产出的关系，形成可跟进的维护清单。</p>
         </div>
         <div class="card revenue-card">
-          <strong>专项服务</strong>
-          <span>面向领导汇报和战略规划</span>
-          <p>输出年度国际合作报告、标杆高校对标和重点国家/机构拓展建议。</p>
+          <strong>用于汇报</strong>
+          <span>报告与决策材料</span>
+          <p>生成年度成效、同类高校对标、重点国家和机构拓展建议等汇报素材。</p>
         </div>
       </div>
       <div class="actions">
-        <a class="button" href="/pricing">查看付费方案</a>
+        <a class="button" href="/pricing">查看开通权益</a>
         <a class="button secondary" href="/login">申请机构试用</a>
       </div>
     </section>
@@ -450,7 +450,7 @@ async function renderDashboard() {
   const benchmarkRows = data.benchmarks || [];
   shell(
     "绩效驾驶舱",
-    "把国际合作成果转化为处长和校领导能快速理解的绩效指标、趋势变化和汇报素材。",
+    "把国际合作成果整理成处长和校领导能快速理解的绩效指标、趋势变化和汇报素材。",
     `
       ${decisionPanel(
         "把数据变成可汇报的年度结论",
@@ -727,7 +727,7 @@ async function renderInstitutions() {
       </div>
       <div class="card recommendation">
         <span class="tag">行动建议</span>
-        <h3>把机构排行转化为伙伴维护清单。</h3>
+        <h3>把机构排行整理成伙伴维护清单。</h3>
         <p>优先维护“核心伙伴”和“高潜力伙伴”；对“灌水风险”要判断是否只是挂名参与；对“沉默伙伴”结合学院、学科和历史项目复盘，决定激活、观察或减少维护投入。</p>
       </div>
       ${unlockCard("解锁机构质量分析", ["查看 Top 100 合作机构完整名单", "打开机构详情页查看年度趋势和学科分布", "导出伙伴维护优先级清单", "按学院或学科拆分合作机构"])}
@@ -776,9 +776,9 @@ async function renderZombies() {
           <p>可按国家、学院和历史合作强度拆分维护责任，形成访问、续约或终止建议。</p>
         </div>
         <div class="card insight-card">
-          <span class="tag">付费价值</span>
-          <h3>完整名单适合导出</h3>
-          <p>完整僵尸合作名单、联系人维护和 Excel 导出适合作为登录后的核心权益。</p>
+          <span class="tag">完整清单</span>
+          <h3>登录后可继续查看明细</h3>
+          <p>完整沉默关系名单、跟进记录和导出能力可用于部门协同和年度复盘。</p>
         </div>
       </div>
       <div class="grid two">
@@ -1024,45 +1024,45 @@ function renderLogin() {
 
 function renderPricing() {
   shell(
-    "开通方案",
-    "把公开数据体验转化为机构采购、专项报告和持续订阅收入。",
+    "开通权益",
+    "为国际处、科研院、学科建设办公室和学院提供完整数据、报告导出和协同管理能力。",
     `
       <div class="decision-panel pricing-decision">
         <div class="decision-main">
-          <span class="tag">盈利逻辑</span>
-          <h2>先让用户看见问题，再让机构为解决方案付费。</h2>
-          <p>国际处不是为图表付费，而是为完整数据、行动清单、汇报材料、权限协作和持续更新付费。</p>
+          <span class="tag">适用场景</span>
+          <h2>让国际合作管理从分散整理，变成持续跟进。</h2>
+          <p>适合用于年度总结、出访准备、协议复盘、学科建设、同类高校对标和领导汇报。</p>
         </div>
         <div class="decision-judgment">
-          <strong>付费触发点</strong>
-          <p>当用户需要完整机构名单、沉默关系导出、学院下钻、对标报告和领导汇报时，就进入付费场景。</p>
+          <strong>开通后获得</strong>
+          <p>完整机构名单、沉默关系清单、学院和学科下钻、对标报告、报告导出和团队权限。</p>
         </div>
         <div class="decision-actions">
-          <strong>销售路径</strong>
+          <strong>建议使用方式</strong>
           <ol>
-            <li>开放样例页面降低体验门槛</li>
-            <li>用报告和清单制造明确付费理由</li>
-            <li>转化为学校年度账号或专项咨询服务</li>
+            <li>先用公开页面了解学校合作概况</li>
+            <li>提交机构申请并确认使用范围</li>
+            <li>开通后导出报告和伙伴维护清单</li>
           </ol>
         </div>
       </div>
       <div class="pricing-grid">
-        ${priceCard("体验版", "免费", "老师个人试用", ["查看宏观合作格局", "浏览样例机构和学科洞察", "体验登录和工作台流程", "适合首次评估产品价值"])}
-        ${priceCard("机构版", "按年采购", "学校/科研院/国际处", ["完整学校数据和机构名单", "沉默关系与伙伴维护清单", "绩效驾驶舱和报告导出", "多角色账号与权限管理"], true)}
-        ${priceCard("专项报告", "项目制", "领导汇报/战略规划", ["年度国际合作成效报告", "同层次高校对标分析", "重点国家与机构拓展建议", "可交付 Word/PDF 汇报材料"])}
+        ${priceCard("体验入口", "公开浏览", "初次了解", ["查看宏观合作格局", "浏览样例机构和学科洞察", "体验登录和工作台流程", "适合首次了解平台能力"])}
+        ${priceCard("机构工作台", "申请开通", "学校/科研院/国际处", ["完整学校数据和机构名单", "沉默关系与伙伴维护清单", "绩效驾驶舱和报告导出", "多角色账号与权限管理"], true)}
+        ${priceCard("专题分析", "联系确认", "领导汇报/战略规划", ["年度国际合作成效报告", "同层次高校对标分析", "重点国家与机构拓展建议", "可交付 Word/PDF 汇报材料"])}
       </div>
       <div class="grid two">
         <div class="card">
-          <h3>为什么学校愿意付费</h3>
+          <h3>开通后可以解决什么</h3>
           <ul class="business-list">
             <li>减少国际处手工整理论文、机构、国家和学院数据的时间。</li>
-            <li>把合作协议和历史关系转化为可维护、可清理、可汇报的清单。</li>
+            <li>把合作协议和历史关系整理成可维护、可复盘、可汇报的清单。</li>
             <li>支持年度总结、双一流建设、领导汇报和出访计划。</li>
-            <li>让国际合作从“接待和签约”变成“有数据依据的资源配置”。</li>
+            <li>帮助学校基于数据判断合作资源应该投向哪里。</li>
           </ul>
         </div>
         <div class="card">
-          <h3>建议优先销售对象</h3>
+          <h3>适合哪些角色使用</h3>
           <ul class="business-list">
             <li>国际合作处：伙伴维护、出访准备、协议复盘。</li>
             <li>科研院/科技处：国际论文产出、项目布局、质量评估。</li>
@@ -1072,9 +1072,9 @@ function renderPricing() {
         </div>
       </div>
       <div class="card recommendation">
-        <span class="tag">转化建议</span>
-        <h3>首页负责建立兴趣，开通方案负责解释价值，登录页负责收集线索。</h3>
-        <p>下一步可以把“申请开通”接入真实表单、企业微信/飞书通知或 CRM；同时增加样例报告预览，让用户明确知道付费后能拿到什么交付物。</p>
+        <span class="tag">申请说明</span>
+        <h3>提交申请后，我们会根据学校和使用部门确认开通范围。</h3>
+        <p>如果需要用于年度总结、专题汇报或同类高校对标，可以在申请时说明具体场景，便于优先配置相应的数据视图和报告模板。</p>
       </div>
     `
   );
@@ -1145,7 +1145,7 @@ function bindAuthForms() {
 function renderAdmin() {
   shell(
     "管理后台",
-    "用于用户权限、数据接入、付费审核和运营管理。",
+    "用于用户权限、数据接入、开通审核和运营管理。",
     `<div class="card form"><label>管理员密码</label><input type="password" /><div class="actions"><button class="button">进入后台</button></div></div>`
   );
 }
