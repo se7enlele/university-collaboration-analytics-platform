@@ -73,6 +73,44 @@ function kpiCard(value, label, seed = 1, tone = "blue") {
   return `<div class="kpi"><div><strong>${value}</strong><span>${label}</span></div>${sparkline(seed, tone)}</div>`;
 }
 
+function initPageEffects() {
+  const revealTargets = document.querySelectorAll(".section, .card, .kpis, .decision-panel");
+  revealTargets.forEach((item) => item.classList.add("reveal"));
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
+    revealTargets.forEach((item) => observer.observe(item));
+  } else {
+    revealTargets.forEach((item) => item.classList.add("is-visible"));
+  }
+  bindHomeRail();
+}
+
+function bindHomeRail() {
+  const rail = document.querySelector(".home-rail");
+  if (!rail || !("IntersectionObserver" in window)) return;
+  const links = [...rail.querySelectorAll("a")];
+  const sections = links.map((link) => document.querySelector(link.getAttribute("href"))).filter(Boolean);
+  const observer = new IntersectionObserver(
+    (entries) => {
+      const visible = entries.filter((entry) => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      links.forEach((link) => link.classList.toggle("active", link.getAttribute("href") === `#${visible.target.id}`));
+    },
+    { rootMargin: "-35% 0px -45% 0px", threshold: [0.1, 0.4, 0.7] }
+  );
+  sections.forEach((section) => observer.observe(section));
+}
+
 function shell(title, copy, content, options = {}) {
   app.innerHTML = `
     <section class="section">
@@ -87,6 +125,7 @@ function shell(title, copy, content, options = {}) {
     </section>
   `;
   updateAuthNav();
+  initPageEffects();
 }
 
 function table(rows, columns) {
@@ -394,7 +433,13 @@ function buildBenchmarkAnalysis(rows) {
 async function renderHome() {
   const overview = await api("/api/overview");
   app.innerHTML = `
-    <section class="section hero">
+    <nav class="home-rail" aria-label="首页章节导航">
+      <a class="active" href="#home-hero">概览</a>
+      <a href="#home-workflows">场景</a>
+      <a href="#home-modules">能力</a>
+      <a href="#home-access">开通</a>
+    </nav>
+    <section class="section hero" id="home-hero">
       <div class="hero-panel">
         <p class="eyebrow">International Office Workspace</p>
         <h1>给高校国际处使用的国际合作工作台</h1>
@@ -404,14 +449,14 @@ async function renderHome() {
           <a class="button secondary" href="/pricing">查看开通权益</a>
         </div>
         <div class="kpis value-kpis">
-          <div class="kpi"><strong>${big(overview.papers)}</strong><span>全球科研成果底座</span></div>
-          <div class="kpi"><strong>${fmt(overview.universities)}+</strong><span>可扩展国内高校机构</span></div>
-          <div class="kpi"><strong>4类</strong><span>合作格局分析维度</span></div>
-          <div class="kpi"><strong>1键</strong><span>形成汇报与行动清单</span></div>
+          <div class="kpi"><span>全球科研成果底座</span><strong>${big(overview.papers)}</strong></div>
+          <div class="kpi"><span>可扩展国内高校机构</span><strong>${fmt(overview.universities)}+</strong></div>
+          <div class="kpi"><span>合作格局分析维度</span><strong>4类</strong></div>
+          <div class="kpi"><span>形成汇报与行动清单</span><strong>1键</strong></div>
         </div>
       </div>
     </section>
-    <section class="section">
+    <section class="section" id="home-workflows">
       <h2 class="section-title">不是临时报告，而是日常工作入口。</h2>
       <p class="section-copy">围绕国际处最常见的工作场景组织数据：出访准备、伙伴维护、领导汇报和高校对标。</p>
       <div class="scenario-grid">
@@ -421,7 +466,7 @@ async function renderHome() {
         ${scenarioCard("对标兄弟高校", "比较同层级高校的合作规模、国家覆盖和伙伴网络，找到差距与机会。", "进入对标分析", "/benchmark")}
       </div>
     </section>
-    <section class="section">
+    <section class="section" id="home-modules">
       <h2 class="section-title">先免费看到轮廓，再解锁完整细节。</h2>
       <p class="section-copy">公开页面先展示国家、机构、学科和对标的宏观结果；具体机构名单、历史明细、导出报告和后台权限在登录后开放。</p>
       <div class="grid">
@@ -433,7 +478,7 @@ async function renderHome() {
         ${moduleCard("对标分析", "比较合作规模、覆盖和主导能力。", "/benchmark")}
       </div>
     </section>
-    <section class="section commercial-section">
+    <section class="section commercial-section" id="home-access">
       <div class="commercial-copy">
         <span class="tag">开通后可用</span>
         <h2 class="section-title">从浏览概览，到管理全校国际合作。</h2>
@@ -462,7 +507,8 @@ async function renderHome() {
       </div>
     </section>
   `;
-  bindSchoolSelector();
+  updateAuthNav();
+  initPageEffects();
 }
 
 async function renderDashboard() {
