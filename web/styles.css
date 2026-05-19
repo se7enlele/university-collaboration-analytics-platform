@@ -340,6 +340,47 @@ h1 {
   font-weight: 800;
 }
 
+.commercial-section {
+  padding-top: 26px;
+}
+
+.commercial-copy {
+  max-width: 860px;
+}
+
+.revenue-grid,
+.pricing-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 22px;
+}
+
+.revenue-card {
+  min-height: 220px;
+  border: 1px solid rgba(138, 150, 168, 0.16);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(245,250,255,0.9)),
+    radial-gradient(circle at 90% 0%, rgba(20, 184, 166, 0.13), transparent 34%);
+}
+
+.revenue-card strong {
+  display: block;
+  font-size: 30px;
+}
+
+.revenue-card span {
+  display: block;
+  margin: 10px 0 14px;
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.revenue-card p {
+  color: var(--muted);
+  line-height: 1.72;
+}
+
 .tag {
   display: inline-flex;
   padding: 5px 10px;
@@ -608,6 +649,52 @@ h1 {
   line-height: 1.85;
 }
 
+.pricing-grid {
+  margin: 0 0 20px;
+}
+
+.price-card {
+  min-height: 430px;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(138, 150, 168, 0.2);
+}
+
+.price-card.featured {
+  border-color: rgba(0, 110, 219, 0.35);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.98), rgba(235,247,255,0.92)),
+    radial-gradient(circle at 80% 0%, rgba(0, 110, 219, 0.18), transparent 36%);
+  transform: translateY(-8px);
+}
+
+.price-card h3 {
+  margin: 18px 0 8px;
+  font-size: 28px;
+}
+
+.price {
+  display: block;
+  margin-bottom: 20px;
+  color: var(--blue);
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.price-card ul,
+.business-list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding-left: 20px;
+  color: #374151;
+  line-height: 1.7;
+}
+
+.price-card .button {
+  margin-top: auto;
+}
+
 .form {
   max-width: 520px;
   margin: 0 auto;
@@ -857,9 +944,15 @@ h1 {
   .grid,
   .grid.two,
   .scenario-grid,
+  .revenue-grid,
+  .pricing-grid,
   .decision-panel,
   .insight-grid {
     grid-template-columns: 1fr;
+  }
+
+  .price-card.featured {
+    transform: none;
   }
 
   .page-head {

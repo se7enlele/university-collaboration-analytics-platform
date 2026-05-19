@@ -174,7 +174,21 @@ function unlockCard(title, items) {
       <ul>
         ${items.map((item) => `<li>${item}</li>`).join("")}
       </ul>
-      <a class="button" href="/login">开通完整工作台</a>
+      <a class="button" href="/pricing">查看开通方案</a>
+    </div>
+  `;
+}
+
+function priceCard(name, price, target, features, highlighted = false) {
+  return `
+    <div class="card price-card ${highlighted ? "featured" : ""}">
+      <span class="tag">${target}</span>
+      <h3>${name}</h3>
+      <strong class="price">${price}</strong>
+      <ul>
+        ${features.map((item) => `<li>${item}</li>`).join("")}
+      </ul>
+      <a class="button ${highlighted ? "" : "secondary"}" href="/login">申请开通</a>
     </div>
   `;
 }
@@ -364,7 +378,7 @@ async function renderHome() {
         <p class="lead">从公开论文和机构数据出发，快速看清合作现状、识别重点伙伴、发现沉默关系，并形成可汇报的决策依据。</p>
         <div class="actions">
           <a class="button" href="/map">先看合作格局</a>
-          <a class="button secondary" href="/login">开通完整工作台</a>
+          <a class="button secondary" href="/pricing">查看开通方案</a>
         </div>
         ${schoolSelector(universities)}
         <div class="kpis value-kpis">
@@ -395,6 +409,34 @@ async function renderHome() {
         ${moduleCard("沉默关系", "找出长期无产出的合作伙伴。", "/zombies")}
         ${moduleCard("学科热力", "发现优势学科和增长方向。", "/subjects")}
         ${moduleCard("对标分析", "比较合作规模、覆盖和主导能力。", "/benchmark")}
+      </div>
+    </section>
+    <section class="section commercial-section">
+      <div class="commercial-copy">
+        <span class="tag">商业价值</span>
+        <h2 class="section-title">从一次性分析，变成学校年度国际合作管理系统。</h2>
+        <p class="section-copy">免费页面解决“先看一眼”；付费版本解决“持续管理、导出汇报、多人协作和完整数据”。</p>
+      </div>
+      <div class="revenue-grid">
+        <div class="card revenue-card">
+          <strong>试用</strong>
+          <span>给国际处老师快速验证价值</span>
+          <p>开放宏观格局、样例机构和部分对标结果，降低首次使用门槛。</p>
+        </div>
+        <div class="card revenue-card">
+          <strong>机构版</strong>
+          <span>面向学校年度采购</span>
+          <p>完整数据、报告导出、沉默关系清单、学院/学科下钻和团队权限。</p>
+        </div>
+        <div class="card revenue-card">
+          <strong>专项服务</strong>
+          <span>面向领导汇报和战略规划</span>
+          <p>输出年度国际合作报告、标杆高校对标和重点国家/机构拓展建议。</p>
+        </div>
+      </div>
+      <div class="actions">
+        <a class="button" href="/pricing">查看付费方案</a>
+        <a class="button secondary" href="/login">申请机构试用</a>
       </div>
     </section>
   `;
@@ -980,6 +1022,64 @@ function renderLogin() {
   updateAuthNav();
 }
 
+function renderPricing() {
+  shell(
+    "开通方案",
+    "把公开数据体验转化为机构采购、专项报告和持续订阅收入。",
+    `
+      <div class="decision-panel pricing-decision">
+        <div class="decision-main">
+          <span class="tag">盈利逻辑</span>
+          <h2>先让用户看见问题，再让机构为解决方案付费。</h2>
+          <p>国际处不是为图表付费，而是为完整数据、行动清单、汇报材料、权限协作和持续更新付费。</p>
+        </div>
+        <div class="decision-judgment">
+          <strong>付费触发点</strong>
+          <p>当用户需要完整机构名单、沉默关系导出、学院下钻、对标报告和领导汇报时，就进入付费场景。</p>
+        </div>
+        <div class="decision-actions">
+          <strong>销售路径</strong>
+          <ol>
+            <li>开放样例页面降低体验门槛</li>
+            <li>用报告和清单制造明确付费理由</li>
+            <li>转化为学校年度账号或专项咨询服务</li>
+          </ol>
+        </div>
+      </div>
+      <div class="pricing-grid">
+        ${priceCard("体验版", "免费", "老师个人试用", ["查看宏观合作格局", "浏览样例机构和学科洞察", "体验登录和工作台流程", "适合首次评估产品价值"])}
+        ${priceCard("机构版", "按年采购", "学校/科研院/国际处", ["完整学校数据和机构名单", "沉默关系与伙伴维护清单", "绩效驾驶舱和报告导出", "多角色账号与权限管理"], true)}
+        ${priceCard("专项报告", "项目制", "领导汇报/战略规划", ["年度国际合作成效报告", "同层次高校对标分析", "重点国家与机构拓展建议", "可交付 Word/PDF 汇报材料"])}
+      </div>
+      <div class="grid two">
+        <div class="card">
+          <h3>为什么学校愿意付费</h3>
+          <ul class="business-list">
+            <li>减少国际处手工整理论文、机构、国家和学院数据的时间。</li>
+            <li>把合作协议和历史关系转化为可维护、可清理、可汇报的清单。</li>
+            <li>支持年度总结、双一流建设、领导汇报和出访计划。</li>
+            <li>让国际合作从“接待和签约”变成“有数据依据的资源配置”。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>建议优先销售对象</h3>
+          <ul class="business-list">
+            <li>国际合作处：伙伴维护、出访准备、协议复盘。</li>
+            <li>科研院/科技处：国际论文产出、项目布局、质量评估。</li>
+            <li>学科建设办公室：学科国际影响力和标杆高校对比。</li>
+            <li>校领导办公室：一页式汇报、年度成效和下一步策略。</li>
+          </ul>
+        </div>
+      </div>
+      <div class="card recommendation">
+        <span class="tag">转化建议</span>
+        <h3>首页负责建立兴趣，开通方案负责解释价值，登录页负责收集线索。</h3>
+        <p>下一步可以把“申请开通”接入真实表单、企业微信/飞书通知或 CRM；同时增加样例报告预览，让用户明确知道付费后能拿到什么交付物。</p>
+      </div>
+    `
+  );
+}
+
 function bindAuthForms() {
   const loginForm = document.querySelector("#loginForm");
   const signupForm = document.querySelector("#signupForm");
@@ -1059,6 +1159,7 @@ const routes = {
   "/zombies": renderZombies,
   "/subjects": renderSubjects,
   "/benchmark": renderBenchmark,
+  "/pricing": renderPricing,
   "/login": renderLogin,
   "/admin": renderAdmin,
 };

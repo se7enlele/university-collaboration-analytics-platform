@@ -452,7 +452,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_json(payload)
             return
 
-        if parsed.path in {"/", "/map", "/institutions", "/subjects", "/benchmark", "/zombies", "/dashboard", "/performance", "/admin", "/login"}:
+        if parsed.path in {"/", "/map", "/institutions", "/subjects", "/benchmark", "/zombies", "/dashboard", "/performance", "/admin", "/login", "/pricing"}:
             self.path = "/index.html"
         super().do_GET()
 
