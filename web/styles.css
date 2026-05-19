@@ -676,6 +676,42 @@ h1 {
   grid-template-columns: minmax(80px, 110px) minmax(90px, 1fr) 72px;
 }
 
+.institution-summary-grid {
+  grid-template-columns: minmax(0, 0.82fr) minmax(420px, 1.18fr);
+  align-items: start;
+}
+
+.tier-card-panel,
+.country-card-panel {
+  min-height: auto;
+}
+
+.tier-card-panel .tier-grid {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.tier-card-panel .tier-card {
+  min-height: 98px;
+  display: grid;
+  align-content: center;
+}
+
+.country-card-panel .bar-list.compact {
+  gap: 14px;
+}
+
+.country-card-panel .bar-row.compact {
+  grid-template-columns: minmax(150px, 190px) minmax(120px, 1fr) 72px;
+  gap: 16px;
+}
+
+.country-card-panel .bar-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .bar-track {
   height: 12px;
   overflow: hidden;
@@ -1117,6 +1153,7 @@ h1 {
   }
 
   .bar-row.compact,
+  .country-card-panel .bar-row.compact,
   .trend-row,
   .tier-grid,
   .unlock-card {

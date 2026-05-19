@@ -748,8 +748,8 @@ async function renderInstitutions() {
           )
           .join("")}
       </div>
-      <div class="grid two">
-        <div class="card">
+      <div class="grid two institution-summary-grid">
+        <div class="card tier-card-panel">
           <h3>伙伴质量标签</h3>
           <div class="tier-grid">
             ${tierEntries
@@ -764,7 +764,7 @@ async function renderInstitutions() {
               .join("")}
           </div>
         </div>
-        <div class="card">
+        <div class="card country-card-panel">
           <h3>Top 机构国家分布</h3>
           <div class="bar-list compact">
             ${countryTop
