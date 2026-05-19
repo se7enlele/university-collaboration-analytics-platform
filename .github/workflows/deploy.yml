@@ -1,0 +1,58 @@
+name: Deploy to Aliyun HK
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ALIYUN_HOST }}
+          username: ${{ secrets.ALIYUN_USER }}
+          key: ${{ secrets.ALIYUN_SSH_KEY }}
+          port: ${{ secrets.ALIYUN_PORT || '22' }}
+          script_stop: true
+          script: |
+            set -e
+
+            APP_DIR="${{ secrets.APP_DIR }}"
+            if [ -z "$APP_DIR" ]; then
+              APP_DIR="/var/www/university-collaboration"
+            fi
+
+            REPO_URL="https://github.com/${{ github.repository }}.git"
+            if [ ! -d "$APP_DIR/.git" ]; then
+              sudo mkdir -p "$APP_DIR"
+              sudo chown -R "$USER":"$USER" "$APP_DIR"
+              git clone "$REPO_URL" "$APP_DIR"
+            fi
+
+            cd "$APP_DIR"
+            git remote set-url origin "$REPO_URL"
+            git fetch origin main
+            git reset --hard origin/main
+
+            python3 -m venv .venv
+            . .venv/bin/activate
+            python -m pip install --upgrade pip
+            pip install -r requirements.txt
+
+            sudo cp university-collab-web.service /etc/systemd/system/university-collab-web.service
+            sudo systemctl daemon-reload
+            sudo systemctl enable university-collab-web
+            sudo systemctl restart university-collab-web
+
+            sudo cp nginx-web.conf /etc/nginx/sites-available/university-collaboration
+            sudo ln -sf /etc/nginx/sites-available/university-collaboration /etc/nginx/sites-enabled/university-collaboration
+            sudo rm -f /etc/nginx/sites-enabled/default
+            sudo nginx -t
+            sudo systemctl reload nginx
+
+            sudo systemctl status university-collab-web --no-pager
