@@ -52,6 +52,7 @@ jobs:
             sudo cp nginx-web.conf /etc/nginx/sites-available/university-collaboration
             sudo ln -sf /etc/nginx/sites-available/university-collaboration /etc/nginx/sites-enabled/university-collaboration
             sudo rm -f /etc/nginx/sites-enabled/default
+            sudo rm -f /etc/nginx/sites-enabled/international-collab
             sudo nginx -t
             sudo systemctl reload nginx
 
