@@ -18,9 +18,8 @@ from utils.business_db import (
     reject_access_request,
     revoke_session,
     user_by_session,
-    verify_sms_code,
 )
-from utils.business_sms import send_login_sms_code
+from utils.business_sms import send_login_sms_code, verify_login_sms_code
 from utils.data_pipeline import data_status, refresh_university, resolve_source_metadata, seed_university_sources
 
 
@@ -513,7 +512,7 @@ class Handler(SimpleHTTPRequestHandler):
                 payload = self.read_json()
                 phone = clean_required(payload.get("phone"), "phone")
                 code = clean_required(payload.get("code"), "code")
-                if not verify_sms_code(phone, code):
+                if not verify_login_sms_code(phone, code):
                     self.send_json({"ok": False, "error": "验证码错误或已过期"}, 400)
                     return
                 user = get_or_create_user(

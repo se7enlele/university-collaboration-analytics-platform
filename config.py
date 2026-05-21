@@ -9,8 +9,12 @@ MYSQL_DB = os.getenv("MYSQL_DB", "platform")
 
 ALIYUN_ACCESS_KEY_ID = os.getenv("ALIYUN_ACCESS_KEY_ID", "your-key-id")
 ALIYUN_ACCESS_KEY_SECRET = os.getenv("ALIYUN_ACCESS_KEY_SECRET", "your-secret")
+SMS_PROVIDER = os.getenv("SMS_PROVIDER", "pnvs")
 SMS_SIGN_NAME = os.getenv("SMS_SIGN_NAME", "your-sign")
 SMS_TEMPLATE_CODE = os.getenv("SMS_TEMPLATE_CODE", "your-template")
+PNVS_SMS_SIGN_NAME = os.getenv("PNVS_SMS_SIGN_NAME", "速通互联网验证码")
+PNVS_SMS_TEMPLATE_CODE = os.getenv("PNVS_SMS_TEMPLATE_CODE", "100001")
+PNVS_SMS_EXPIRE_MINUTES = os.getenv("PNVS_SMS_EXPIRE_MINUTES", "5")
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "your-admin-password")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "your-email@gmail.com")
