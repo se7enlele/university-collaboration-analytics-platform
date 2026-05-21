@@ -3,6 +3,7 @@ const nf = new Intl.NumberFormat("zh-CN");
 let universitiesCache = null;
 let selectedUniversity = localStorage.getItem("selectedUniversity") || "山东大学";
 let currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
+let authToken = localStorage.getItem("authToken") || "";
 const fallbackUniversities = [
   { university: "山东大学" },
   { university: "中山大学" },
@@ -11,13 +12,71 @@ const fallbackUniversities = [
 ];
 
 async function api(path) {
-  const response = await fetch(path);
+  const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
+  const response = await fetch(path, { headers });
   if (!response.ok) throw new Error(`API failed: ${path}`);
   return response.json();
 }
 
+async function postApi(path, payload = {}) {
+  const headers = { "Content-Type": "application/json" };
+  if (authToken) headers.Authorization = `Bearer ${authToken}`;
+  const response = await fetch(path, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.ok === false) throw new Error(data.error || `API failed: ${path}`);
+  return data;
+}
+
+async function adminApi(path, options = {}) {
+  const adminToken = localStorage.getItem("adminToken") || "";
+  const response = await fetch(path, {
+    ...options,
+    headers: {
+      "Content-Type": "application/json",
+      "X-Admin-Token": adminToken,
+      ...(options.headers || {}),
+    },
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.ok === false) throw new Error(data.error || `API failed: ${path}`);
+  return data;
+}
+
 function fmt(value) {
   return nf.format(Number(value || 0));
+}
+
+function itemsOf(payload) {
+  return Array.isArray(payload) ? payload : payload?.items || [];
+}
+
+function accessOf(payload) {
+  if (!payload || Array.isArray(payload)) return { access: currentUser ? "login" : "public", locked: true, message: "" };
+  return {
+    access: payload.access || (currentUser ? "login" : "public"),
+    locked: Boolean(payload.locked),
+    message: payload.message || "",
+  };
+}
+
+function accessBanner(payload) {
+  const access = accessOf(payload);
+  if (!access.locked) return "";
+  const title = access.access === "public" ? "当前为公开预览" : "当前为登录试用视图";
+  return `
+    <div class="card access-banner">
+      <div>
+        <span class="tag">权限提示</span>
+        <strong>${title}</strong>
+        <p>${access.message || "开通机构工作台后可查看完整明细、导出清单和生成报告。"}</p>
+      </div>
+      <a class="button" href="/pricing">查看开通权益</a>
+    </div>
+  `;
 }
 
 function withUniversity(path) {
@@ -25,14 +84,20 @@ function withUniversity(path) {
   return `${path}${separator}university=${encodeURIComponent(selectedUniversity)}`;
 }
 
-function saveUser(user) {
+function saveUser(user, token = authToken) {
   currentUser = user;
   localStorage.setItem("currentUser", JSON.stringify(user));
+  if (token) {
+    authToken = token;
+    localStorage.setItem("authToken", token);
+  }
 }
 
 function clearUser() {
   currentUser = null;
+  authToken = "";
   localStorage.removeItem("currentUser");
+  localStorage.removeItem("authToken");
 }
 
 function updateAuthNav() {
@@ -226,6 +291,18 @@ function scenarioCard(title, copy, action, href) {
 }
 
 function unlockCard(title, items) {
+  if (currentUser?.status === "active" || currentUser?.plan === "institution") {
+    return `
+      <div class="card access-banner unlocked">
+        <div>
+          <span class="tag">已开通</span>
+          <strong>机构工作台权限已生效</strong>
+          <p>当前账号可以继续查看完整明细、导出清单和使用后台审核后的机构权限。</p>
+        </div>
+        <a class="button secondary" href="/?page=dashboard">进入绩效驾驶舱</a>
+      </div>
+    `;
+  }
   return `
     <div class="card unlock-card">
       <div>
@@ -589,12 +666,13 @@ async function renderDashboard() {
 }
 
 async function renderMap() {
-  const [overview, analysis, universities, works] = await Promise.all([
+  const [overview, analysis, universities, worksPayload] = await Promise.all([
     api(withUniversity("/api/overview")),
     loadCollaborationAnalysis(),
     loadUniversities(),
     api(withUniversity("/api/works?limit=8")).catch(() => []),
   ]);
+  const works = itemsOf(worksPayload);
   const top = analysis.countries.slice(0, 12);
   const regions = analysis.regions.slice(0, 6);
   const institutions = analysis.institutions.slice(0, 8);
@@ -713,7 +791,8 @@ async function renderMap() {
 }
 
 async function renderInstitutions() {
-  const [rows, universities] = await Promise.all([api(withUniversity("/api/institutions?limit=50")), loadUniversities()]);
+  const [payload, universities] = await Promise.all([api(withUniversity("/api/institutions?limit=50")), loadUniversities()]);
+  const rows = itemsOf(payload);
   const analysis = buildInstitutionAnalysis(rows);
   const tierEntries = Object.entries(analysis.tierCounts);
   const countryTop = analysis.countriesRank.slice(0, 8);
@@ -883,7 +962,8 @@ async function renderZombies() {
 }
 
 async function renderSubjects() {
-  const [data, universities] = await Promise.all([api(withUniversity("/api/subjects?limit=12")), loadUniversities()]);
+  const [payload, universities] = await Promise.all([api(withUniversity("/api/subjects?limit=12")), loadUniversities()]);
+  const data = itemsOf(payload);
   const analysis = buildSubjectAnalysis(data);
   shell(
     "学科热力",
@@ -958,7 +1038,8 @@ async function renderSubjects() {
 }
 
 async function renderBenchmark() {
-  const rows = await api("/api/benchmark");
+  const payload = await api("/api/benchmark");
+  const rows = itemsOf(payload);
   const analysis = buildBenchmarkAnalysis(rows);
   shell(
     "多校对标分析",
@@ -1085,7 +1166,7 @@ function renderLogin() {
       </div>
     </section>
   `;
-  bindAuthForms();
+  bindAuthFormsV2();
   updateAuthNav();
 }
 
@@ -1209,12 +1290,334 @@ function bindAuthForms() {
   }
 }
 
+function bindAuthFormsV2() {
+  const loginForm = document.querySelector("#loginForm");
+  const signupForm = document.querySelector("#signupForm");
+  const logoutBtn = document.querySelector("#logoutBtn");
+  const sendCodeBtn = document.querySelector("#sendCodeBtn");
+  const enterDashboardBtn = document.querySelector("#enterDashboardBtn");
+
+  if (sendCodeBtn) {
+    sendCodeBtn.addEventListener("click", async () => {
+      const phone = document.querySelector("#loginPhone").value.trim() || "13800000000";
+      sendCodeBtn.disabled = true;
+      sendCodeBtn.textContent = "发送中";
+      try {
+        const result = await postApi("/api/auth/send-code", { phone });
+        const code = result.debug_code || "";
+        sendCodeBtn.textContent = code ? `验证码 ${code}` : "已发送";
+        if (code) document.querySelector("#loginCode").value = code;
+      } catch (error) {
+        sendCodeBtn.textContent = "重新获取";
+        sendCodeBtn.disabled = false;
+        alert(error.message);
+      }
+    });
+  }
+
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        const result = await postApi("/api/auth/login", {
+          phone: document.querySelector("#loginPhone").value.trim() || "13800000000",
+          code: document.querySelector("#loginCode").value.trim(),
+          organization: selectedUniversity,
+          role: "international-office",
+        });
+        saveUser(result.user, result.token);
+        renderLogin();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  }
+
+  if (signupForm) {
+    signupForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      try {
+        const result = await postApi("/api/access-requests", {
+          phone: currentUser?.phone || "",
+          name: document.querySelector("#signupName").value.trim(),
+          organization: document.querySelector("#signupOrg").value.trim() || selectedUniversity,
+          role: document.querySelector("#signupRole").value.trim(),
+          message: "用户从开通页面提交机构开通申请",
+        });
+        saveUser({
+          ...(currentUser || {}),
+          phone: currentUser?.phone || result.request.phone || "待绑定手机号",
+          name: result.request.name || currentUser?.name || "待审核用户",
+          organization: result.request.organization,
+          role: result.request.role,
+          plan: "institution-request",
+          status: "pending",
+        });
+        renderLogin();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+      try {
+        await postApi("/api/auth/logout");
+      } catch (_) {
+        // Local cleanup still matters if the server session already expired.
+      }
+      clearUser();
+      renderLogin();
+    });
+  }
+
+  if (enterDashboardBtn) {
+    enterDashboardBtn.addEventListener("click", () => {
+      history.pushState({}, "", "/?page=dashboard");
+      renderDashboard();
+    });
+  }
+}
+
 function renderAdmin() {
   shell(
     "管理后台",
     "用于用户权限、数据接入、开通审核和运营管理。",
     `<div class="card form"><label>管理员密码</label><input type="password" /><div class="actions"><button class="button">进入后台</button></div></div>`
   );
+}
+
+async function renderAdminConsole() {
+  const adminToken = localStorage.getItem("adminToken") || "";
+  if (!adminToken) {
+    shell(
+      "管理后台",
+      "用于用户权限、开通审核和运营管理。",
+      `
+        <div class="card form">
+          <label>管理员密钥</label>
+          <input id="adminTokenInput" type="password" placeholder="请输入管理员密钥" />
+          <div class="actions"><button class="button" id="adminLoginBtn">进入后台</button></div>
+        </div>
+      `
+    );
+    bindAdminLogin();
+    return;
+  }
+
+  try {
+    const [requestsData, usersData, dataStatus] = await Promise.all([
+      adminApi("/api/admin/access-requests"),
+      adminApi("/api/admin/users"),
+      adminApi("/api/admin/data-status"),
+    ]);
+    shell(
+      "管理后台",
+      "审核开通申请、查看用户和运营状态。",
+      `
+        <div class="kpis">
+          ${kpiCard(fmt(requestsData.requests.filter((item) => item.status === "pending").length), "待审核申请", 1, "red")}
+          ${kpiCard(fmt(requestsData.requests.filter((item) => item.status === "approved").length), "已开通申请", 2, "green")}
+          ${kpiCard(fmt(usersData.users.length), "注册用户", 3)}
+          ${kpiCard(fmt(usersData.users.filter((item) => item.status === "active").length), "已开通用户", 4, "green")}
+        </div>
+        <div class="grid two admin-grid">
+          <div class="card">
+            <h3>开通申请</h3>
+            ${adminRequestsTable(requestsData.requests)}
+          </div>
+          <div class="card">
+            <h3>用户列表</h3>
+            ${adminUsersTable(usersData.users)}
+          </div>
+        </div>
+        <div class="grid two admin-grid">
+          <div class="card">
+            <h3>数据源状态</h3>
+            ${adminSourcesTable(dataStatus.sources || [])}
+          </div>
+          <div class="card">
+            <h3>数据任务</h3>
+            ${adminJobsTable(dataStatus.jobs || [])}
+          </div>
+        </div>
+        <div class="actions">
+          <button class="button secondary" id="adminLogoutBtn">退出后台</button>
+        </div>
+      `
+    );
+    bindAdminActions();
+  } catch (error) {
+    localStorage.removeItem("adminToken");
+    shell(
+      "管理后台",
+      "管理员密钥无效或已变更，请重新登录。",
+      `
+        <div class="card form">
+          <p class="muted">${error.message}</p>
+          <label>管理员密钥</label>
+          <input id="adminTokenInput" type="password" placeholder="请输入管理员密钥" />
+          <div class="actions"><button class="button" id="adminLoginBtn">进入后台</button></div>
+        </div>
+      `
+    );
+    bindAdminLogin();
+  }
+}
+
+function adminRequestsTable(requests) {
+  if (!requests.length) return `<p class="muted">暂无开通申请。</p>`;
+  return `
+    <div class="admin-list">
+      ${requests
+        .map(
+          (item) => `
+            <div class="admin-row">
+              <div>
+                <strong>${item.organization || "-"}</strong>
+                <span>${item.name || "-"} · ${item.role || "-"} · ${item.phone || "-"}</span>
+                <small>${item.created_at || ""}</small>
+              </div>
+              <em class="status-badge ${item.status}">${item.status}</em>
+              ${
+                item.status === "pending"
+                  ? `<div class="admin-actions">
+                      <button data-action="approve" data-id="${item.id}">通过</button>
+                      <button data-action="reject" data-id="${item.id}">拒绝</button>
+                    </div>`
+                  : ""
+              }
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function adminUsersTable(users) {
+  if (!users.length) return `<p class="muted">暂无用户。</p>`;
+  return `
+    <div class="admin-list compact">
+      ${users
+        .map(
+          (item) => `
+            <div class="admin-row">
+              <div>
+                <strong>${item.name || item.phone}</strong>
+                <span>${item.organization || "-"} · ${item.role || "-"} · ${item.phone}</span>
+                <small>${item.plan || "trial"} · ${item.status || "trial"}</small>
+              </div>
+              <em class="status-badge ${item.status}">${item.status}</em>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function adminSourcesTable(sources) {
+  if (!sources.length) return `<p class="muted">暂无学校数据源。</p>`;
+  return `
+    <div class="admin-list compact">
+      ${sources
+        .map(
+          (item) => `
+            <div class="admin-row">
+              <div>
+                <strong>${item.university}</strong>
+                <span>${item.search_name || "-"} · raw ${fmt(item.raw_count)} · processed ${fmt(item.work_count)}</span>
+                <small>last fetched ${item.last_fetched_at || "未采集"}</small>
+              </div>
+              <em class="status-badge ${item.status}">${item.status}</em>
+              <div class="admin-actions">
+                <button data-action="refresh-data" data-university="${item.university}">刷新</button>
+              </div>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function adminJobsTable(jobs) {
+  if (!jobs.length) return `<p class="muted">暂无数据任务。</p>`;
+  return `
+    <div class="admin-list compact">
+      ${jobs
+        .slice(0, 12)
+        .map(
+          (item) => `
+            <div class="admin-row">
+              <div>
+                <strong>${item.university}</strong>
+                <span>${item.job_type} · raw ${fmt(item.raw_count)} · processed ${fmt(item.processed_count)}</span>
+                <small>${item.error || item.finished_at || item.created_at || ""}</small>
+              </div>
+              <em class="status-badge ${item.status}">${item.status}</em>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function bindAdminLogin() {
+  const button = document.querySelector("#adminLoginBtn");
+  if (!button) return;
+  button.addEventListener("click", () => {
+    const token = document.querySelector("#adminTokenInput").value.trim();
+    if (!token) {
+      alert("请输入管理员密钥");
+      return;
+    }
+    localStorage.setItem("adminToken", token);
+    renderAdminConsole();
+  });
+}
+
+function bindAdminActions() {
+  const logout = document.querySelector("#adminLogoutBtn");
+  if (logout) {
+    logout.addEventListener("click", () => {
+      localStorage.removeItem("adminToken");
+      renderAdminConsole();
+    });
+  }
+  document.querySelectorAll("[data-action][data-id]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const id = Number(button.dataset.id);
+      const action = button.dataset.action;
+      const path = action === "approve" ? "/api/admin/access-requests/approve" : "/api/admin/access-requests/reject";
+      try {
+        await adminApi(path, { method: "POST", body: JSON.stringify({ id }) });
+        renderAdminConsole();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  });
+  document.querySelectorAll("[data-action='refresh-data'][data-university]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      button.textContent = "刷新中";
+      try {
+        await adminApi("/api/admin/data/refresh", {
+          method: "POST",
+          body: JSON.stringify({ university: button.dataset.university, limit_per_university: 200 }),
+        });
+        renderAdminConsole();
+      } catch (error) {
+        button.disabled = false;
+        button.textContent = "刷新";
+        alert(error.message);
+      }
+    });
+  });
 }
 
 const routes = {
@@ -1228,7 +1631,7 @@ const routes = {
   "/benchmark": renderBenchmark,
   "/pricing": renderPricing,
   "/login": renderLogin,
-  "/admin": renderAdmin,
+  "/admin": renderAdminConsole,
 };
 
 updateAuthNav();

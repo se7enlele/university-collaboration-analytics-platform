@@ -7,6 +7,21 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 from config import SQLITE_DB_PATH
+from config import ADMIN_PASSWORD
+from utils.business_db import (
+    approve_access_request,
+    create_access_request,
+    create_session,
+    create_sms_code,
+    get_or_create_user,
+    list_access_requests,
+    list_users,
+    reject_access_request,
+    revoke_session,
+    user_by_session,
+    verify_sms_code,
+)
+from utils.data_pipeline import data_status, refresh_university, resolve_source_metadata, seed_university_sources
 
 
 ROOT = Path(__file__).resolve().parent
@@ -438,10 +453,37 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
+        if parsed.path == "/api/me":
+            self.send_json({"user": self.current_user()})
+            return
+        if parsed.path == "/api/admin/users":
+            if not self.is_admin():
+                self.send_json({"ok": False, "error": "Unauthorized"}, 401)
+                return
+            self.send_json({"ok": True, "users": list_users()})
+            return
+        if parsed.path == "/api/admin/access-requests":
+            if not self.is_admin():
+                self.send_json({"ok": False, "error": "Unauthorized"}, 401)
+                return
+            query = parse_qs(parsed.query)
+            status = query.get("status", [None])[0]
+            self.send_json({"ok": True, "requests": list_access_requests(status)})
+            return
+        if parsed.path == "/api/admin/data-status":
+            if not self.is_admin():
+                self.send_json({"ok": False, "error": "Unauthorized"}, 401)
+                return
+            seed_university_sources()
+            self.send_json({"ok": True, **data_status()})
+            return
         if parsed.path in API:
             query = parse_qs(parsed.query)
             limit = int(query.get("limit", ["20"])[0])
             university = query.get("university", [None])[0]
+            user = self.current_user()
+            access = self.access_level(user)
+            limit = self.apply_limit(parsed.path, limit, access)
             handler = API[parsed.path]
             if parsed.path in {"/api/institutions", "/api/subjects", "/api/works"}:
                 payload = handler(limit, university)
@@ -449,6 +491,7 @@ class Handler(SimpleHTTPRequestHandler):
                 payload = handler(university)
             else:
                 payload = handler()
+            payload = self.apply_payload_gate(parsed.path, payload, access)
             self.send_json(payload)
             return
 
@@ -456,13 +499,165 @@ class Handler(SimpleHTTPRequestHandler):
             self.path = "/index.html"
         super().do_GET()
 
-    def send_json(self, payload) -> None:
+    def do_POST(self) -> None:
+        parsed = urlparse(self.path)
+        try:
+            if parsed.path == "/api/auth/send-code":
+                payload = self.read_json()
+                phone = clean_required(payload.get("phone"), "phone")
+                code = create_sms_code(phone)
+                self.send_json({"ok": True, "debug_code": code})
+                return
+
+            if parsed.path == "/api/auth/login":
+                payload = self.read_json()
+                phone = clean_required(payload.get("phone"), "phone")
+                code = clean_required(payload.get("code"), "code")
+                if not verify_sms_code(phone, code):
+                    self.send_json({"ok": False, "error": "验证码错误或已过期"}, 400)
+                    return
+                user = get_or_create_user(
+                    phone=phone,
+                    name=(payload.get("name") or "").strip(),
+                    organization=(payload.get("organization") or "").strip(),
+                    role=(payload.get("role") or "").strip(),
+                )
+                token = create_session(user["id"])
+                self.send_json({"ok": True, "user": user, "token": token})
+                return
+
+            if parsed.path == "/api/auth/logout":
+                revoke_session(self.bearer_token())
+                self.send_json({"ok": True})
+                return
+
+            if parsed.path == "/api/access-requests":
+                payload = self.read_json()
+                request = create_access_request(payload, self.current_user())
+                self.send_json({"ok": True, "request": request})
+                return
+
+            if parsed.path == "/api/admin/access-requests/approve":
+                if not self.is_admin():
+                    self.send_json({"ok": False, "error": "Unauthorized"}, 401)
+                    return
+                payload = self.read_json()
+                request = approve_access_request(int(payload.get("id") or 0))
+                if not request:
+                    self.send_json({"ok": False, "error": "Request not found"}, 404)
+                    return
+                self.send_json({"ok": True, "request": request})
+                return
+
+            if parsed.path == "/api/admin/access-requests/reject":
+                if not self.is_admin():
+                    self.send_json({"ok": False, "error": "Unauthorized"}, 401)
+                    return
+                payload = self.read_json()
+                request = reject_access_request(int(payload.get("id") or 0))
+                if not request:
+                    self.send_json({"ok": False, "error": "Request not found"}, 404)
+                    return
+                self.send_json({"ok": True, "request": request})
+                return
+
+            if parsed.path == "/api/admin/data/resolve-source":
+                if not self.is_admin():
+                    self.send_json({"ok": False, "error": "Unauthorized"}, 401)
+                    return
+                payload = self.read_json()
+                university = clean_required(payload.get("university"), "university")
+                source = resolve_source_metadata(university)
+                self.send_json({"ok": True, "source": source})
+                return
+
+            if parsed.path == "/api/admin/data/refresh":
+                if not self.is_admin():
+                    self.send_json({"ok": False, "error": "Unauthorized"}, 401)
+                    return
+                payload = self.read_json()
+                university = clean_required(payload.get("university"), "university")
+                limit = payload.get("limit_per_university", 200)
+                job = refresh_university(university, int(limit) if limit else None)
+                self.send_json({"ok": True, "job": job})
+                return
+
+            self.send_json({"ok": False, "error": "Not found"}, 404)
+        except ValueError as exc:
+            self.send_json({"ok": False, "error": str(exc)}, 400)
+        except Exception as exc:
+            self.send_json({"ok": False, "error": str(exc)}, 500)
+
+    def read_json(self) -> dict:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 0:
+            return {}
+        raw = self.rfile.read(length).decode("utf-8")
+        return json.loads(raw or "{}")
+
+    def bearer_token(self) -> str | None:
+        header = self.headers.get("Authorization", "")
+        if header.startswith("Bearer "):
+            return header.removeprefix("Bearer ").strip()
+        return None
+
+    def current_user(self) -> dict | None:
+        return user_by_session(self.bearer_token())
+
+    def is_admin(self) -> bool:
+        token = self.headers.get("X-Admin-Token", "")
+        return bool(ADMIN_PASSWORD and token and token == ADMIN_PASSWORD)
+
+    def access_level(self, user: dict | None) -> str:
+        if not user:
+            return "public"
+        if user.get("status") == "active" or user.get("plan") == "institution":
+            return "paid"
+        return "login"
+
+    def apply_limit(self, path: str, limit: int, access: str) -> int:
+        caps = {
+            "public": {"/api/institutions": 8, "/api/subjects": 8, "/api/works": 3},
+            "login": {"/api/institutions": 20, "/api/subjects": 12, "/api/works": 8},
+            "paid": {"/api/institutions": 100, "/api/subjects": 50, "/api/works": 50},
+        }
+        cap = caps.get(access, caps["public"]).get(path)
+        return min(limit, cap) if cap else limit
+
+    def apply_payload_gate(self, path: str, payload, access: str):
+        meta = {
+            "access": access,
+            "locked": access != "paid",
+            "message": "开通机构工作台后可查看完整明细、导出清单和生成报告。" if access != "paid" else "",
+        }
+        if path in {"/api/institutions", "/api/subjects", "/api/works", "/api/benchmark"}:
+            return {"items": payload, **meta}
+        if path == "/api/zombies":
+            if access == "public":
+                payload = {**payload, "partners": payload.get("partners", [])[:5]}
+            elif access == "login":
+                payload = {**payload, "partners": payload.get("partners", [])[:20]}
+            return {**payload, **meta}
+        if path == "/api/performance":
+            if access == "public":
+                payload = {**payload, "benchmarks": payload.get("benchmarks", [])[:3]}
+            return {**payload, **meta}
+        return payload
+
+    def send_json(self, payload, status: int = 200) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
-        self.send_response(200)
+        self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
+
+
+def clean_required(value: object, name: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        raise ValueError(f"{name} is required")
+    return text
 
 
 def main() -> None:

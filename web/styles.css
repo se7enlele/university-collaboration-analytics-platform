@@ -846,6 +846,37 @@ h1 {
   line-height: 1.85;
 }
 
+.access-banner {
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  align-items: center;
+  margin-top: 18px;
+  border: 1px solid rgba(0, 110, 219, 0.18);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(239, 248, 255, 0.92)),
+    radial-gradient(circle at 96% 0%, rgba(0, 110, 219, 0.12), transparent 34%);
+}
+
+.access-banner.unlocked {
+  border-color: rgba(15, 118, 110, 0.22);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(236, 253, 245, 0.9)),
+    radial-gradient(circle at 96% 0%, rgba(15, 118, 110, 0.14), transparent 34%);
+}
+
+.access-banner strong {
+  display: block;
+  margin: 12px 0 6px;
+  font-size: 22px;
+}
+
+.access-banner p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
 .pricing-grid {
   margin: 0 0 20px;
 }
@@ -1127,6 +1158,91 @@ h1 {
   cursor: pointer;
 }
 
+.admin-grid {
+  align-items: start;
+}
+
+.admin-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.admin-row:last-child {
+  border-bottom: 0;
+}
+
+.admin-row strong,
+.admin-row span,
+.admin-row small {
+  display: block;
+}
+
+.admin-row span,
+.admin-row small {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.status-badge {
+  display: inline-flex;
+  justify-content: center;
+  min-width: 76px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  color: #374151;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.status-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.approved,
+.status-badge.active {
+  background: #dcfce7;
+  color: #047857;
+}
+
+.status-badge.rejected {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.admin-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.admin-actions button {
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(0, 110, 219, 0.25);
+  border-radius: 999px;
+  background: #eef6ff;
+  color: var(--blue);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+}
+
+.admin-actions button[data-action="reject"] {
+  border-color: rgba(239, 68, 68, 0.25);
+  background: #fff1f2;
+  color: #b91c1c;
+}
+
 @media (max-width: 900px) {
   .home-rail {
     display: none;
@@ -1171,7 +1287,8 @@ h1 {
   .country-card-panel .bar-row.compact,
   .trend-row,
   .tier-grid,
-  .unlock-card {
+    .unlock-card,
+    .access-banner {
     grid-template-columns: 1fr;
   }
 
@@ -1216,6 +1333,14 @@ h1 {
 
   .auth-copy h1 {
     max-width: 100%;
+  }
+
+  .admin-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-actions {
+    flex-wrap: wrap;
   }
 }
 

@@ -2,5 +2,6 @@ __pycache__/
 *.pyc
 .venv/
 data/works.db
+data/business.db
 *.log
 .streamlit/secrets.toml
