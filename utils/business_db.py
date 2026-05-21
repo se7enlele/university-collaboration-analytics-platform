@@ -122,8 +122,8 @@ def row_to_user(row: sqlite3.Row | None) -> dict | None:
     }
 
 
-def create_sms_code(phone: str) -> str:
-    code = "123456"
+def create_sms_code(phone: str, code: str | None = None) -> str:
+    code = code or f"{secrets.randbelow(1_000_000):06d}"
     now = datetime.now(timezone.utc)
     expired_at = now + timedelta(minutes=10)
     with connect() as conn:

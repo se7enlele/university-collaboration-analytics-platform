@@ -1191,10 +1191,10 @@ function renderLogin() {
                 </div>
                 <form class="auth-form" id="loginForm">
                   <label>手机号</label>
-                  <input id="loginPhone" type="tel" inputmode="tel" placeholder="请输入手机号" value="13800000000" />
+                  <input id="loginPhone" type="tel" inputmode="tel" placeholder="请输入手机号" />
                   <label>验证码</label>
                   <div class="input-action">
-                    <input id="loginCode" inputmode="numeric" placeholder="请输入验证码" value="123456" />
+                    <input id="loginCode" inputmode="numeric" placeholder="请输入验证码" />
                     <button type="button" id="sendCodeBtn">获取验证码</button>
                   </div>
                   <button class="button auth-submit" type="submit">登录工作台</button>
@@ -1286,7 +1286,7 @@ function bindAuthForms() {
 
   if (sendCodeBtn) {
     sendCodeBtn.addEventListener("click", () => {
-      sendCodeBtn.textContent = "验证码 123456";
+      sendCodeBtn.textContent = "获取验证码";
       sendCodeBtn.disabled = true;
     });
   }
@@ -1294,7 +1294,7 @@ function bindAuthForms() {
   if (loginForm) {
     loginForm.addEventListener("submit", (event) => {
       event.preventDefault();
-      const phone = document.querySelector("#loginPhone").value.trim() || "13800000000";
+      const phone = document.querySelector("#loginPhone").value.trim();
       saveUser({
         phone,
         name: "本地测试用户",
@@ -1348,14 +1348,14 @@ function bindAuthFormsV2() {
 
   if (sendCodeBtn) {
     sendCodeBtn.addEventListener("click", async () => {
-      const phone = document.querySelector("#loginPhone").value.trim() || "13800000000";
+      const phone = document.querySelector("#loginPhone").value.trim();
       sendCodeBtn.disabled = true;
       sendCodeBtn.textContent = "发送中";
       try {
         const result = await postApi("/api/auth/send-code", { phone });
         const code = result.debug_code || "";
-        sendCodeBtn.textContent = code ? `验证码 ${code}` : "已发送";
-        if (code) document.querySelector("#loginCode").value = code;
+        sendCodeBtn.textContent = code ? "测试码已生成" : "已发送";
+        if (code && window.location.hostname === "127.0.0.1") document.querySelector("#loginCode").value = code;
       } catch (error) {
         sendCodeBtn.textContent = "重新获取";
         sendCodeBtn.disabled = false;
@@ -1369,7 +1369,7 @@ function bindAuthFormsV2() {
       event.preventDefault();
       try {
         const result = await postApi("/api/auth/login", {
-          phone: document.querySelector("#loginPhone").value.trim() || "13800000000",
+          phone: document.querySelector("#loginPhone").value.trim(),
           code: document.querySelector("#loginCode").value.trim(),
           organization: selectedUniversity,
           role: "international-office",

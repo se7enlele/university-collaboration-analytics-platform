@@ -12,7 +12,6 @@ from utils.business_db import (
     approve_access_request,
     create_access_request,
     create_session,
-    create_sms_code,
     get_or_create_user,
     list_access_requests,
     list_users,
@@ -21,6 +20,7 @@ from utils.business_db import (
     user_by_session,
     verify_sms_code,
 )
+from utils.business_sms import send_login_sms_code
 from utils.data_pipeline import data_status, refresh_university, resolve_source_metadata, seed_university_sources
 
 
@@ -505,8 +505,8 @@ class Handler(SimpleHTTPRequestHandler):
             if parsed.path == "/api/auth/send-code":
                 payload = self.read_json()
                 phone = clean_required(payload.get("phone"), "phone")
-                code = create_sms_code(phone)
-                self.send_json({"ok": True, "debug_code": code})
+                result = send_login_sms_code(phone)
+                self.send_json({"ok": True, **result})
                 return
 
             if parsed.path == "/api/auth/login":
