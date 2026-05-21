@@ -80,8 +80,13 @@ function accessBanner(payload) {
 }
 
 function withUniversity(path) {
+  if (!currentUser) return path;
   const separator = path.includes("?") ? "&" : "?";
   return `${path}${separator}university=${encodeURIComponent(selectedUniversity)}`;
+}
+
+function pageOptions(universities) {
+  return currentUser ? { universities } : {};
 }
 
 function saveUser(user, token = authToken) {
@@ -194,6 +199,7 @@ function shell(title, copy, content, options = {}) {
 }
 
 function table(rows, columns) {
+  if (!rows.length && !currentUser) return `<div class="card status">公开页展示平台级判断；登录后可查看学校级明细和样例数据。</div>`;
   if (!rows.length) return `<div class="card status">数据接入中，完成后将展示分析结果。</div>`;
   return `
     <table class="table">
@@ -219,6 +225,9 @@ function platformKpis(overview) {
 }
 
 function sampleKpis(overview) {
+  if (!overview.ready && !currentUser) {
+    return platformKpis(overview);
+  }
   return `
     <div class="kpis">
       ${kpiCard(fmt(overview.sample_international_papers || 0), "样例合作论文", 1)}
@@ -367,7 +376,9 @@ function regionName(country) {
 
 async function loadCollaborationAnalysis() {
   try {
-    return await api(withUniversity("/api/collaboration"));
+    const data = await api(withUniversity("/api/collaboration"));
+    if (!data.countries?.length && !currentUser) return publicCollaborationPreview();
+    return data;
   } catch (_) {
     const [countries, institutions] = await Promise.all([api(withUniversity("/api/map")), api(withUniversity("/api/institutions?limit=10"))]);
     const regionMap = new Map();
@@ -396,6 +407,44 @@ async function loadCollaborationAnalysis() {
       ],
     };
   }
+}
+
+function publicCollaborationPreview() {
+  const countries = [
+    { name: "United States", papers: 184200, institutions: 12800 },
+    { name: "United Kingdom", papers: 96300, institutions: 6100 },
+    { name: "Germany", papers: 74200, institutions: 5200 },
+    { name: "Australia", papers: 68500, institutions: 4300 },
+    { name: "Canada", papers: 52100, institutions: 3900 },
+    { name: "Japan", papers: 43800, institutions: 3600 },
+  ];
+  return {
+    countries,
+    regions: [
+      { region: "北美", papers: 236300, countries: 2, institutions: 16700 },
+      { region: "欧洲", papers: 211600, countries: 18, institutions: 14800 },
+      { region: "亚太", papers: 150800, countries: 12, institutions: 9200 },
+    ],
+    institutions: [
+      { institution: "University of Oxford", country: "United Kingdom", papers: 8200 },
+      { institution: "Harvard University", country: "United States", papers: 7900 },
+      { institution: "Stanford University", country: "United States", papers: 7100 },
+      { institution: "National University of Singapore", country: "Singapore", papers: 6200 },
+    ],
+    trend: [
+      { year: 2021, papers: 42000 },
+      { year: 2022, papers: 46800 },
+      { year: 2023, papers: 51100 },
+      { year: 2024, papers: 54800 },
+      { year: 2025, papers: 58200 },
+    ],
+    insights: [
+      { title: "先看全球合作重心", text: "公开预览展示平台级合作格局，帮助判断主要国家、区域和机构网络的分布。" },
+      { title: "登录后进入学校视角", text: "登录后可以选择学校，查看本校合作国家、机构、学科和趋势。" },
+      { title: "开通后解锁完整明细", text: "机构账号可查看完整机构清单、论文样本、沉默关系和对标报告。" },
+      { title: "用于汇报和行动", text: "最终目标不是看图，而是形成出访、续约、联合项目和资源投向建议。" },
+    ],
+  };
 }
 
 function institutionTier(item, maxPapers) {
@@ -660,7 +709,7 @@ async function renderDashboard() {
       </div>
       ${unlockCard("解锁一键绩效报告", ["生成 PDF/Word 领导简报", "导出全部图表和指标解释", "与全国均值和全球基准对比", "保存年度汇报模板和历史版本"])}
     `,
-    { universities }
+    pageOptions(universities)
   );
   bindSchoolSelector();
 }
@@ -785,7 +834,7 @@ async function renderMap() {
       </div>
       ${unlockCard("解锁合作格局下钻能力", ["点击国家查看完整机构名单", "查看合作论文标题、年份、期刊和被引次数", "按年份、学科和论文类型筛选", "导出国家与机构合作清单"])}
     `,
-    { universities }
+    pageOptions(universities)
   );
   bindSchoolSelector();
 }
@@ -878,7 +927,7 @@ async function renderInstitutions() {
       </div>
       ${unlockCard("解锁机构质量分析", ["查看 Top 100 合作机构完整名单", "打开机构详情页查看年度趋势和学科分布", "导出伙伴维护优先级清单", "按学院或学科拆分合作机构"])}
     `,
-    { universities }
+    pageOptions(universities)
   );
   bindSchoolSelector();
 }
@@ -956,7 +1005,7 @@ async function renderZombies() {
       </div>
       ${unlockCard("解锁完整沉默关系名单", ["导出全部僵尸合作机构 Excel", "按国家、学院和学科筛选沉默关系", "生成激活、观察、清理三类处理清单", "沉默关系跟进记录和权限协作"])}
     `,
-    { universities }
+    pageOptions(universities)
   );
   bindSchoolSelector();
 }
@@ -1032,7 +1081,7 @@ async function renderSubjects() {
       </div>
       ${unlockCard("解锁学科穿透分析", ["查看细分学科和主题方向", "按学科下钻到国家和机构", "发现高影响但合作不足的潜力方向", "导出学院级合作建议"])}
     `,
-    { universities }
+    pageOptions(universities)
   );
   bindSchoolSelector();
 }
