@@ -43,6 +43,13 @@ jobs:
             . .venv/bin/activate
             python -m pip install --upgrade pip
             pip install -r requirements.txt
+            mkdir -p data
+            sudo chown -R "$USER":www-data data
+            sudo chmod 775 data
+            if ls data/*.db >/dev/null 2>&1; then
+              sudo chown www-data:www-data data/*.db
+              sudo chmod 664 data/*.db
+            fi
 
             sudo cp university-collab-web.service /etc/systemd/system/university-collab-web.service
             sudo systemctl daemon-reload
