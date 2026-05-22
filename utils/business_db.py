@@ -103,7 +103,17 @@ def init_tables(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_data_jobs_status ON data_jobs(status);
         """
     )
+    ensure_column(conn, "access_requests", "source", "TEXT NOT NULL DEFAULT ''")
+    ensure_column(conn, "access_requests", "lead_status", "TEXT NOT NULL DEFAULT 'new'")
+    ensure_column(conn, "access_requests", "followup_note", "TEXT NOT NULL DEFAULT ''")
+    ensure_column(conn, "access_requests", "updated_at", "TEXT")
     conn.commit()
+
+
+def ensure_column(conn: sqlite3.Connection, table: str, column: str, definition: str) -> None:
+    columns = {row["name"] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+    if column not in columns:
+        conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
 
 
 def row_to_user(row: sqlite3.Row | None) -> dict | None:
@@ -231,14 +241,16 @@ def create_access_request(payload: dict, user: dict | None = None) -> dict:
     organization = (payload.get("organization") or (user or {}).get("organization") or "").strip()
     role = (payload.get("role") or (user or {}).get("role") or "").strip()
     message = (payload.get("message") or "").strip()
+    source = (payload.get("source") or "").strip()
+    lead_status = (payload.get("lead_status") or "new").strip()
     with connect() as conn:
         cursor = conn.execute(
             """
             INSERT INTO access_requests (
-                user_id, phone, name, organization, role, message, status, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, 'pending', ?)
+                user_id, phone, name, organization, role, message, source, lead_status, status, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?)
             """,
-            (user_id, phone, name, organization, role, message, now),
+            (user_id, phone, name, organization, role, message, source, lead_status, now, now),
         )
         conn.commit()
         request_id = cursor.lastrowid
@@ -249,6 +261,9 @@ def create_access_request(payload: dict, user: dict | None = None) -> dict:
         "name": name,
         "organization": organization,
         "role": role,
+        "message": message,
+        "source": source,
+        "lead_status": lead_status,
         "created_at": now,
     }
 
@@ -357,6 +372,30 @@ def reject_access_request(request_id: int) -> dict | None:
         conn.execute(
             "UPDATE access_requests SET status = 'rejected', reviewed_at = ? WHERE id = ?",
             (now, request_id),
+        )
+        conn.commit()
+        row = conn.execute("SELECT * FROM access_requests WHERE id = ?", (request_id,)).fetchone()
+    return dict(row) if row else None
+
+
+def update_access_request_lead(request_id: int, lead_status: str, note: str = "") -> dict | None:
+    allowed = {"new", "contacted", "data_ready", "converted", "abandoned"}
+    if lead_status not in allowed:
+        raise ValueError("Invalid lead status")
+    now = utc_now()
+    with connect() as conn:
+        request = conn.execute("SELECT * FROM access_requests WHERE id = ?", (request_id,)).fetchone()
+        if not request:
+            return None
+        conn.execute(
+            """
+            UPDATE access_requests
+            SET lead_status = ?,
+                followup_note = CASE WHEN ? != '' THEN ? ELSE followup_note END,
+                updated_at = ?
+            WHERE id = ?
+            """,
+            (lead_status, note, note, now, request_id),
         )
         conn.commit()
         row = conn.execute("SELECT * FROM access_requests WHERE id = ?", (request_id,)).fetchone()

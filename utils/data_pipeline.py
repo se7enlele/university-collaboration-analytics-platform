@@ -28,9 +28,7 @@ def seed_university_sources() -> list[dict]:
 
 def refresh_university(university: str, limit_per_university: int | None = DEFAULT_LIMIT) -> dict:
     seed_university_sources()
-    search_name = UNIVERSITIES.get(university)
-    if not search_name:
-        raise ValueError(f"Unknown university: {university}")
+    search_name = UNIVERSITIES.get(university, university)
 
     job = create_data_job(university, limit_per_university)
     job_id = job["id"]
@@ -75,9 +73,7 @@ def refresh_university(university: str, limit_per_university: int | None = DEFAU
 
 def resolve_source_metadata(university: str) -> dict:
     seed_university_sources()
-    search_name = UNIVERSITIES.get(university)
-    if not search_name:
-        raise ValueError(f"Unknown university: {university}")
+    search_name = UNIVERSITIES.get(university, university)
     import requests
 
     session = requests.Session()

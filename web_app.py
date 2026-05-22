@@ -17,6 +17,7 @@ from utils.business_db import (
     list_users,
     reject_access_request,
     revoke_session,
+    update_access_request_lead,
     user_by_session,
 )
 from utils.business_sms import send_login_sms_code, verify_login_sms_code
@@ -558,6 +559,38 @@ class Handler(SimpleHTTPRequestHandler):
                     self.send_json({"ok": False, "error": "Request not found"}, 404)
                     return
                 self.send_json({"ok": True, "request": request})
+                return
+
+            if parsed.path == "/api/admin/access-requests/lead-status":
+                if not self.is_admin():
+                    self.send_json({"ok": False, "error": "Unauthorized"}, 401)
+                    return
+                payload = self.read_json()
+                request = update_access_request_lead(
+                    int(payload.get("id") or 0),
+                    clean_required(payload.get("lead_status"), "lead_status"),
+                    (payload.get("note") or "").strip(),
+                )
+                if not request:
+                    self.send_json({"ok": False, "error": "Request not found"}, 404)
+                    return
+                self.send_json({"ok": True, "request": request})
+                return
+
+            if parsed.path == "/api/admin/access-requests/generate-data":
+                if not self.is_admin():
+                    self.send_json({"ok": False, "error": "Unauthorized"}, 401)
+                    return
+                payload = self.read_json()
+                request_id = int(payload.get("id") or 0)
+                request = update_access_request_lead(request_id, "contacted", "已触发数据生成")
+                if not request:
+                    self.send_json({"ok": False, "error": "Request not found"}, 404)
+                    return
+                university = clean_required(request.get("organization"), "organization")
+                job = refresh_university(university, int(payload.get("limit_per_university") or 200))
+                update_access_request_lead(request_id, "data_ready", "已生成或刷新该机构样例数据")
+                self.send_json({"ok": True, "request": request, "job": job})
                 return
 
             if parsed.path == "/api/admin/data/resolve-source":

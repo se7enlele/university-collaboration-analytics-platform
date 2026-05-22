@@ -1414,6 +1414,8 @@ function bindAuthFormsV2() {
           organization: document.querySelector("#signupOrg").value.trim() || selectedUniversity,
           role: document.querySelector("#signupRole").value.trim(),
           message: leadInstitution ? `用户申请生成 ${leadInstitution} 完整国际合作分析` : "用户从开通页面提交机构开通申请",
+          source: leadInstitution ? `seo:${leadInstitution}` : "pricing",
+          lead_status: "new",
         });
         saveUser({
           ...(currentUser || {}),
@@ -1539,6 +1541,13 @@ async function renderAdminConsole() {
 
 function adminRequestsTable(requests) {
   if (!requests.length) return `<p class="muted">暂无开通申请。</p>`;
+  const leadLabels = {
+    new: "新线索",
+    contacted: "已联系",
+    data_ready: "已生成数据",
+    converted: "已转化",
+    abandoned: "已放弃",
+  };
   return `
     <div class="admin-list">
       ${requests
@@ -1548,17 +1557,18 @@ function adminRequestsTable(requests) {
               <div>
                 <strong>${item.organization || "-"}</strong>
                 <span>${item.name || "-"} · ${item.role || "-"} · ${item.phone || "-"}</span>
-                <small>${item.created_at || ""}</small>
+                <small>${item.created_at || ""} · ${item.source || "直接申请"} · ${leadLabels[item.lead_status] || item.lead_status || "新线索"}</small>
+                <small>${item.message || ""}</small>
+                ${item.followup_note ? `<small>备注：${item.followup_note}</small>` : ""}
               </div>
               <em class="status-badge ${item.status}">${item.status}</em>
-              ${
-                item.status === "pending"
-                  ? `<div class="admin-actions">
-                      <button data-action="approve" data-id="${item.id}">通过</button>
-                      <button data-action="reject" data-id="${item.id}">拒绝</button>
-                    </div>`
-                  : ""
-              }
+              <div class="admin-actions">
+                ${item.status === "pending" ? `<button data-action="approve" data-id="${item.id}">通过</button><button data-action="reject" data-id="${item.id}">拒绝</button>` : ""}
+                <button data-action="lead-status" data-id="${item.id}" data-lead-status="contacted">已联系</button>
+                <button data-action="generate-request-data" data-id="${item.id}">生成数据</button>
+                <button data-action="lead-status" data-id="${item.id}" data-lead-status="converted">已转化</button>
+                <button data-action="lead-status" data-id="${item.id}" data-lead-status="abandoned">放弃</button>
+              </div>
             </div>
           `
         )
@@ -1663,6 +1673,34 @@ function bindAdminActions() {
     button.addEventListener("click", async () => {
       const id = Number(button.dataset.id);
       const action = button.dataset.action;
+      if (action === "lead-status") {
+        try {
+          await adminApi("/api/admin/access-requests/lead-status", {
+            method: "POST",
+            body: JSON.stringify({ id, lead_status: button.dataset.leadStatus }),
+          });
+          renderAdminConsole();
+        } catch (error) {
+          alert(error.message);
+        }
+        return;
+      }
+      if (action === "generate-request-data") {
+        button.disabled = true;
+        button.textContent = "生成中";
+        try {
+          await adminApi("/api/admin/access-requests/generate-data", {
+            method: "POST",
+            body: JSON.stringify({ id, limit_per_university: 200 }),
+          });
+          renderAdminConsole();
+        } catch (error) {
+          button.disabled = false;
+          button.textContent = "生成数据";
+          alert(error.message);
+        }
+        return;
+      }
       const path = action === "approve" ? "/api/admin/access-requests/approve" : "/api/admin/access-requests/reject";
       try {
         await adminApi(path, { method: "POST", body: JSON.stringify({ id }) });
