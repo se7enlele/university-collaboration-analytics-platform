@@ -81,7 +81,13 @@ def verify_login_sms_code(phone: str, code: str) -> bool:
         )
         response = create_pnvs_client().check_sms_verify_code(request)
         body = response.body
-        return bool(getattr(body, "code", None) == "OK" and getattr(body, "data", None))
+        code_value = getattr(body, "code", "")
+        success = getattr(body, "success", None)
+        message = getattr(body, "message", "")
+        if code_value != "OK" or success is False:
+            raise RuntimeError(f"PNVS verify failed: {code_value} {message}".strip())
+        model = getattr(body, "model", None)
+        return bool(model and getattr(model, "verify_result", "") == "PASS")
     return verify_sms_code(phone, code)
 
 
