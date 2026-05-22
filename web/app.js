@@ -10,6 +10,25 @@ const fallbackUniversities = [
   { university: "武汉大学" },
   { university: "四川大学" },
 ];
+const institutionLeadMap = {
+  "peking-university": "北京大学",
+  "tsinghua-university": "清华大学",
+  "fudan-university": "复旦大学",
+  "shanghai-jiao-tong-university": "上海交通大学",
+  "zhejiang-university": "浙江大学",
+  "nanjing-university": "南京大学",
+  "university-of-science-and-technology-of-china": "中国科学技术大学",
+  "shandong-university": "山东大学",
+  "sichuan-university": "四川大学",
+  "wuhan-university": "武汉大学",
+  "zhongshan-university": "中山大学",
+};
+
+function requestedInstitution() {
+  const params = new URLSearchParams(window.location.search);
+  const slug = params.get("institution") || "";
+  return institutionLeadMap[slug] || "";
+}
 
 async function api(path) {
   const headers = authToken ? { Authorization: `Bearer ${authToken}` } : {};
@@ -1142,6 +1161,8 @@ async function renderBenchmark() {
 }
 
 function renderLogin() {
+  const leadInstitution = requestedInstitution();
+  const signupInstitution = leadInstitution || selectedUniversity;
   app.innerHTML = `
     <section class="section auth-section">
       <div class="auth-layout">
@@ -1202,7 +1223,7 @@ function renderLogin() {
                 <div class="auth-divider"><span>机构开通</span></div>
                 <form class="signup-panel" id="signupForm">
                   <label>学校 / 机构名称</label>
-                  <input id="signupOrg" placeholder="请输入学校或机构名称" value="${selectedUniversity}" />
+                  <input id="signupOrg" placeholder="请输入学校或机构名称" value="${signupInstitution}" />
                   <label>联系人</label>
                   <input id="signupName" placeholder="请输入联系人姓名" value="本地测试用户" />
                   <label>职务 / 部门</label>
@@ -1345,6 +1366,7 @@ function bindAuthFormsV2() {
   const logoutBtn = document.querySelector("#logoutBtn");
   const sendCodeBtn = document.querySelector("#sendCodeBtn");
   const enterDashboardBtn = document.querySelector("#enterDashboardBtn");
+  const leadInstitution = requestedInstitution();
 
   if (sendCodeBtn) {
     sendCodeBtn.addEventListener("click", async () => {
@@ -1391,7 +1413,7 @@ function bindAuthFormsV2() {
           name: document.querySelector("#signupName").value.trim(),
           organization: document.querySelector("#signupOrg").value.trim() || selectedUniversity,
           role: document.querySelector("#signupRole").value.trim(),
-          message: "用户从开通页面提交机构开通申请",
+          message: leadInstitution ? `用户申请生成 ${leadInstitution} 完整国际合作分析` : "用户从开通页面提交机构开通申请",
         });
         saveUser({
           ...(currentUser || {}),
