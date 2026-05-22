@@ -15,6 +15,8 @@ SMS_TEMPLATE_CODE = os.getenv("SMS_TEMPLATE_CODE", "your-template")
 PNVS_SMS_SIGN_NAME = os.getenv("PNVS_SMS_SIGN_NAME", "速通互联网验证码")
 PNVS_SMS_TEMPLATE_CODE = os.getenv("PNVS_SMS_TEMPLATE_CODE", "100001")
 PNVS_SMS_EXPIRE_MINUTES = os.getenv("PNVS_SMS_EXPIRE_MINUTES", "5")
+PNVS_SMS_CODE_LENGTH = int(os.getenv("PNVS_SMS_CODE_LENGTH", "6"))
+PNVS_SMS_VALID_TIME = int(os.getenv("PNVS_SMS_VALID_TIME", "300"))
 
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "your-admin-password")
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "your-email@gmail.com")

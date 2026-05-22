@@ -11,8 +11,10 @@ from config import (
     ALIYUN_ACCESS_KEY_ID,
     ALIYUN_ACCESS_KEY_SECRET,
     PNVS_SMS_EXPIRE_MINUTES,
+    PNVS_SMS_CODE_LENGTH,
     PNVS_SMS_SIGN_NAME,
     PNVS_SMS_TEMPLATE_CODE,
+    PNVS_SMS_VALID_TIME,
     SMS_PROVIDER,
     SMS_SIGN_NAME,
     SMS_TEMPLATE_CODE,
@@ -97,8 +99,17 @@ def send_by_pnvs(phone: str) -> dict:
         sign_name=PNVS_SMS_SIGN_NAME,
         template_code=PNVS_SMS_TEMPLATE_CODE,
         template_param=json.dumps({"code": "##code##", "min": PNVS_SMS_EXPIRE_MINUTES}),
+        code_type=1,
+        code_length=PNVS_SMS_CODE_LENGTH,
+        valid_time=PNVS_SMS_VALID_TIME,
     )
-    create_pnvs_client().send_sms_verify_code(request)
+    response = create_pnvs_client().send_sms_verify_code(request)
+    body = response.body
+    code = getattr(body, "code", "")
+    success = getattr(body, "success", None)
+    message = getattr(body, "message", "")
+    if code != "OK" or success is False:
+        raise RuntimeError(f"PNVS SMS failed: {code} {message}".strip())
     return {"sent": True, "provider": "pnvs"}
 
 
