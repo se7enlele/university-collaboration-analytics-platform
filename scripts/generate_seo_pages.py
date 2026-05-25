@@ -184,9 +184,10 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
       h1 {{ max-width: 760px; font-size: clamp(42px, 6vw, 74px); line-height: 1.04; margin: 22px 0 20px; letter-spacing: 0; }}
       .lead {{ max-width: 720px; color: #405066; font-size: 20px; line-height: 1.8; margin: 0; }}
       .actions {{ display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }}
-      .button {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; font-weight: 800; }}
+      .button, .pill {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; font-weight: 800; }}
       .button.primary {{ color: #fff; background: var(--blue); box-shadow: 0 14px 34px rgba(5, 116, 232, .22); }}
       .button.secondary {{ color: var(--blue); border: 1px solid rgba(5, 116, 232, .45); background: rgba(255, 255, 255, .65); }}
+      .pill {{ min-height: 36px; color: #fff; background: #111827; padding: 0 16px; }}
       .hero-card {{ padding: 24px; border: 1px solid var(--line); border-radius: 28px; background: var(--card); box-shadow: 0 28px 90px rgba(31, 41, 55, .12); }}
       .hero-card h2 {{ margin: 0 0 18px; font-size: 22px; }}
       .signal {{ display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 15px 0; border-top: 1px solid var(--line); }}
@@ -235,12 +236,17 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
   <body>
     <div class="shell">
       <nav class="nav">
-        <a class="brand" href="/">AcadMap 高校国际合作智析平台</a>
+        <a class="brand" href="/">高校国际合作智析平台</a>
         <div class="nav-links">
           <a href="/map">合作格局</a>
+          <a href="/universities/">高校库</a>
+          <a href="/?page=dashboard">绩效驾驶舱</a>
           <a href="/institutions">机构排行</a>
+          <a href="/zombies">沉默关系</a>
+          <a href="/subjects">学科热力</a>
           <a href="/benchmark">对标分析</a>
-          <a class="button primary" href="/login?institution={slug}">申请分析</a>
+          <a href="/pricing">开通权益</a>
+          <a class="pill" href="/login?institution={slug}">登录 / 开通</a>
         </div>
       </nav>
 
@@ -430,7 +436,8 @@ def render_index_page() -> str:
       .cta {{ margin-top: 34px; padding: 34px; border-radius: 30px; color: #fff; background: linear-gradient(135deg, #0b1220, #0b5aa8 58%, #0f8b7f); }}
       .cta h2 {{ margin: 0 0 10px; font-size: 34px; }}
       .cta p {{ margin: 0 0 20px; color: rgba(255,255,255,.78); line-height: 1.7; }}
-      .button {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; color: #0b1220; background: #fff; font-weight: 800; }}
+      .button, .pill {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; color: #0b1220; background: #fff; font-weight: 800; }}
+      .pill {{ min-height: 36px; color: #fff; background: #111827; padding: 0 16px; }}
       @media (max-width: 900px) {{ .grid, .region-section ul {{ grid-template-columns: 1fr; }} .nav {{ position: static; border-radius: 24px; align-items: flex-start; }} .nav-links {{ flex-wrap: wrap; justify-content: flex-end; }} }}
       @media (max-width: 560px) {{ .shell {{ padding: 18px 16px 54px; }} .nav-links a:not(:last-child) {{ display: none; }} .hero {{ padding-top: 52px; }} }}
     </style>
@@ -438,12 +445,17 @@ def render_index_page() -> str:
   <body>
     <div class="shell">
       <nav class="nav">
-        <a class="brand" href="/">AcadMap 高校国际合作智析平台</a>
+        <a class="brand" href="/">高校国际合作智析平台</a>
         <div class="nav-links">
           <a href="/map">合作格局</a>
+          <a href="/universities/">高校库</a>
+          <a href="/?page=dashboard">绩效驾驶舱</a>
           <a href="/institutions">机构排行</a>
+          <a href="/zombies">沉默关系</a>
+          <a href="/subjects">学科热力</a>
           <a href="/benchmark">对标分析</a>
-          <a href="/login">申请分析</a>
+          <a href="/pricing">开通权益</a>
+          <a class="pill" href="/login">登录 / 开通</a>
         </div>
       </nav>
       <header class="hero">
