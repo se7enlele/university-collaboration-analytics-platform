@@ -116,13 +116,13 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
     <title>{name}国际合作分析 | 合作国家、机构排行与学科热点</title>
     <meta name="description" content="查看{name}国际合作论文、合作国家、合作机构排行、学科热点和近年合作趋势。当前提供低成本公开摘要，完整数据可按需生成。" />
     <meta name="robots" content="index,follow" />
-    <link rel="canonical" href="https://fencingai.uk/universities/{filename}" />
+    <link rel="canonical" href="https://acadmap.com/universities/{filename}" />
     <script type="application/ld+json">
       {{
         "@context": "https://schema.org",
         "@type": "EducationalOrganization",
         "name": "{name}",
-        "url": "https://fencingai.uk/universities/{filename}",
+        "url": "https://acadmap.com/universities/{filename}",
         "description": "{name}国际合作分析摘要，覆盖合作国家、合作机构和学科热点。"
       }}
     </script>
@@ -180,13 +180,13 @@ def write_sitemap() -> None:
     urls = []
     for path, priority, changefreq in pages:
         urls.append(f"""  <url>
-    <loc>https://fencingai.uk{path}</loc>
+    <loc>https://acadmap.com{path}</loc>
     <changefreq>{changefreq}</changefreq>
     <priority>{priority}</priority>
   </url>""")
     for filename, _, _, _ in INSTITUTIONS:
         urls.append(f"""  <url>
-    <loc>https://fencingai.uk/universities/{filename}</loc>
+    <loc>https://acadmap.com/universities/{filename}</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>""")

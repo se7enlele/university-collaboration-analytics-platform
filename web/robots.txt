@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin
 Disallow: /api/
 
-Sitemap: https://fencingai.uk/sitemap.xml
+Sitemap: https://acadmap.com/sitemap.xml

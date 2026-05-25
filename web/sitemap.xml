@@ -1,547 +1,547 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://fencingai.uk/</loc>
+    <loc>https://acadmap.com/</loc>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/map</loc>
+    <loc>https://acadmap.com/map</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/institutions</loc>
+    <loc>https://acadmap.com/institutions</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/subjects</loc>
+    <loc>https://acadmap.com/subjects</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/zombies</loc>
+    <loc>https://acadmap.com/zombies</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/benchmark</loc>
+    <loc>https://acadmap.com/benchmark</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/pricing</loc>
+    <loc>https://acadmap.com/pricing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/peking-university.html</loc>
+    <loc>https://acadmap.com/universities/peking-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/tsinghua-university.html</loc>
+    <loc>https://acadmap.com/universities/tsinghua-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/fudan-university.html</loc>
+    <loc>https://acadmap.com/universities/fudan-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/shanghai-jiao-tong-university.html</loc>
+    <loc>https://acadmap.com/universities/shanghai-jiao-tong-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/zhejiang-university.html</loc>
+    <loc>https://acadmap.com/universities/zhejiang-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/nanjing-university.html</loc>
+    <loc>https://acadmap.com/universities/nanjing-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/university-of-science-and-technology-of-china.html</loc>
+    <loc>https://acadmap.com/universities/university-of-science-and-technology-of-china.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/renmin-university-of-china.html</loc>
+    <loc>https://acadmap.com/universities/renmin-university-of-china.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/beijing-normal-university.html</loc>
+    <loc>https://acadmap.com/universities/beijing-normal-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/beihang-university.html</loc>
+    <loc>https://acadmap.com/universities/beihang-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/beijing-institute-of-technology.html</loc>
+    <loc>https://acadmap.com/universities/beijing-institute-of-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/harbin-institute-of-technology.html</loc>
+    <loc>https://acadmap.com/universities/harbin-institute-of-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/xian-jiaotong-university.html</loc>
+    <loc>https://acadmap.com/universities/xian-jiaotong-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/tianjin-university.html</loc>
+    <loc>https://acadmap.com/universities/tianjin-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/nankai-university.html</loc>
+    <loc>https://acadmap.com/universities/nankai-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/southeast-university.html</loc>
+    <loc>https://acadmap.com/universities/southeast-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/wuhan-university.html</loc>
+    <loc>https://acadmap.com/universities/wuhan-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/hust.html</loc>
+    <loc>https://acadmap.com/universities/hust.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/sun-yat-sen-university.html</loc>
+    <loc>https://acadmap.com/universities/sun-yat-sen-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/zhongshan-university.html</loc>
+    <loc>https://acadmap.com/universities/zhongshan-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/sichuan-university.html</loc>
+    <loc>https://acadmap.com/universities/sichuan-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/shandong-university.html</loc>
+    <loc>https://acadmap.com/universities/shandong-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/jilin-university.html</loc>
+    <loc>https://acadmap.com/universities/jilin-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/hunan-university.html</loc>
+    <loc>https://acadmap.com/universities/hunan-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/central-south-university.html</loc>
+    <loc>https://acadmap.com/universities/central-south-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/chongqing-university.html</loc>
+    <loc>https://acadmap.com/universities/chongqing-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/dalian-university-of-technology.html</loc>
+    <loc>https://acadmap.com/universities/dalian-university-of-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/northeastern-university.html</loc>
+    <loc>https://acadmap.com/universities/northeastern-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/northwestern-polytechnical-university.html</loc>
+    <loc>https://acadmap.com/universities/northwestern-polytechnical-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/lanzhou-university.html</loc>
+    <loc>https://acadmap.com/universities/lanzhou-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/xiamen-university.html</loc>
+    <loc>https://acadmap.com/universities/xiamen-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/tongji-university.html</loc>
+    <loc>https://acadmap.com/universities/tongji-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/east-china-normal-university.html</loc>
+    <loc>https://acadmap.com/universities/east-china-normal-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/south-china-university-of-technology.html</loc>
+    <loc>https://acadmap.com/universities/south-china-university-of-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/university-of-electronic-science-and-technology-of-china.html</loc>
+    <loc>https://acadmap.com/universities/university-of-electronic-science-and-technology-of-china.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/china-agricultural-university.html</loc>
+    <loc>https://acadmap.com/universities/china-agricultural-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/ocean-university-of-china.html</loc>
+    <loc>https://acadmap.com/universities/ocean-university-of-china.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/minzu-university-of-china.html</loc>
+    <loc>https://acadmap.com/universities/minzu-university-of-china.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/northwest-af-university.html</loc>
+    <loc>https://acadmap.com/universities/northwest-af-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/national-university-of-defense-technology.html</loc>
+    <loc>https://acadmap.com/universities/national-university-of-defense-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/beijing-jiaotong-university.html</loc>
+    <loc>https://acadmap.com/universities/beijing-jiaotong-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/beijing-university-of-posts-and-telecommunications.html</loc>
+    <loc>https://acadmap.com/universities/beijing-university-of-posts-and-telecommunications.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/beijing-university-of-chemical-technology.html</loc>
+    <loc>https://acadmap.com/universities/beijing-university-of-chemical-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/beijing-forestry-university.html</loc>
+    <loc>https://acadmap.com/universities/beijing-forestry-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/beijing-university-of-chinese-medicine.html</loc>
+    <loc>https://acadmap.com/universities/beijing-university-of-chinese-medicine.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/capital-medical-university.html</loc>
+    <loc>https://acadmap.com/universities/capital-medical-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/central-university-of-finance-and-economics.html</loc>
+    <loc>https://acadmap.com/universities/central-university-of-finance-and-economics.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/university-of-international-business-and-economics.html</loc>
+    <loc>https://acadmap.com/universities/university-of-international-business-and-economics.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/china-university-of-political-science-and-law.html</loc>
+    <loc>https://acadmap.com/universities/china-university-of-political-science-and-law.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/communication-university-of-china.html</loc>
+    <loc>https://acadmap.com/universities/communication-university-of-china.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/beijing-university-of-technology.html</loc>
+    <loc>https://acadmap.com/universities/beijing-university-of-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/shanghai-university.html</loc>
+    <loc>https://acadmap.com/universities/shanghai-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/east-china-university-of-science-and-technology.html</loc>
+    <loc>https://acadmap.com/universities/east-china-university-of-science-and-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/donghua-university.html</loc>
+    <loc>https://acadmap.com/universities/donghua-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/shanghai-university-of-finance-and-economics.html</loc>
+    <loc>https://acadmap.com/universities/shanghai-university-of-finance-and-economics.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/soochow-university.html</loc>
+    <loc>https://acadmap.com/universities/soochow-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/nanjing-university-of-aeronautics-and-astronautics.html</loc>
+    <loc>https://acadmap.com/universities/nanjing-university-of-aeronautics-and-astronautics.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/nanjing-university-of-science-and-technology.html</loc>
+    <loc>https://acadmap.com/universities/nanjing-university-of-science-and-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/hohai-university.html</loc>
+    <loc>https://acadmap.com/universities/hohai-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/jiangnan-university.html</loc>
+    <loc>https://acadmap.com/universities/jiangnan-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/nanjing-agricultural-university.html</loc>
+    <loc>https://acadmap.com/universities/nanjing-agricultural-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/nanjing-normal-university.html</loc>
+    <loc>https://acadmap.com/universities/nanjing-normal-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/china-university-of-mining-and-technology.html</loc>
+    <loc>https://acadmap.com/universities/china-university-of-mining-and-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/hefei-university-of-technology.html</loc>
+    <loc>https://acadmap.com/universities/hefei-university-of-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/anhui-university.html</loc>
+    <loc>https://acadmap.com/universities/anhui-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/fuzhou-university.html</loc>
+    <loc>https://acadmap.com/universities/fuzhou-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/nanchang-university.html</loc>
+    <loc>https://acadmap.com/universities/nanchang-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/zhengzhou-university.html</loc>
+    <loc>https://acadmap.com/universities/zhengzhou-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/china-university-of-geosciences-wuhan.html</loc>
+    <loc>https://acadmap.com/universities/china-university-of-geosciences-wuhan.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/wuhan-university-of-technology.html</loc>
+    <loc>https://acadmap.com/universities/wuhan-university-of-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/huazhong-agricultural-university.html</loc>
+    <loc>https://acadmap.com/universities/huazhong-agricultural-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/central-china-normal-university.html</loc>
+    <loc>https://acadmap.com/universities/central-china-normal-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/zhongnan-university-of-economics-and-law.html</loc>
+    <loc>https://acadmap.com/universities/zhongnan-university-of-economics-and-law.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/hunan-normal-university.html</loc>
+    <loc>https://acadmap.com/universities/hunan-normal-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/jnu.html</loc>
+    <loc>https://acadmap.com/universities/jnu.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/south-china-normal-university.html</loc>
+    <loc>https://acadmap.com/universities/south-china-normal-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/guangxi-university.html</loc>
+    <loc>https://acadmap.com/universities/guangxi-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/hainan-university.html</loc>
+    <loc>https://acadmap.com/universities/hainan-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/southwest-university.html</loc>
+    <loc>https://acadmap.com/universities/southwest-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/southwest-jiaotong-university.html</loc>
+    <loc>https://acadmap.com/universities/southwest-jiaotong-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/southwestern-university-of-finance-and-economics.html</loc>
+    <loc>https://acadmap.com/universities/southwestern-university-of-finance-and-economics.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/guizhou-university.html</loc>
+    <loc>https://acadmap.com/universities/guizhou-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/yunnan-university.html</loc>
+    <loc>https://acadmap.com/universities/yunnan-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/northwest-university.html</loc>
+    <loc>https://acadmap.com/universities/northwest-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/xidian-university.html</loc>
+    <loc>https://acadmap.com/universities/xidian-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/shaanxi-normal-university.html</loc>
+    <loc>https://acadmap.com/universities/shaanxi-normal-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/qinghai-university.html</loc>
+    <loc>https://acadmap.com/universities/qinghai-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/ningxia-university.html</loc>
+    <loc>https://acadmap.com/universities/ningxia-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/xinjiang-university.html</loc>
+    <loc>https://acadmap.com/universities/xinjiang-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/shihezi-university.html</loc>
+    <loc>https://acadmap.com/universities/shihezi-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/inner-mongolia-university.html</loc>
+    <loc>https://acadmap.com/universities/inner-mongolia-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/liaoning-university.html</loc>
+    <loc>https://acadmap.com/universities/liaoning-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/northeast-normal-university.html</loc>
+    <loc>https://acadmap.com/universities/northeast-normal-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/northeast-forestry-university.html</loc>
+    <loc>https://acadmap.com/universities/northeast-forestry-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/harbin-engineering-university.html</loc>
+    <loc>https://acadmap.com/universities/harbin-engineering-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/northeast-agricultural-university.html</loc>
+    <loc>https://acadmap.com/universities/northeast-agricultural-university.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/hebei-university-of-technology.html</loc>
+    <loc>https://acadmap.com/universities/hebei-university-of-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/taiyuan-university-of-technology.html</loc>
+    <loc>https://acadmap.com/universities/taiyuan-university-of-technology.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/china-academy-of-sciences.html</loc>
+    <loc>https://acadmap.com/universities/china-academy-of-sciences.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/university-of-chinese-academy-of-sciences.html</loc>
+    <loc>https://acadmap.com/universities/university-of-chinese-academy-of-sciences.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/chinese-academy-of-agricultural-sciences.html</loc>
+    <loc>https://acadmap.com/universities/chinese-academy-of-agricultural-sciences.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
   <url>
-    <loc>https://fencingai.uk/universities/chinese-academy-of-medical-sciences.html</loc>
+    <loc>https://acadmap.com/universities/chinese-academy-of-medical-sciences.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
