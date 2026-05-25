@@ -20,6 +20,7 @@ from utils.business_db import (
     update_access_request_lead,
     user_by_session,
 )
+from utils.business_notify import notify_access_request
 from utils.business_sms import send_login_sms_code, verify_login_sms_code
 from utils.data_pipeline import data_status, refresh_university, resolve_source_metadata, seed_university_sources
 
@@ -534,7 +535,12 @@ class Handler(SimpleHTTPRequestHandler):
             if parsed.path == "/api/access-requests":
                 payload = self.read_json()
                 request = create_access_request(payload, self.current_user())
-                self.send_json({"ok": True, "request": request})
+                notified = False
+                try:
+                    notified = notify_access_request(request)
+                except Exception as exc:
+                    print(f"Access request notification failed: {exc}")
+                self.send_json({"ok": True, "request": request, "notified": notified})
                 return
 
             if parsed.path == "/api/admin/access-requests/approve":
