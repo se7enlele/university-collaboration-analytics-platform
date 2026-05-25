@@ -580,6 +580,7 @@ async function renderHome() {
     <nav class="home-rail" aria-label="首页章节导航">
       <a class="active" href="#home-hero">概览</a>
       <a href="#home-workflows">场景</a>
+      <a href="#home-universities">高校</a>
       <a href="#home-modules">能力</a>
       <a href="#home-access">开通</a>
     </nav>
@@ -608,6 +609,16 @@ async function renderHome() {
         ${scenarioCard("年终证明成效", "用合著规模、覆盖国家、活跃伙伴和学科分布支撑国际化工作汇报。", "查看合作格局", "/map")}
         ${scenarioCard("发现沉默关系", "识别多年没有产出的合作机构，判断是重新激活还是清理维护成本。", "查看沉默关系", "/zombies")}
         ${scenarioCard("对标兄弟高校", "比较同层级高校的合作规模、国家覆盖和伙伴网络，找到差距与机会。", "进入对标分析", "/benchmark")}
+      </div>
+    </section>
+    <section class="section" id="home-universities">
+      <h2 class="section-title">按学校查看国际合作分析。</h2>
+      <p class="section-copy">如果你已经有明确学校，可以先进入对应专题页，查看该校适合生成哪些合作地图、伙伴机构、学科热点和对标报告。</p>
+      <div class="scenario-grid">
+        ${scenarioCard("北京大学国际合作分析", "查看北大合作国家、伙伴机构和完整报告申请入口。", "查看专题页", "/universities/peking-university.html")}
+        ${scenarioCard("清华大学国际合作分析", "面向国际处和科研管理场景，梳理可生成的合作洞察。", "查看专题页", "/universities/tsinghua-university.html")}
+        ${scenarioCard("山东大学国际合作分析", "结合当前样例数据，查看学校专题分析和申请入口。", "查看专题页", "/universities/shandong-university.html")}
+        ${scenarioCard("浏览全部高校专题", "按地区、学校类型和机构名称进入更多高校国际合作分析页。", "进入高校库", "/universities/")}
       </div>
     </section>
     <section class="section" id="home-modules">

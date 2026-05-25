@@ -327,9 +327,148 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
 """
 
 
+def render_index_page() -> str:
+    cards = "\n".join(
+        f"""
+        <a class="school-card" href="/universities/{filename}">
+          <span>{region} · {category}</span>
+          <strong>{name}</strong>
+          <p>查看{name}国际合作专题页，了解合作格局、伙伴机构、学科热点和完整报告申请入口。</p>
+        </a>
+        """
+        for filename, name, category, region in INSTITUTIONS
+    )
+    regions = sorted({region for _, _, _, region in INSTITUTIONS})
+    region_links = "".join(f'<a href="#region-{region}">{region}</a>' for region in regions)
+    grouped = []
+    for region in regions:
+        region_cards = "\n".join(
+            f'<li><a href="/universities/{filename}">{name}国际合作分析</a><span>{category}</span></li>'
+            for filename, name, category, item_region in INSTITUTIONS
+            if item_region == region
+        )
+        grouped.append(
+            f"""
+            <section class="region-section" id="region-{region}">
+              <h2>{region}高校与机构</h2>
+              <ul>{region_cards}</ul>
+            </section>
+            """
+        )
+    grouped_html = "\n".join(grouped)
+    return f"""<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>高校国际合作分析库 | AcadMap 学校专题入口</title>
+    <meta name="description" content="AcadMap 高校国际合作分析库，按学校和地区查看高校国际合作专题页，覆盖合作国家、伙伴机构、学科热点、沉默关系和对标分析申请入口。" />
+    <meta name="robots" content="index,follow" />
+    <link rel="canonical" href="https://acadmap.com/universities/" />
+    <script type="application/ld+json">
+      {{
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": "高校国际合作分析库",
+        "url": "https://acadmap.com/universities/",
+        "description": "按学校和地区浏览高校国际合作分析专题页。",
+        "provider": {{
+          "@type": "SoftwareApplication",
+          "name": "AcadMap",
+          "url": "https://acadmap.com/"
+        }}
+      }}
+    </script>
+    <style>
+      * {{ box-sizing: border-box; }}
+      body {{
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+        color: #111827;
+        background:
+          linear-gradient(rgba(15, 23, 42, .035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(15, 23, 42, .035) 1px, transparent 1px),
+          radial-gradient(circle at 12% 8%, rgba(5, 116, 232, .14), transparent 34%),
+          radial-gradient(circle at 86% 10%, rgba(15, 139, 127, .13), transparent 30%),
+          #f3f7fb;
+        background-size: 96px 96px, 96px 96px, auto, auto, auto;
+      }}
+      a {{ color: #0574e8; text-decoration: none; }}
+      .shell {{ max-width: 1120px; margin: 0 auto; padding: 28px 24px 72px; }}
+      .nav {{
+        position: sticky;
+        top: 16px;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 12px 18px;
+        border: 1px solid rgba(15, 23, 42, .10);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .84);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
+      }}
+      .brand {{ color: #111827; font-weight: 800; }}
+      .nav-links {{ display: flex; gap: 18px; align-items: center; font-size: 14px; }}
+      .hero {{ padding: 86px 0 46px; }}
+      .eyebrow {{ display: inline-flex; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5, 116, 232, .10); border-radius: 999px; padding: 8px 12px; }}
+      h1 {{ max-width: 820px; font-size: clamp(42px, 6vw, 74px); line-height: 1.04; margin: 22px 0 20px; letter-spacing: 0; }}
+      .lead {{ max-width: 760px; color: #405066; font-size: 20px; line-height: 1.8; margin: 0; }}
+      .region-nav {{ display: flex; flex-wrap: wrap; gap: 10px; margin: 28px 0 0; }}
+      .region-nav a {{ border: 1px solid rgba(5, 116, 232, .28); background: rgba(255,255,255,.72); border-radius: 999px; padding: 8px 12px; font-weight: 700; }}
+      .grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }}
+      .school-card {{ display: block; min-height: 178px; padding: 22px; border: 1px solid rgba(15, 23, 42, .10); border-radius: 24px; background: rgba(255,255,255,.86); box-shadow: 0 24px 70px rgba(31, 41, 55, .09); }}
+      .school-card span {{ display: inline-flex; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5, 116, 232, .10); border-radius: 999px; padding: 6px 10px; }}
+      .school-card strong {{ display: block; color: #111827; font-size: 24px; margin: 18px 0 10px; }}
+      .school-card p {{ margin: 0; color: #5f6b7a; line-height: 1.7; }}
+      .region-section {{ margin-top: 34px; padding: 28px; border: 1px solid rgba(15,23,42,.10); border-radius: 28px; background: rgba(255,255,255,.88); }}
+      .region-section h2 {{ margin: 0 0 16px; font-size: 28px; }}
+      .region-section ul {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 22px; margin: 0; padding: 0; list-style: none; }}
+      .region-section li {{ display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid rgba(15,23,42,.08); padding-top: 12px; color: #5f6b7a; }}
+      .cta {{ margin-top: 34px; padding: 34px; border-radius: 30px; color: #fff; background: linear-gradient(135deg, #0b1220, #0b5aa8 58%, #0f8b7f); }}
+      .cta h2 {{ margin: 0 0 10px; font-size: 34px; }}
+      .cta p {{ margin: 0 0 20px; color: rgba(255,255,255,.78); line-height: 1.7; }}
+      .button {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; color: #0b1220; background: #fff; font-weight: 800; }}
+      @media (max-width: 900px) {{ .grid, .region-section ul {{ grid-template-columns: 1fr; }} .nav {{ position: static; border-radius: 24px; align-items: flex-start; }} .nav-links {{ flex-wrap: wrap; justify-content: flex-end; }} }}
+      @media (max-width: 560px) {{ .shell {{ padding: 18px 16px 54px; }} .nav-links a:not(:last-child) {{ display: none; }} .hero {{ padding-top: 52px; }} }}
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <nav class="nav">
+        <a class="brand" href="/">AcadMap 高校国际合作智析平台</a>
+        <div class="nav-links">
+          <a href="/map">合作格局</a>
+          <a href="/institutions">机构排行</a>
+          <a href="/benchmark">对标分析</a>
+          <a href="/login">申请分析</a>
+        </div>
+      </nav>
+      <header class="hero">
+        <span class="eyebrow">高校国际合作分析库</span>
+        <h1>从学校入口进入，快速查看国际合作分析专题。</h1>
+        <p class="lead">按学校和地区浏览 AcadMap 的高校国际合作专题页。每个专题页都说明该校可生成哪些合作地图、伙伴机构、学科热点、沉默关系和对标报告。</p>
+        <div class="region-nav">{region_links}</div>
+      </header>
+      <section class="grid">{cards}</section>
+      {grouped_html}
+      <section class="cta">
+        <h2>没有找到目标学校？</h2>
+        <p>可以直接提交学校或机构名称，我们会优先生成对应的国际合作分析样例。</p>
+        <a class="button" href="/login">申请生成学校分析</a>
+      </section>
+    </div>
+  </body>
+</html>
+"""
+
+
 def write_sitemap() -> None:
     pages = [
         ("/", "1.0", "weekly"),
+        ("/universities/", "0.9", "weekly"),
         ("/map", "0.8", "weekly"),
         ("/institutions", "0.8", "weekly"),
         ("/subjects", "0.8", "weekly"),
@@ -368,6 +507,7 @@ def main() -> None:
     )
     for filename, name, category, region in INSTITUTIONS:
         (output_dir / filename).write_text(render_page(filename, name, category, region, links), encoding="utf-8")
+    (output_dir / "index.html").write_text(render_index_page(), encoding="utf-8")
     write_sitemap()
 
 
