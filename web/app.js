@@ -1496,39 +1496,90 @@ async function renderAdminConsole() {
       adminApi("/api/admin/users"),
       adminApi("/api/admin/data-status"),
     ]);
+    const requests = requestsData.requests || [];
+    const users = usersData.users || [];
+    const sources = dataStatus.sources || [];
+    const jobs = dataStatus.jobs || [];
+    const pendingRequests = requests.filter((item) => item.status === "pending");
+    const openRequests = requests.filter((item) => item.status === "approved");
+    const activeUsers = users.filter((item) => item.status === "active");
+    const failedJobs = jobs.filter((item) => item.status === "failed");
     shell(
       "管理后台",
-      "审核开通申请、查看用户和运营状态。",
+      "线索、用户、数据任务集中处理。",
       `
-        <div class="kpis">
-          ${kpiCard(fmt(requestsData.requests.filter((item) => item.status === "pending").length), "待审核申请", 1, "red")}
-          ${kpiCard(fmt(requestsData.requests.filter((item) => item.status === "approved").length), "已开通申请", 2, "green")}
-          ${kpiCard(fmt(usersData.users.length), "注册用户", 3)}
-          ${kpiCard(fmt(usersData.users.filter((item) => item.status === "active").length), "已开通用户", 4, "green")}
-        </div>
-        <div class="grid two admin-grid">
-          <div class="card">
-            <h3>开通申请</h3>
-            ${adminRequestsTable(requestsData.requests)}
+        <section class="admin-console">
+          <aside class="admin-sidebar">
+            <strong>运营工作台</strong>
+            <a href="#admin-leads" class="active">开通线索</a>
+            <a href="#admin-users">用户账户</a>
+            <a href="#admin-data">数据接入</a>
+            <a href="#admin-jobs">任务日志</a>
+            <button class="admin-logout" id="adminLogoutBtn">退出后台</button>
+          </aside>
+          <div class="admin-main">
+            <div class="admin-toolbar">
+              <div>
+                <span class="tag">今日重点</span>
+                <h2>优先处理待审核和待跟进线索</h2>
+              </div>
+              <div class="admin-toolbar-actions">
+                <a class="button secondary" href="/login">查看前台登录页</a>
+                <a class="button secondary" href="/pricing">查看开通权益页</a>
+              </div>
+            </div>
+            <div class="admin-metrics">
+              ${adminMetric("待审核", pendingRequests.length, "需要今天处理", "red")}
+              ${adminMetric("已开通申请", openRequests.length, "可继续转化", "green")}
+              ${adminMetric("注册用户", users.length, "全部账户", "blue")}
+              ${adminMetric("数据异常", failedJobs.length, "失败任务", failedJobs.length ? "red" : "green")}
+            </div>
+            <div class="admin-workspace">
+              <section class="admin-panel admin-panel-large" id="admin-leads">
+                <div class="admin-panel-head">
+                  <div>
+                    <h3>开通线索</h3>
+                    <p>按状态、来源和处理动作快速推进。</p>
+                  </div>
+                  <span>${fmt(requests.length)} 条</span>
+                </div>
+                ${adminRequestsTable(requests)}
+              </section>
+              <aside class="admin-stack">
+                <section class="admin-panel" id="admin-users">
+                  <div class="admin-panel-head">
+                    <div>
+                      <h3>用户账户</h3>
+                      <p>查看注册与开通状态。</p>
+                    </div>
+                    <span>${fmt(activeUsers.length)} active</span>
+                  </div>
+                  ${adminUsersTable(users)}
+                </section>
+                <section class="admin-panel" id="admin-jobs">
+                  <div class="admin-panel-head">
+                    <div>
+                      <h3>任务日志</h3>
+                      <p>最近数据任务状态。</p>
+                    </div>
+                    <span>${fmt(jobs.length)} 条</span>
+                  </div>
+                  ${adminJobsTable(jobs)}
+                </section>
+              </aside>
+            </div>
+            <section class="admin-panel" id="admin-data">
+              <div class="admin-panel-head">
+                <div>
+                  <h3>数据源状态</h3>
+                  <p>学校样本、原始数据和处理结果。</p>
+                </div>
+                <span>${fmt(sources.length)} 个数据源</span>
+              </div>
+              ${adminSourcesTable(sources)}
+            </section>
           </div>
-          <div class="card">
-            <h3>用户列表</h3>
-            ${adminUsersTable(usersData.users)}
-          </div>
-        </div>
-        <div class="grid two admin-grid">
-          <div class="card">
-            <h3>数据源状态</h3>
-            ${adminSourcesTable(dataStatus.sources || [])}
-          </div>
-          <div class="card">
-            <h3>数据任务</h3>
-            ${adminJobsTable(dataStatus.jobs || [])}
-          </div>
-        </div>
-        <div class="actions">
-          <button class="button secondary" id="adminLogoutBtn">退出后台</button>
-        </div>
+        </section>
       `
     );
     bindAdminActions();
@@ -1550,6 +1601,16 @@ async function renderAdminConsole() {
   }
 }
 
+function adminMetric(label, value, hint, tone = "blue") {
+  return `
+    <div class="admin-metric ${tone}">
+      <span>${label}</span>
+      <strong>${fmt(value)}</strong>
+      <small>${hint}</small>
+    </div>
+  `;
+}
+
 function adminRequestsTable(requests) {
   if (!requests.length) return `<p class="muted">暂无开通申请。</p>`;
   const leadLabels = {
@@ -1560,30 +1621,54 @@ function adminRequestsTable(requests) {
     abandoned: "已放弃",
   };
   return `
-    <div class="admin-list">
-      ${requests
-        .map(
-          (item) => `
-            <div class="admin-row">
-              <div>
-                <strong>${item.organization || "-"}</strong>
-                <span>${item.name || "-"} · ${item.role || "-"} · ${item.phone || "-"}</span>
-                <small>${item.created_at || ""} · ${item.source || "直接申请"} · ${leadLabels[item.lead_status] || item.lead_status || "新线索"}</small>
-                <small>${item.message || ""}</small>
-                ${item.followup_note ? `<small>备注：${item.followup_note}</small>` : ""}
-              </div>
-              <em class="status-badge ${item.status}">${item.status}</em>
-              <div class="admin-actions">
-                ${item.status === "pending" ? `<button data-action="approve" data-id="${item.id}">通过</button><button data-action="reject" data-id="${item.id}">拒绝</button>` : ""}
-                <button data-action="lead-status" data-id="${item.id}" data-lead-status="contacted">已联系</button>
-                <button data-action="generate-request-data" data-id="${item.id}">生成数据</button>
-                <button data-action="lead-status" data-id="${item.id}" data-lead-status="converted">已转化</button>
-                <button data-action="lead-status" data-id="${item.id}" data-lead-status="abandoned">放弃</button>
-              </div>
-            </div>
-          `
-        )
-        .join("")}
+    <div class="admin-table-wrap">
+      <table class="admin-table leads">
+        <thead>
+          <tr>
+            <th>机构/联系人</th>
+            <th>来源</th>
+            <th>状态</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${requests
+            .map(
+              (item) => `
+                <tr>
+                  <td>
+                    <strong>${item.organization || "-"}</strong>
+                    <span>${item.name || "-"} · ${item.role || "-"}</span>
+                    <small>${item.phone || "-"}</small>
+                  </td>
+                  <td>
+                    <span>${item.source || "直接申请"}</span>
+                    <small>${item.created_at || ""}</small>
+                  </td>
+                  <td>
+                    <em class="status-badge ${item.status}">${item.status}</em>
+                    <small>${leadLabels[item.lead_status] || item.lead_status || "新线索"}</small>
+                  </td>
+                  <td>
+                    <span>${item.message || "-"}</span>
+                    ${item.followup_note ? `<small>备注：${item.followup_note}</small>` : ""}
+                  </td>
+                  <td>
+                    <div class="admin-actions">
+                      ${item.status === "pending" ? `<button data-action="approve" data-id="${item.id}">通过</button><button data-action="reject" data-id="${item.id}">拒绝</button>` : ""}
+                      <button data-action="lead-status" data-id="${item.id}" data-lead-status="contacted">已联系</button>
+                      <button data-action="generate-request-data" data-id="${item.id}">生成数据</button>
+                      <button data-action="lead-status" data-id="${item.id}" data-lead-status="converted">已转化</button>
+                      <button data-action="lead-status" data-id="${item.id}" data-lead-status="abandoned">放弃</button>
+                    </div>
+                  </td>
+                </tr>
+              `
+            )
+            .join("")}
+        </tbody>
+      </table>
     </div>
   `;
 }
@@ -1591,14 +1676,15 @@ function adminRequestsTable(requests) {
 function adminUsersTable(users) {
   if (!users.length) return `<p class="muted">暂无用户。</p>`;
   return `
-    <div class="admin-list compact">
+    <div class="admin-mini-list">
       ${users
+        .slice(0, 8)
         .map(
           (item) => `
-            <div class="admin-row">
+            <div class="admin-mini-row">
               <div>
                 <strong>${item.name || item.phone}</strong>
-                <span>${item.organization || "-"} · ${item.role || "-"} · ${item.phone}</span>
+                <span>${item.organization || "-"} · ${item.role || "-"}</span>
                 <small>${item.plan || "trial"} · ${item.status || "trial"}</small>
               </div>
               <em class="status-badge ${item.status}">${item.status}</em>
@@ -1613,24 +1699,37 @@ function adminUsersTable(users) {
 function adminSourcesTable(sources) {
   if (!sources.length) return `<p class="muted">暂无学校数据源。</p>`;
   return `
-    <div class="admin-list compact">
-      ${sources
-        .map(
-          (item) => `
-            <div class="admin-row">
-              <div>
-                <strong>${item.university}</strong>
-                <span>${item.search_name || "-"} · raw ${fmt(item.raw_count)} · processed ${fmt(item.work_count)}</span>
-                <small>last fetched ${item.last_fetched_at || "未采集"}</small>
-              </div>
-              <em class="status-badge ${item.status}">${item.status}</em>
-              <div class="admin-actions">
-                <button data-action="refresh-data" data-university="${item.university}">刷新</button>
-              </div>
-            </div>
-          `
-        )
-        .join("")}
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>学校</th>
+            <th>检索名</th>
+            <th>原始数据</th>
+            <th>已处理</th>
+            <th>最后采集</th>
+            <th>状态</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${sources
+            .map(
+              (item) => `
+                <tr>
+                  <td><strong>${item.university}</strong></td>
+                  <td>${item.search_name || "-"}</td>
+                  <td>${fmt(item.raw_count)}</td>
+                  <td>${fmt(item.work_count)}</td>
+                  <td>${item.last_fetched_at || "未采集"}</td>
+                  <td><em class="status-badge ${item.status}">${item.status}</em></td>
+                  <td><div class="admin-actions"><button data-action="refresh-data" data-university="${item.university}">刷新</button></div></td>
+                </tr>
+              `
+            )
+            .join("")}
+        </tbody>
+      </table>
     </div>
   `;
 }
@@ -1638,12 +1737,12 @@ function adminSourcesTable(sources) {
 function adminJobsTable(jobs) {
   if (!jobs.length) return `<p class="muted">暂无数据任务。</p>`;
   return `
-    <div class="admin-list compact">
+    <div class="admin-mini-list">
       ${jobs
         .slice(0, 12)
         .map(
           (item) => `
-            <div class="admin-row">
+            <div class="admin-mini-row">
               <div>
                 <strong>${item.university}</strong>
                 <span>${item.job_type} · raw ${fmt(item.raw_count)} · processed ${fmt(item.processed_count)}</span>
