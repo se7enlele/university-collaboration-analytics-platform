@@ -550,4 +550,34 @@
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>
+  <url>
+    <loc>https://acadmap.com/topics/gaoxiao-guoji-hezuo-fenxi.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://acadmap.com/topics/gaoxiao-guojichu-shuju-fenxi.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://acadmap.com/topics/gaoxiao-hezuo-jigou-paihang.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://acadmap.com/topics/gaoxiao-keyan-hezuo-duibiao.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://acadmap.com/topics/guoji-hezuo-lunwen-fenxi.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://acadmap.com/topics/gaoxiao-guojihua-jixiao-baogao.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
 </urlset>

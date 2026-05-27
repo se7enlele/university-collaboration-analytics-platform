@@ -106,6 +106,75 @@ INSTITUTIONS = [
     ("chinese-academy-of-medical-sciences.html", "中国医学科学院", "科研机构", "北京"),
 ]
 
+TOPICS = [
+    {
+        "slug": "gaoxiao-guoji-hezuo-fenxi",
+        "title": "高校国际合作分析",
+        "keyword": "高校国际合作分析",
+        "intent": "帮助国际处和科研管理部门判断合作资源应该投向哪些国家、机构和学科。",
+        "h1": "高校国际合作分析应该看哪些数据？",
+        "summary": "AcadMap 将合作论文、合作国家、伙伴机构、学科热点和对标结果整理成可汇报的分析框架，帮助高校从“有多少合作”走向“哪些合作值得继续投入”。",
+        "questions": ["重点合作国家和区域是否清晰", "核心伙伴机构是否值得继续维护", "国际合作是否形成了可汇报的学科成果"],
+        "features": ["合作格局", "机构排行", "学科热力", "对标分析"],
+        "cta": "申请生成本校国际合作分析",
+    },
+    {
+        "slug": "gaoxiao-guojichu-shuju-fenxi",
+        "title": "高校国际处数据分析",
+        "keyword": "高校国际处数据分析",
+        "intent": "让国际处把出访准备、协议复盘、伙伴维护和领导汇报建立在可解释的数据之上。",
+        "h1": "高校国际处如何用数据支持日常决策？",
+        "summary": "国际处最缺的不是零散数据，而是可以快速回答“去哪、找谁、为什么”的工作台。AcadMap 把公开科研合作数据整理成国际处可直接使用的线索和报告素材。",
+        "questions": ["出访前应该优先了解哪些合作对象", "历史协议和合作伙伴是否仍然活跃", "年度总结是否有足够清晰的数据证据"],
+        "features": ["合作国家", "沉默关系", "绩效驾驶舱", "报告导出"],
+        "cta": "查看国际处工作台样例",
+    },
+    {
+        "slug": "gaoxiao-hezuo-jigou-paihang",
+        "title": "高校合作机构排行",
+        "keyword": "高校合作机构排行",
+        "intent": "识别高频伙伴、低主导伙伴和需要重新激活的沉默伙伴。",
+        "h1": "高校合作机构排行不只是名单，而是伙伴管理策略。",
+        "summary": "仅知道合作机构数量并不能指导行动。AcadMap 会将伙伴按合作频次、主导性、国家分布和近年活跃度拆分，帮助学校形成可维护、可复盘的伙伴清单。",
+        "questions": ["哪些机构是核心合作伙伴", "哪些机构合作多但本校主导性偏弱", "哪些合作关系已经沉默，需要重新判断价值"],
+        "features": ["机构排行", "伙伴标签", "沉默关系", "国家覆盖"],
+        "cta": "查看合作机构分析",
+    },
+    {
+        "slug": "gaoxiao-keyan-hezuo-duibiao",
+        "title": "高校科研合作对标分析",
+        "keyword": "高校科研合作对标分析",
+        "intent": "比较同层次、同区域或同学科高校的国际合作表现，找到差距和机会。",
+        "h1": "高校科研合作对标，应该对标什么？",
+        "summary": "对标不是简单比较论文数量，而是同时看合作国家、伙伴机构、学科方向、合作质量和本校主导能力。AcadMap 帮助学校把对标结果转化为可行动的改进方向。",
+        "questions": ["同层次高校在哪些国家和机构上更有优势", "本校优势学科是否形成国际合作网络", "下一步应该补齐哪些合作短板"],
+        "features": ["多校对标", "学科对比", "合作质量", "机会判断"],
+        "cta": "进入对标分析",
+    },
+    {
+        "slug": "guoji-hezuo-lunwen-fenxi",
+        "title": "国际合作论文分析",
+        "keyword": "国际合作论文分析",
+        "intent": "从论文合作数据中提炼国家、机构、学科和主导性结论。",
+        "h1": "国际合作论文如何变成管理层能看懂的结论？",
+        "summary": "论文数据本身很分散，国际处和科研院真正需要的是可解释、可比较、可汇报的结论。AcadMap 将论文合作记录整理为合作地图、机构清单、热点学科和绩效指标。",
+        "questions": ["国际合作论文主要来自哪些国家和机构", "高频合作是否集中在少数学科", "本校在国际合作中的主导能力如何变化"],
+        "features": ["论文统计", "国家地图", "学科热点", "主导性指标"],
+        "cta": "查看论文合作分析",
+    },
+    {
+        "slug": "gaoxiao-guojihua-jixiao-baogao",
+        "title": "高校国际化绩效报告",
+        "keyword": "高校国际化绩效报告",
+        "intent": "把国际合作成果整理为年度总结、领导汇报和资源配置依据。",
+        "h1": "高校国际化绩效报告需要哪些可复用指标？",
+        "summary": "年度汇报不应该临时拼材料。AcadMap 将合作规模、国家覆盖、伙伴质量、学科热点、主导性和风险关系沉淀为可复用的绩效指标，让国际化工作更容易汇报和复盘。",
+        "questions": ["今年国际合作产生了哪些可说明的成果", "哪些合作值得继续投入预算和人员", "哪些关系需要清理、激活或重新谈判"],
+        "features": ["绩效驾驶舱", "年度总结", "报告素材", "行动清单"],
+        "cta": "申请绩效报告样例",
+    },
+]
+
 
 def render_page(filename: str, name: str, category: str, region: str, links: str) -> str:
     slug = filename.replace(".html", "")
@@ -337,6 +406,187 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
 """
 
 
+def render_topic_page(topic: dict) -> str:
+    feature_items = "".join(f"<li>{feature}</li>" for feature in topic["features"])
+    question_cards = "".join(
+        f"""
+        <article class="card">
+          <span>用户会问</span>
+          <h2>{question}</h2>
+          <p>AcadMap 会把相关论文、机构、国家和趋势数据整理成可解释的判断，减少手工检索和临时汇总。</p>
+        </article>
+        """
+        for question in topic["questions"]
+    )
+    related_links = "".join(
+        f'<a href="/topics/{item["slug"]}.html">{item["title"]}</a>'
+        for item in TOPICS
+        if item["slug"] != topic["slug"]
+    )
+    school_links = "".join(
+        f'<li><a href="/universities/{filename}">{name}国际合作分析</a></li>'
+        for filename, name, _, _ in INSTITUTIONS[:18]
+    )
+    return f"""<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{topic["title"]} | AcadMap 高校国际合作智析平台</title>
+    <meta name="description" content="{topic["summary"]}" />
+    <meta name="keywords" content="{topic["keyword"]},高校国际合作,高校国际处,科研合作分析,高校对标分析,国际合作论文" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <link rel="canonical" href="https://acadmap.com/topics/{topic["slug"]}.html" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <script type="application/ld+json">
+      {{
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        "name": "{topic["title"]}",
+        "url": "https://acadmap.com/topics/{topic["slug"]}.html",
+        "description": "{topic["summary"]}",
+        "about": "{topic["keyword"]}",
+        "provider": {{
+          "@type": "SoftwareApplication",
+          "name": "AcadMap",
+          "applicationCategory": "BusinessApplication",
+          "url": "https://acadmap.com/"
+        }}
+      }}
+    </script>
+    <style>
+      * {{ box-sizing: border-box; }}
+      body {{
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft YaHei", sans-serif;
+        color: #111827;
+        background:
+          linear-gradient(rgba(15, 23, 42, .035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(15, 23, 42, .035) 1px, transparent 1px),
+          radial-gradient(circle at 10% 8%, rgba(5, 116, 232, .14), transparent 34%),
+          radial-gradient(circle at 86% 10%, rgba(15, 139, 127, .13), transparent 30%),
+          #f3f7fb;
+        background-size: 96px 96px, 96px 96px, auto, auto, auto;
+      }}
+      a {{ color: #0574e8; text-decoration: none; }}
+      .shell {{ max-width: 1120px; margin: 0 auto; padding: 28px 24px 72px; }}
+      .nav {{
+        position: sticky;
+        top: 16px;
+        z-index: 2;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        padding: 12px 18px;
+        border: 1px solid rgba(15, 23, 42, .10);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .84);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
+      }}
+      .brand {{ color: #111827; font-weight: 800; }}
+      .nav-links {{ display: flex; gap: 18px; align-items: center; font-size: 14px; }}
+      .pill {{ display: inline-flex; min-height: 36px; align-items: center; padding: 0 16px; border-radius: 999px; color: #fff; background: #111827; font-weight: 800; }}
+      .hero {{ display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: stretch; padding: 86px 0 36px; }}
+      .eyebrow {{ display: inline-flex; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5,116,232,.10); border-radius: 999px; padding: 8px 12px; }}
+      h1 {{ max-width: 760px; font-size: clamp(42px, 6vw, 74px); line-height: 1.04; margin: 22px 0 20px; letter-spacing: 0; }}
+      .lead {{ max-width: 760px; color: #405066; font-size: 20px; line-height: 1.8; margin: 0; }}
+      .hero-panel, .panel, .card {{
+        border: 1px solid rgba(15,23,42,.10);
+        border-radius: 28px;
+        background: rgba(255,255,255,.88);
+        box-shadow: 0 24px 70px rgba(31, 41, 55, .09);
+      }}
+      .hero-panel {{ padding: 24px; }}
+      .hero-panel h2, .panel h2 {{ margin: 0 0 16px; font-size: 24px; }}
+      .feature-list {{ display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }}
+      .feature-list li {{ padding: 12px 14px; border-radius: 16px; background: rgba(5,116,232,.08); color: #075fc2; font-weight: 800; }}
+      .grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }}
+      .card {{ min-height: 210px; padding: 24px; }}
+      .card span {{ display: inline-flex; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5,116,232,.10); border-radius: 999px; padding: 6px 10px; }}
+      .card h2 {{ margin: 18px 0 10px; font-size: 24px; }}
+      .card p, .panel p {{ margin: 0; color: #5f6b7a; line-height: 1.75; }}
+      .split {{ display: grid; grid-template-columns: minmax(0, 1.1fr) 360px; gap: 18px; margin-top: 28px; }}
+      .panel {{ padding: 28px; }}
+      .links {{ display: flex; flex-wrap: wrap; gap: 10px; }}
+      .links a {{ border: 1px solid rgba(5,116,232,.25); border-radius: 999px; padding: 8px 12px; background: rgba(5,116,232,.08); font-weight: 800; }}
+      .school-links {{ columns: 2; padding-left: 20px; color: #5f6b7a; }}
+      .school-links li {{ margin: 8px 0; break-inside: avoid; }}
+      .cta {{ display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: center; margin-top: 30px; padding: 34px; border-radius: 30px; color: #fff; background: linear-gradient(135deg, #0b1220, #0b5aa8 58%, #0f8b7f); }}
+      .cta h2 {{ margin: 0 0 10px; font-size: clamp(28px, 4vw, 42px); }}
+      .cta p {{ margin: 0; color: rgba(255,255,255,.78); line-height: 1.7; }}
+      .button {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; color: #0b1220; background: #fff; font-weight: 900; }}
+      @media (max-width: 900px) {{
+        .nav {{ position: static; border-radius: 24px; align-items: flex-start; }}
+        .nav-links {{ flex-wrap: wrap; justify-content: flex-end; }}
+        .hero, .split, .cta {{ grid-template-columns: 1fr; }}
+        .grid {{ grid-template-columns: 1fr; }}
+        .school-links {{ columns: 1; }}
+      }}
+      @media (max-width: 560px) {{
+        .shell {{ padding: 18px 16px 54px; }}
+        .nav-links a:not(.pill) {{ display: none; }}
+        .hero {{ padding-top: 52px; }}
+      }}
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <nav class="nav">
+        <a class="brand" href="/">高校国际合作智析平台</a>
+        <div class="nav-links">
+          <a href="/map">合作格局</a>
+          <a href="/universities/">高校库</a>
+          <a href="/?page=dashboard">绩效驾驶舱</a>
+          <a href="/institutions">机构排行</a>
+          <a href="/benchmark">对标分析</a>
+          <a href="/pricing">开通权益</a>
+          <a class="pill" href="/login">登录 / 开通</a>
+        </div>
+      </nav>
+      <header class="hero">
+        <div>
+          <span class="eyebrow">{topic["keyword"]}</span>
+          <h1>{topic["h1"]}</h1>
+          <p class="lead">{topic["summary"]}</p>
+        </div>
+        <aside class="hero-panel">
+          <h2>覆盖能力</h2>
+          <ul class="feature-list">{feature_items}</ul>
+        </aside>
+      </header>
+      <section class="grid">{question_cards}</section>
+      <section class="split">
+        <div class="panel">
+          <h2>这个页面解决什么搜索意图</h2>
+          <p>{topic["intent"]}</p>
+        </div>
+        <aside class="panel">
+          <h2>相关专题</h2>
+          <div class="links">{related_links}</div>
+        </aside>
+      </section>
+      <section class="panel" style="margin-top:28px">
+        <h2>可查看的高校专题</h2>
+        <ul class="school-links">{school_links}</ul>
+      </section>
+      <section class="cta">
+        <div>
+          <h2>{topic["cta"]}</h2>
+          <p>提交学校或机构名称后，可以优先生成样例数据和可汇报结论，先验证业务价值，再扩展更多数据覆盖。</p>
+        </div>
+        <a class="button" href="/login">申请开通</a>
+      </section>
+    </div>
+  </body>
+</html>
+"""
+
+
 def render_index_page() -> str:
     cards = "\n".join(
         f"""
@@ -366,6 +616,10 @@ def render_index_page() -> str:
             """
         )
     grouped_html = "\n".join(grouped)
+    topic_links = "".join(
+        f'<a href="/topics/{topic["slug"]}.html">{topic["title"]}</a>'
+        for topic in TOPICS
+    )
     return f"""<!doctype html>
 <html lang="zh-CN">
   <head>
@@ -441,6 +695,11 @@ def render_index_page() -> str:
       .region-section h2 {{ margin: 0 0 16px; font-size: 28px; }}
       .region-section ul {{ display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px 22px; margin: 0; padding: 0; list-style: none; }}
       .region-section li {{ display: flex; justify-content: space-between; gap: 16px; border-top: 1px solid rgba(15,23,42,.08); padding-top: 12px; color: #5f6b7a; }}
+      .topic-strip {{ margin-top: 34px; padding: 28px; border: 1px solid rgba(15,23,42,.10); border-radius: 28px; background: rgba(255,255,255,.88); }}
+      .topic-strip h2 {{ margin: 0 0 8px; font-size: 28px; }}
+      .topic-strip p {{ margin: 0 0 18px; color: #5f6b7a; line-height: 1.7; }}
+      .topic-strip div {{ display: flex; flex-wrap: wrap; gap: 10px; }}
+      .topic-strip a {{ border: 1px solid rgba(5,116,232,.25); border-radius: 999px; padding: 8px 12px; background: rgba(5,116,232,.08); font-weight: 800; }}
       .cta {{ margin-top: 34px; padding: 34px; border-radius: 30px; color: #fff; background: linear-gradient(135deg, #0b1220, #0b5aa8 58%, #0f8b7f); }}
       .cta h2 {{ margin: 0 0 10px; font-size: 34px; }}
       .cta p {{ margin: 0 0 20px; color: rgba(255,255,255,.78); line-height: 1.7; }}
@@ -473,6 +732,11 @@ def render_index_page() -> str:
         <div class="region-nav">{region_links}</div>
       </header>
       <section class="grid">{cards}</section>
+      <section class="topic-strip">
+        <h2>常见搜索专题</h2>
+        <p>围绕高校国际处、科研管理和学科建设中的高频问题，查看更聚焦的分析入口。</p>
+        <div>{topic_links}</div>
+      </section>
       {grouped_html}
       <section class="cta">
         <h2>没有找到目标学校？</h2>
@@ -509,6 +773,12 @@ def write_sitemap() -> None:
     <changefreq>monthly</changefreq>
     <priority>0.55</priority>
   </url>""")
+    for topic in TOPICS:
+        urls.append(f"""  <url>
+    <loc>https://acadmap.com/topics/{topic["slug"]}.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>""")
     Path("web/sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
@@ -521,6 +791,8 @@ def write_sitemap() -> None:
 def main() -> None:
     output_dir = Path("web/universities")
     output_dir.mkdir(parents=True, exist_ok=True)
+    topic_dir = Path("web/topics")
+    topic_dir.mkdir(parents=True, exist_ok=True)
     links = "".join(
         f'<li><a href="/universities/{filename}">{name}国际合作分析</a></li>'
         for filename, name, _, _ in INSTITUTIONS[:40]
@@ -528,6 +800,8 @@ def main() -> None:
     for filename, name, category, region in INSTITUTIONS:
         (output_dir / filename).write_text(render_page(filename, name, category, region, links), encoding="utf-8")
     (output_dir / "index.html").write_text(render_index_page(), encoding="utf-8")
+    for topic in TOPICS:
+        (topic_dir / f'{topic["slug"]}.html').write_text(render_topic_page(topic), encoding="utf-8")
     write_sitemap()
 
 
