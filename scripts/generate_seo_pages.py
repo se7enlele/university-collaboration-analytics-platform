@@ -250,7 +250,8 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
         backdrop-filter: blur(18px);
         box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
       }}
-      .brand {{ color: var(--ink); font-weight: 800; }}
+      .brand {{ display: inline-flex; align-items: baseline; gap: 8px; color: var(--ink); font-weight: 800; }}
+      .brand span {{ color: var(--muted); font-size: 12px; font-weight: 700; }}
       .nav-links {{ display: flex; gap: 18px; align-items: center; font-size: 14px; }}
       .hero {{ display: grid; grid-template-columns: minmax(0, 1.1fr) 360px; gap: 32px; align-items: center; padding: 86px 0 56px; }}
       .eyebrow {{ display: inline-flex; gap: 8px; align-items: center; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5, 116, 232, .10); border-radius: 999px; padding: 8px 12px; }}
@@ -309,7 +310,7 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
   <body>
     <div class="shell">
       <nav class="nav">
-        <a class="brand" href="/">高校国际合作智析平台</a>
+        <a class="brand" href="/">AcadMap <span>高校国际合作数据分析平台</span></a>
         <div class="nav-links">
           <a href="/map">合作格局</a>
           <a href="/universities/">高校库</a>
@@ -432,7 +433,7 @@ def render_topic_page(topic: dict) -> str:
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{topic["title"]} | AcadMap 高校国际合作智析平台</title>
+    <title>{topic["title"]} | AcadMap 高校国际合作数据分析平台</title>
     <meta name="description" content="{topic["summary"]}" />
     <meta name="keywords" content="{topic["keyword"]},高校国际合作,高校国际处,科研合作分析,高校对标分析,国际合作论文" />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
@@ -488,7 +489,8 @@ def render_topic_page(topic: dict) -> str:
         backdrop-filter: blur(18px);
         box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
       }}
-      .brand {{ color: #111827; font-weight: 800; }}
+      .brand {{ display: inline-flex; align-items: baseline; gap: 8px; color: #111827; font-weight: 800; }}
+      .brand span {{ color: #5f6b7a; font-size: 12px; font-weight: 700; }}
       .nav-links {{ display: flex; gap: 18px; align-items: center; font-size: 14px; }}
       .pill {{ display: inline-flex; min-height: 36px; align-items: center; padding: 0 16px; border-radius: 999px; color: #fff; background: #111827; font-weight: 800; }}
       .hero {{ display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: stretch; padding: 86px 0 36px; }}
@@ -537,7 +539,7 @@ def render_topic_page(topic: dict) -> str:
   <body>
     <div class="shell">
       <nav class="nav">
-        <a class="brand" href="/">高校国际合作智析平台</a>
+        <a class="brand" href="/">AcadMap <span>高校国际合作数据分析平台</span></a>
         <div class="nav-links">
           <a href="/map">合作格局</a>
           <a href="/universities/">高校库</a>
@@ -678,7 +680,8 @@ def render_index_page() -> str:
         backdrop-filter: blur(18px);
         box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
       }}
-      .brand {{ color: #111827; font-weight: 800; }}
+      .brand {{ display: inline-flex; align-items: baseline; gap: 8px; color: #111827; font-weight: 800; }}
+      .brand span {{ color: #5f6b7a; font-size: 12px; font-weight: 700; }}
       .nav-links {{ display: flex; gap: 18px; align-items: center; font-size: 14px; }}
       .hero {{ padding: 86px 0 46px; }}
       .eyebrow {{ display: inline-flex; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5, 116, 232, .10); border-radius: 999px; padding: 8px 12px; }}
@@ -706,13 +709,13 @@ def render_index_page() -> str:
       .button, .pill {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; color: #0b1220; background: #fff; font-weight: 800; }}
       .pill {{ min-height: 36px; color: #fff; background: #111827; padding: 0 16px; }}
       @media (max-width: 900px) {{ .grid, .region-section ul {{ grid-template-columns: 1fr; }} .nav {{ position: static; border-radius: 24px; align-items: flex-start; }} .nav-links {{ flex-wrap: wrap; justify-content: flex-end; }} }}
-      @media (max-width: 560px) {{ .shell {{ padding: 18px 16px 54px; }} .nav-links a:not(:last-child) {{ display: none; }} .hero {{ padding-top: 52px; }} }}
+      @media (max-width: 560px) {{ .shell {{ padding: 18px 16px 54px; }} .brand span {{ display: none; }} .nav-links a:not(:last-child) {{ display: none; }} .hero {{ padding-top: 52px; }} }}
     </style>
   </head>
   <body>
     <div class="shell">
       <nav class="nav">
-        <a class="brand" href="/">高校国际合作智析平台</a>
+        <a class="brand" href="/">AcadMap <span>高校国际合作数据分析平台</span></a>
         <div class="nav-links">
           <a href="/map">合作格局</a>
           <a href="/universities/">高校库</a>

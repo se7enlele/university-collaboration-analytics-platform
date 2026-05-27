@@ -70,7 +70,8 @@
         backdrop-filter: blur(18px);
         box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
       }
-      .brand { color: var(--ink); font-weight: 800; }
+      .brand { display: inline-flex; align-items: baseline; gap: 8px; color: var(--ink); font-weight: 800; }
+      .brand span { color: var(--muted); font-size: 12px; font-weight: 700; }
       .nav-links { display: flex; gap: 18px; align-items: center; font-size: 14px; }
       .hero { display: grid; grid-template-columns: minmax(0, 1.1fr) 360px; gap: 32px; align-items: center; padding: 86px 0 56px; }
       .eyebrow { display: inline-flex; gap: 8px; align-items: center; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5, 116, 232, .10); border-radius: 999px; padding: 8px 12px; }
@@ -129,7 +130,7 @@
   <body>
     <div class="shell">
       <nav class="nav">
-        <a class="brand" href="/">高校国际合作智析平台</a>
+        <a class="brand" href="/">AcadMap <span>高校国际合作数据分析平台</span></a>
         <div class="nav-links">
           <a href="/map">合作格局</a>
           <a href="/universities/">高校库</a>

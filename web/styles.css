@@ -65,9 +65,18 @@ a {
 }
 
 .brand {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
   font-size: 15px;
   font-weight: 800;
   white-space: nowrap;
+}
+
+.brand span {
+  color: #5f6b7a;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .topbar nav {
@@ -1627,6 +1636,10 @@ h1 {
 
   .brand {
     font-size: 13px;
+  }
+
+  .brand span {
+    display: none;
   }
 
   .actions {
