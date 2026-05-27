@@ -118,6 +118,10 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
     <meta name="description" content="AcadMap 面向{name}国际合作、科研管理和学科建设场景，提供合作国家、伙伴机构、学科热点、沉默关系和对标分析，支持按需生成完整报告。" />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="https://acadmap.com/universities/{filename}" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
     <script type="application/ld+json">
       {{
         "@context": "https://schema.org",
@@ -371,6 +375,10 @@ def render_index_page() -> str:
     <meta name="description" content="AcadMap 高校国际合作分析库，按学校和地区查看高校国际合作专题页，覆盖合作国家、伙伴机构、学科热点、沉默关系和对标分析申请入口。" />
     <meta name="robots" content="index,follow" />
     <link rel="canonical" href="https://acadmap.com/universities/" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
     <script type="application/ld+json">
       {{
         "@context": "https://schema.org",

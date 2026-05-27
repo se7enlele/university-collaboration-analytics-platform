@@ -454,6 +454,10 @@ class Handler(SimpleHTTPRequestHandler):
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
+        if parsed.path == "/favicon.ico":
+            self.path = "/favicon.svg"
+            super().do_GET()
+            return
         if parsed.path == "/api/me":
             self.send_json({"user": self.current_user()})
             return
