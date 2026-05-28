@@ -580,15 +580,16 @@ async function renderHome() {
     <nav class="home-rail" aria-label="首页章节导航">
       <a class="active" href="#home-hero">概览</a>
       <a href="#home-workflows">场景</a>
+      <a href="#home-pi">PI</a>
       <a href="#home-universities">高校</a>
       <a href="#home-modules">能力</a>
       <a href="#home-access">开通</a>
     </nav>
     <section class="section hero" id="home-hero">
       <div class="hero-panel">
-        <p class="eyebrow">International Office Workspace</p>
-        <h1>给高校国际处使用的国际合作工作台</h1>
-        <p class="lead">从公开论文和机构数据出发，快速看清合作现状、识别重点伙伴、发现沉默关系，并形成可汇报的决策依据。</p>
+        <p class="eyebrow">AcadMap Intelligence Workspace</p>
+        <h1>给高校国际处和科研团队使用的国际合作工作台</h1>
+        <p class="lead">从公开论文、机构网络和用户授权数据出发，快速看清合作现状，找到值得维护的伙伴，并形成可汇报、可行动的决策依据。</p>
         <div class="actions">
           <a class="button" href="/map">先看合作格局</a>
           <a class="button secondary" href="/pricing">查看开通权益</a>
@@ -607,8 +608,29 @@ async function renderHome() {
       <div class="scenario-grid">
         ${scenarioCard("出访前查对象", "快速了解目标机构与本校的合作历史、优势学科和近年活跃度。", "查看合作机构", "/institutions")}
         ${scenarioCard("年终证明成效", "用合著规模、覆盖国家、活跃伙伴和学科分布支撑国际化工作汇报。", "查看合作格局", "/map")}
-        ${scenarioCard("发现沉默关系", "识别多年没有产出的合作机构，判断是重新激活还是清理维护成本。", "查看沉默关系", "/zombies")}
+        ${scenarioCard("发现待维护关系", "识别多年没有新成果但仍有历史价值的合作机构，判断是否重新激活。", "查看伙伴维护", "/zombies")}
         ${scenarioCard("对标兄弟高校", "比较同层级高校的合作规模、国家覆盖和伙伴网络，找到差距与机会。", "进入对标分析", "/benchmark")}
+      </div>
+    </section>
+    <section class="section split-section" id="home-pi">
+      <div class="split-copy">
+        <span class="tag">PI / 青年教师</span>
+        <h2 class="section-title">把合作机会拆到具体方向和具体人。</h2>
+        <p class="section-copy">国际处看学校全局，PI 和青年教师更关心方向、合作者和申报材料。AcadMap 会把同一套开放学术数据整理成可筛选的合作线索。</p>
+      </div>
+      <div class="mini-grid">
+        <div class="card mini-card">
+          <strong>方向雷达</strong>
+          <p>围绕关键词查看主题趋势、活跃国家和高产机构，先判断方向是否值得投入。</p>
+        </div>
+        <div class="card mini-card">
+          <strong>合作者发现</strong>
+          <p>按主题相关度、合作网络和引用表现筛选潜在作者，减少盲目发邮件。</p>
+        </div>
+        <div class="card mini-card">
+          <strong>申报素材</strong>
+          <p>沉淀中外双方基础对比、代表论文和合作图表，用于项目申请和PPT。</p>
+        </div>
       </div>
     </section>
     <section class="section" id="home-universities">
@@ -628,7 +650,7 @@ async function renderHome() {
         ${moduleCard("合作格局", "国家、机构与论文成果覆盖。", "/map")}
         ${moduleCard("绩效驾驶舱", "形成面向领导汇报的指标看板。", "/?page=dashboard")}
         ${moduleCard("机构排行", "识别核心伙伴与潜力机构。", "/institutions")}
-        ${moduleCard("沉默关系", "找出长期无产出的合作伙伴。", "/zombies")}
+        ${moduleCard("伙伴维护", "找出长期无新成果但值得复盘的合作伙伴。", "/zombies")}
         ${moduleCard("学科热力", "发现优势学科和增长方向。", "/subjects")}
         ${moduleCard("对标分析", "比较合作规模、覆盖和主导能力。", "/benchmark")}
       </div>
@@ -647,8 +669,13 @@ async function renderHome() {
         </div>
         <div class="card revenue-card">
           <strong>形成清单</strong>
-          <span>伙伴维护与沉默关系</span>
-          <p>识别重点伙伴、低质量合作和长期无产出的关系，形成可跟进的维护清单。</p>
+          <span>伙伴维护与机会发现</span>
+          <p>识别重点伙伴、低质量合作和长期无新成果的关系，形成可跟进的维护清单。</p>
+        </div>
+        <div class="card revenue-card">
+          <strong>导入数据</strong>
+          <span>Excel / CSV 授权分析</span>
+          <p>支持试点导入学校已有合作清单，与公开学术数据匹配后进行仅本机构可见的分析。</p>
         </div>
         <div class="card revenue-card">
           <strong>用于汇报</strong>
@@ -1254,31 +1281,31 @@ function renderLogin() {
 function renderPricing() {
   shell(
     "开通权益",
-    "为国际处、科研院、学科建设办公室和学院提供完整数据、报告导出和协同管理能力。",
+    "从免费浏览到个人研究者，再到学校国际处工作台，按使用场景逐步开通。",
     `
       <div class="decision-panel pricing-decision">
         <div class="decision-main">
           <span class="tag">适用场景</span>
-          <h2>让国际合作管理从分散整理，变成持续跟进。</h2>
-          <p>适合用于年度总结、出访准备、协议复盘、学科建设、同类高校对标和领导汇报。</p>
+          <h2>免费版负责判断是否有价值，付费版负责形成行动。</h2>
+          <p>公开页面用于了解学校和方向的基本格局；开通后查看完整名单、具体论文、导出图表和报告，并可管理团队权限。</p>
         </div>
         <div class="decision-judgment">
           <strong>开通后获得</strong>
-          <p>完整机构名单、沉默关系清单、学院和学科下钻、对标报告、报告导出和团队权限。</p>
+          <p>完整机构名单、伙伴维护清单、合作作者线索、学院和学科下钻、对标报告、报告导出和团队权限。</p>
         </div>
         <div class="decision-actions">
           <strong>建议使用方式</strong>
           <ol>
-            <li>先用公开页面了解学校合作概况</li>
-            <li>提交机构申请并确认使用范围</li>
-            <li>开通后导出报告和伙伴维护清单</li>
+            <li>先用公开页面判断学校或方向是否有分析价值</li>
+            <li>个人用户解锁合作者和图表导出</li>
+            <li>机构用户开通全校数据、报告和权限</li>
           </ol>
         </div>
       </div>
       <div class="pricing-grid">
-        ${priceCard("体验入口", "公开浏览", "初次了解", ["查看宏观合作格局", "浏览样例机构和学科洞察", "体验登录和工作台流程", "适合首次了解平台能力"])}
-        ${priceCard("机构工作台", "申请开通", "学校/科研院/国际处", ["完整学校数据和机构名单", "沉默关系与伙伴维护清单", "绩效驾驶舱和报告导出", "多角色账号与权限管理"], true)}
-        ${priceCard("专题分析", "联系确认", "领导汇报/战略规划", ["年度国际合作成效报告", "同层次高校对标分析", "重点国家与机构拓展建议", "可交付 Word/PDF 汇报材料"])}
+        ${priceCard("免费版", "￥0", "公开浏览", ["查看宏观合作格局", "浏览高校专题和方向专题", "了解样例机构和学科洞察", "适合首次判断产品价值"])}
+        ${priceCard("PI 个人版", "199元/年", "PI/青年教师/博士后", ["解锁完整合作者线索", "查看代表论文和合作画像", "导出图表用于项目申请", "适合个人方向拓展和申报准备"], true)}
+        ${priceCard("国际处专业版", "申请开通", "学校/科研院/国际处", ["完整学校数据和机构名单", "伙伴维护与机会发现清单", "绩效驾驶舱和报告导出", "多角色账号与权限管理"])}
       </div>
       <div class="grid two">
         <div class="card">
@@ -1286,8 +1313,8 @@ function renderPricing() {
           <ul class="business-list">
             <li>减少国际处手工整理论文、机构、国家和学院数据的时间。</li>
             <li>把合作协议和历史关系整理成可维护、可复盘、可汇报的清单。</li>
-            <li>支持年度总结、双一流建设、领导汇报和出访计划。</li>
-            <li>帮助学校基于数据判断合作资源应该投向哪里。</li>
+            <li>帮助PI围绕方向找到潜在合作者、代表论文和申报图表。</li>
+            <li>支持年度总结、双一流建设、领导汇报、出访计划和合作项目申报。</li>
           </ul>
         </div>
         <div class="card">
@@ -1295,10 +1322,15 @@ function renderPricing() {
           <ul class="business-list">
             <li>国际合作处：伙伴维护、出访准备、协议复盘。</li>
             <li>科研院/科技处：国际论文产出、项目布局、质量评估。</li>
+            <li>PI/青年教师：方向雷达、合作者发现、申报素材整理。</li>
             <li>学科建设办公室：学科国际影响力和标杆高校对比。</li>
-            <li>校领导办公室：一页式汇报、年度成效和下一步策略。</li>
           </ul>
         </div>
+      </div>
+      <div class="card recommendation">
+        <span class="tag">数据导入与合规</span>
+        <h3>学校已有 Excel/CSV 合作数据，可以作为试点接入。</h3>
+        <p>导入数据仅用于本用户或本机构授权分析，可做字段映射、DOI/标题匹配和公开学术数据融合；不公开展示、不转售，用户可要求删除原始数据和派生结果。</p>
       </div>
       <div class="card recommendation">
         <span class="tag">申请说明</span>

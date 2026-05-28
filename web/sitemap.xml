@@ -580,4 +580,14 @@
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
+  <url>
+    <loc>https://acadmap.com/topics/pi-guoji-hezuo-huoban-faxian.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
+  <url>
+    <loc>https://acadmap.com/topics/gaoxiao-shuju-daoru-fenxi.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.75</priority>
+  </url>
 </urlset>
