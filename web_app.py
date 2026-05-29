@@ -272,6 +272,72 @@ def subjects(limit: int = 20, university: str | None = None) -> list[dict]:
     )
 
 
+def collaborator_finder(limit: int = 12, university: str | None = None, keyword: str | None = None) -> dict:
+    if not has_data():
+        return {"items": [], "keyword": keyword or "", "summary": {}}
+
+    keyword = (keyword or "").strip()
+    params: list[object] = []
+    where = ["w.is_international = 1", "c.collab_institution != ''"]
+    if university:
+        where.append("w.university = ?")
+        params.append(university)
+    if keyword:
+        like = f"%{keyword}%"
+        where.append("(w.topic LIKE ? OR w.domain LIKE ? OR w.title LIKE ?)")
+        params.extend([like, like, like])
+
+    where_sql = " AND ".join(where)
+    items = rows(
+        f"""
+        WITH candidate AS (
+            SELECT
+                c.collab_institution AS institution,
+                COALESCE(NULLIF(c.collab_country_name, ''), '-') AS country,
+                COUNT(DISTINCT w.id) AS papers,
+                COUNT(DISTINCT CASE WHEN w.is_lead = 1 THEN w.id END) AS lead_papers,
+                ROUND(AVG(w.cited_by), 1) AS avg_cited,
+                MAX(w.year) AS last_year,
+                MAX(w.title) AS representative_title,
+                MAX(COALESCE(NULLIF(w.topic, ''), COALESCE(NULLIF(w.domain, ''), '未分类'))) AS topic
+            FROM works w
+            JOIN collaborations c ON w.id = c.work_id
+            WHERE {where_sql}
+            GROUP BY c.collab_institution, c.collab_country_name
+        )
+        SELECT
+            institution,
+            country,
+            papers,
+            lead_papers,
+            ROUND(100.0 * lead_papers / NULLIF(papers, 0), 1) AS lead_rate,
+            avg_cited,
+            last_year,
+            representative_title,
+            topic,
+            ROUND((papers * 1.0) + (avg_cited * 0.08) + (CASE WHEN last_year >= ? THEN 8 ELSE 0 END), 1) AS score
+        FROM candidate
+        ORDER BY score DESC, papers DESC
+        LIMIT ?
+        """,
+        (*params, datetime.now().year - 2, limit),
+    )
+    for item in items:
+        item["reason"] = (
+            f"{item.get('institution')} 在 {item.get('topic') or '相关方向'} 上已有 {item.get('papers') or 0} 篇合作论文，"
+            f"平均被引 {item.get('avg_cited') or 0}，适合作为优先了解的潜在合作对象。"
+        )
+        item["action"] = "查看代表论文、确认研究方向匹配度，再由学院或PI发起联系。"
+
+    summary = {
+        "candidates": len(items),
+        "top_country": items[0]["country"] if items else "",
+        "top_topic": items[0]["topic"] if items else "",
+        "keyword": keyword,
+    }
+    return {"items": items, "keyword": keyword, "summary": summary}
+
+
 def sample_works(limit: int = 10, university: str | None = None) -> list[dict]:
     if not has_data():
         return []
@@ -441,6 +507,7 @@ API = {
     "/api/collaboration": collaboration_analysis,
     "/api/institutions": institution_rank,
     "/api/subjects": subjects,
+    "/api/collaborators": collaborator_finder,
     "/api/works": sample_works,
     "/api/benchmark": benchmark,
     "/api/zombies": zombie_partners,
@@ -490,7 +557,9 @@ class Handler(SimpleHTTPRequestHandler):
             access = self.access_level(user)
             limit = self.apply_limit(parsed.path, limit, access)
             handler = API[parsed.path]
-            if parsed.path in {"/api/institutions", "/api/subjects", "/api/works"}:
+            if parsed.path == "/api/collaborators":
+                payload = handler(limit, university, query.get("keyword", [""])[0])
+            elif parsed.path in {"/api/institutions", "/api/subjects", "/api/works"}:
                 payload = handler(limit, university)
             elif parsed.path in {"/api/overview", "/api/map", "/api/collaboration", "/api/zombies", "/api/performance"}:
                 payload = handler(university)
@@ -500,7 +569,7 @@ class Handler(SimpleHTTPRequestHandler):
             self.send_json(payload)
             return
 
-        if parsed.path in {"/", "/map", "/institutions", "/subjects", "/benchmark", "/zombies", "/dashboard", "/performance", "/admin", "/login", "/pricing"}:
+        if parsed.path in {"/", "/map", "/institutions", "/subjects", "/benchmark", "/zombies", "/dashboard", "/performance", "/admin", "/login", "/pricing", "/finder"}:
             self.path = "/index.html"
         super().do_GET()
 
@@ -659,9 +728,9 @@ class Handler(SimpleHTTPRequestHandler):
 
     def apply_limit(self, path: str, limit: int, access: str) -> int:
         caps = {
-            "public": {"/api/institutions": 8, "/api/subjects": 8, "/api/works": 3},
-            "login": {"/api/institutions": 20, "/api/subjects": 12, "/api/works": 8},
-            "paid": {"/api/institutions": 100, "/api/subjects": 50, "/api/works": 50},
+            "public": {"/api/institutions": 8, "/api/subjects": 8, "/api/works": 3, "/api/collaborators": 5},
+            "login": {"/api/institutions": 20, "/api/subjects": 12, "/api/works": 8, "/api/collaborators": 12},
+            "paid": {"/api/institutions": 100, "/api/subjects": 50, "/api/works": 50, "/api/collaborators": 50},
         }
         cap = caps.get(access, caps["public"]).get(path)
         return min(limit, cap) if cap else limit
@@ -672,6 +741,8 @@ class Handler(SimpleHTTPRequestHandler):
             "locked": access != "paid",
             "message": "开通机构工作台后可查看完整明细、导出清单和生成报告。" if access != "paid" else "",
         }
+        if path == "/api/collaborators":
+            return {**payload, **meta}
         if path in {"/api/institutions", "/api/subjects", "/api/works", "/api/benchmark"}:
             return {"items": payload, **meta}
         if path == "/api/zombies":

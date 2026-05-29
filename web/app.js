@@ -104,6 +104,11 @@ function withUniversity(path) {
   return `${path}${separator}university=${encodeURIComponent(selectedUniversity)}`;
 }
 
+function withUniversityAlways(path) {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}university=${encodeURIComponent(selectedUniversity)}`;
+}
+
 function pageOptions(universities) {
   return currentUser ? { universities } : {};
 }
@@ -305,6 +310,17 @@ function bindSchoolSelector() {
     const queryPage = new URLSearchParams(location.search).get("page");
     const routeKey = queryPage ? `/${queryPage}` : location.pathname;
     (routes[routeKey] || renderHome)();
+  });
+}
+
+function bindFinderForm() {
+  const form = document.querySelector("#finderForm");
+  if (!form) return;
+  form.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const keyword = document.querySelector("#finderKeyword").value.trim() || "人工智能";
+    history.pushState({}, "", `/finder?keyword=${encodeURIComponent(keyword)}`);
+    renderFinder();
   });
 }
 
@@ -591,7 +607,7 @@ async function renderHome() {
         <h1>给高校国际处和科研团队使用的国际合作工作台</h1>
         <p class="lead">从公开论文、机构网络和用户授权数据出发，快速看清合作现状，找到值得维护的伙伴，并形成可汇报、可行动的决策依据。</p>
         <div class="actions">
-          <a class="button" href="/map">先看合作格局</a>
+          <a class="button" href="/finder">发现合作对象</a>
           <a class="button secondary" href="/pricing">查看开通权益</a>
         </div>
         <div class="kpis value-kpis">
@@ -1141,6 +1157,93 @@ async function renderSubjects() {
     pageOptions(universities)
   );
   bindSchoolSelector();
+}
+
+async function renderFinder() {
+  const params = new URLSearchParams(location.search);
+  const keyword = params.get("keyword") || "人工智能";
+  const [payload, universities] = await Promise.all([
+    api(withUniversityAlways(`/api/collaborators?limit=12&keyword=${encodeURIComponent(keyword)}`)),
+    loadUniversities(),
+  ]);
+  const candidates = payload.items || [];
+  const summary = payload.summary || {};
+  const top = candidates[0] || {};
+  shell(
+    "合作者发现",
+    "面向 PI、青年教师和项目申报场景，围绕研究方向发现潜在国际合作机构、代表论文和联系理由。",
+    `
+      <div class="finder-hero">
+        <div>
+          <span class="tag">PI 工作台</span>
+          <h2>输入一个研究方向，先找到值得联系的合作对象。</h2>
+          <p>基于样例库中的公开论文和合作机构数据，优先返回方向相关、近年活跃、平均影响力较高的候选机构。</p>
+        </div>
+        <form class="finder-form" id="finderForm">
+          <label>研究方向 / 关键词</label>
+          <div class="input-action">
+            <input id="finderKeyword" value="${keyword}" placeholder="例如：人工智能、材料科学、公共卫生" />
+            <button class="button" type="submit">发现合作对象</button>
+          </div>
+        </form>
+      </div>
+      <div class="kpis">
+        ${kpiCard(fmt(summary.candidates || candidates.length), "候选合作机构", 1)}
+        ${kpiCard(summary.top_country || "-", "优先国家/地区", 2, "green")}
+        ${kpiCard(summary.top_topic || keyword || "-", "相关主题", 3)}
+        ${kpiCard(currentUser ? "已登录" : "公开预览", "当前权限", 4, "green")}
+      </div>
+      <div class="decision-panel">
+        <div class="decision-main">
+          <span class="tag">推荐判断</span>
+          <h2>${top.institution ? `${top.institution} 可以优先进入联系清单。` : "输入方向后生成候选合作清单。"}</h2>
+        </div>
+        <div class="decision-judgment">
+          <strong>为什么推荐</strong>
+          <p>${top.reason || "系统会结合方向匹配、合作论文数量、近年活跃度和平均被引表现进行排序。"}</p>
+        </div>
+        <div class="decision-actions">
+          <strong>下一步</strong>
+          <ol>
+            <li>确认代表论文是否与本人方向匹配</li>
+            <li>筛选 3-5 个机构或作者进入联系名单</li>
+            <li>导出图表用于项目申报或出访准备</li>
+          </ol>
+        </div>
+      </div>
+      <div class="finder-grid">
+        ${candidates
+          .map(
+            (item, index) => `
+              <article class="card finder-card">
+                <div class="finder-card-head">
+                  <span class="tag">推荐 ${index + 1}</span>
+                  <strong>${item.score || 0}</strong>
+                </div>
+                <h3>${item.institution}</h3>
+                <p class="muted">${item.country || "-"} · ${item.topic || keyword}</p>
+                <div class="mini-metrics">
+                  <span><b>${fmt(item.papers)}</b>合作论文</span>
+                  <span><b>${item.avg_cited || 0}</b>平均被引</span>
+                  <span><b>${item.last_year || "-"}</b>最近合作</span>
+                </div>
+                <p>${item.reason}</p>
+                <div class="paper-snippet">
+                  <small>代表论文</small>
+                  <span>${item.representative_title || "暂无代表论文标题"}</span>
+                </div>
+                <em>${item.action}</em>
+              </article>
+            `
+          )
+          .join("")}
+      </div>
+      ${unlockCard("解锁完整合作者发现能力", ["查看更多候选机构和作者线索", "按国家、机构类型和近年活跃度筛选", "导出申报图表和联系清单", "生成面向 PI 的合作机会简报"])}
+    `,
+    { universities }
+  );
+  bindSchoolSelector();
+  bindFinderForm();
 }
 
 async function renderBenchmark() {
@@ -1874,6 +1977,7 @@ function bindAdminActions() {
 const routes = {
   "/": renderHome,
   "/map": renderMap,
+  "/finder": renderFinder,
   "/dashboard": renderDashboard,
   "/performance": renderDashboard,
   "/institutions": renderInstitutions,

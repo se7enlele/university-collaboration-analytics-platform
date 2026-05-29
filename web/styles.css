@@ -669,6 +669,141 @@ h1 {
   -webkit-line-clamp: 3;
 }
 
+.finder-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(360px, 0.95fr);
+  gap: 20px;
+  align-items: end;
+  margin-bottom: 20px;
+  padding: 28px;
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.96), rgba(235,247,255,0.78)),
+    radial-gradient(circle at 88% 12%, rgba(20, 184, 166, 0.16), transparent 34%);
+  box-shadow: var(--shadow);
+}
+
+.finder-hero h2 {
+  margin: 14px 0 10px;
+  font-size: clamp(30px, 3.2vw, 48px);
+  line-height: 1.08;
+}
+
+.finder-hero p {
+  max-width: 720px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.finder-form {
+  display: grid;
+  gap: 10px;
+  padding: 18px;
+  border: 1px solid rgba(138, 150, 168, 0.16);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.finder-form label {
+  color: #334155;
+  font-weight: 800;
+}
+
+.finder-form .input-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.finder-form input {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  font: inherit;
+}
+
+.finder-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin: 22px 0;
+}
+
+.finder-card {
+  display: flex;
+  min-height: 420px;
+  flex-direction: column;
+  border: 1px solid rgba(0, 110, 219, 0.12);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.96), rgba(246,251,255,0.9)),
+    radial-gradient(circle at 90% 8%, rgba(0, 110, 219, 0.12), transparent 32%);
+}
+
+.finder-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.finder-card-head strong {
+  color: var(--blue);
+  font-size: 26px;
+}
+
+.finder-card h3 {
+  margin: 18px 0 8px;
+  font-size: 24px;
+  line-height: 1.18;
+}
+
+.mini-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.mini-metrics span {
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(219, 234, 254, 0.56);
+  color: #475569;
+  font-size: 12px;
+}
+
+.mini-metrics b {
+  display: block;
+  color: #0f172a;
+  font-size: 18px;
+}
+
+.paper-snippet {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+  padding: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #334155;
+}
+
+.paper-snippet small {
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.finder-card em {
+  margin-top: 14px;
+  color: #0f766e;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1.55;
+}
+
 .module-card h3 {
   margin: 20px 0 10px;
   font-size: 25px;
@@ -1576,6 +1711,8 @@ h1 {
   .scenario-grid,
   .split-section,
   .mini-grid,
+  .finder-hero,
+  .finder-grid,
   .revenue-grid,
   .pricing-grid,
   .decision-panel,
@@ -1596,6 +1733,11 @@ h1 {
   .bar-row {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+
+  .finder-form .input-action,
+  .mini-metrics {
+    grid-template-columns: 1fr;
   }
 
   .bar-row.compact,
