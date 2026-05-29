@@ -320,7 +320,7 @@ function bindFinderForm() {
     event.preventDefault();
     const keyword = document.querySelector("#finderKeyword").value.trim() || "人工智能";
     history.pushState({}, "", `/finder?keyword=${encodeURIComponent(keyword)}`);
-    renderFinder();
+    renderFinderWorkbench();
   });
 }
 
@@ -1246,6 +1246,129 @@ async function renderFinder() {
   bindFinderForm();
 }
 
+async function renderFinderWorkbench() {
+  const params = new URLSearchParams(location.search);
+  const keyword = params.get("keyword") || "人工智能";
+  const [payload, universities] = await Promise.all([
+    api(withUniversityAlways(`/api/collaborators?limit=12&keyword=${encodeURIComponent(keyword)}`)),
+    loadUniversities(),
+  ]);
+  const candidates = payload.items || [];
+  const summary = payload.summary || {};
+  const top = candidates[0] || {};
+  const hasResults = candidates.length > 0;
+  const scope = currentUser ? selectedUniversity : "公开样例库";
+  const statusText = hasResults ? `已在 ${scope} 中找到 ${fmt(summary.matched_works || 0)} 篇相关合作论文` : `暂未在 ${scope} 中找到可推荐对象`;
+  const resultRows = hasResults
+    ? candidates
+        .map(
+          (item, index) => `
+            <article class="finder-row">
+              <div class="finder-rank">${index + 1}</div>
+              <div class="finder-main">
+                <div class="finder-title-line">
+                  <h3>${item.institution}</h3>
+                  <span>${item.country || "未标注国家"}</span>
+                </div>
+                <p>${item.reason}</p>
+                <div class="evidence-line">
+                  <span>代表论文</span>
+                  <strong>${item.representative_title || "暂无代表论文标题"}</strong>
+                </div>
+              </div>
+              <div class="finder-evidence">
+                <span><b>${fmt(item.papers)}</b>合作论文</span>
+                <span><b>${item.lead_rate || 0}%</b>主导率</span>
+                <span><b>${item.avg_cited || 0}</b>平均被引</span>
+                <span><b>${item.last_year || "-"}</b>最近合作</span>
+              </div>
+              <div class="finder-next">
+                <strong>建议动作</strong>
+                <p>${item.action}</p>
+                <button class="button secondary" type="button">加入候选清单</button>
+              </div>
+            </article>
+          `
+        )
+        .join("")
+    : `<div class="card finder-empty">
+        <strong>没有直接匹配结果</strong>
+        <p>这通常说明当前样例库覆盖还不够，或者关键词过窄。可以先换成上位学科词，例如“材料科学”“物理”“公共卫生”，再逐步缩小方向。</p>
+      </div>`;
+
+  shell(
+    "合作者发现",
+    "把研究方向转成可跟进的合作对象清单，先看证据，再决定是否联系。",
+    `
+      <div class="finder-workbench">
+        <section class="finder-query-panel">
+          <div>
+            <span class="tag">检索任务</span>
+            <h2>先确定方向，再生成候选合作清单</h2>
+            <p>系统会按“论文匹配、合作频次、影响力、近年活跃度”排序，输出可复核的机构候选。</p>
+          </div>
+          <form class="finder-form compact" id="finderForm">
+            <label>研究方向 / 关键词</label>
+            <div class="input-action">
+              <input id="finderKeyword" value="${keyword}" placeholder="例如：人工智能、材料科学、公共卫生" />
+              <button class="button" type="submit">重新检索</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="finder-status-panel">
+          <div class="status-copy">
+            <span class="tag">匹配状态</span>
+            <h3>${statusText}</h3>
+            <p>${hasResults ? `当前展示前 ${fmt(candidates.length)} 个候选对象。完整版本可继续下钻到作者、论文、学院和联系记录。` : "建议先扩大关键词，再用候选机构进入人工复核。"}</p>
+          </div>
+          <div class="finder-metrics">
+            <span><b>${fmt(summary.matched_works || 0)}</b>相关合作论文</span>
+            <span><b>${fmt(summary.matched_institutions || 0)}</b>匹配机构</span>
+            <span><b>${fmt(summary.matched_countries || 0)}</b>国家/地区</span>
+            <span><b>${summary.year_range || "-"}</b>数据年份</span>
+          </div>
+        </section>
+
+        <section class="finder-flow">
+          <div class="flow-step active"><b>1</b><span>输入方向</span></div>
+          <div class="flow-step active"><b>2</b><span>匹配论文与机构</span></div>
+          <div class="flow-step ${hasResults ? "active" : ""}"><b>3</b><span>复核证据</span></div>
+          <div class="flow-step"><b>4</b><span>进入联系或申报</span></div>
+        </section>
+
+        ${hasResults ? `<section class="finder-recommendation">
+          <div>
+            <span class="tag">优先建议</span>
+            <h3>${top.institution} 可先进入人工复核</h3>
+            <p>${top.reason}</p>
+          </div>
+          <div class="recommendation-actions">
+            <a class="button" href="/institutions">查看机构质量</a>
+            <a class="button secondary" href="/pricing">导出清单</a>
+          </div>
+        </section>` : ""}
+
+        <section class="finder-results">
+          <div class="section-label">
+            <div>
+              <span class="tag">候选列表</span>
+              <h3>按可行动优先级排序</h3>
+            </div>
+            <p>每一行都保留推荐依据，方便国际处、学院和 PI 共同复核。</p>
+          </div>
+          ${resultRows}
+        </section>
+
+        ${unlockCard("解锁完整合作者发现能力", ["查看更多候选机构和作者线索", "按国家、机构类型和近年活跃度筛选", "导出申报图表和联系清单", "生成面向 PI 的合作机会简报"])}
+      </div>
+    `,
+    { universities }
+  );
+  bindSchoolSelector();
+  bindFinderForm();
+}
+
 async function renderBenchmark() {
   const payload = await api("/api/benchmark");
   const rows = itemsOf(payload);
@@ -1977,7 +2100,7 @@ function bindAdminActions() {
 const routes = {
   "/": renderHome,
   "/map": renderMap,
-  "/finder": renderFinder,
+  "/finder": renderFinderWorkbench,
   "/dashboard": renderDashboard,
   "/performance": renderDashboard,
   "/institutions": renderInstitutions,

@@ -288,6 +288,20 @@ def collaborator_finder(limit: int = 12, university: str | None = None, keyword:
         params.extend([like, like, like])
 
     where_sql = " AND ".join(where)
+    base_stats = rows(
+        f"""
+        SELECT
+            COUNT(DISTINCT w.id) AS matched_works,
+            COUNT(DISTINCT c.collab_institution) AS matched_institutions,
+            COUNT(DISTINCT COALESCE(NULLIF(c.collab_country_name, ''), c.collab_country)) AS matched_countries,
+            MIN(w.year) AS start_year,
+            MAX(w.year) AS end_year
+        FROM works w
+        JOIN collaborations c ON w.id = c.work_id
+        WHERE {where_sql}
+        """,
+        tuple(params),
+    )[0]
     items = rows(
         f"""
         WITH candidate AS (
@@ -331,9 +345,14 @@ def collaborator_finder(limit: int = 12, university: str | None = None, keyword:
 
     summary = {
         "candidates": len(items),
+        "matched_works": base_stats.get("matched_works", 0),
+        "matched_institutions": base_stats.get("matched_institutions", 0),
+        "matched_countries": base_stats.get("matched_countries", 0),
+        "year_range": f"{base_stats.get('start_year') or '-'}-{base_stats.get('end_year') or '-'}",
         "top_country": items[0]["country"] if items else "",
         "top_topic": items[0]["topic"] if items else "",
         "keyword": keyword,
+        "status": "matched" if items else "no_match",
     }
     return {"items": items, "keyword": keyword, "summary": summary}
 
