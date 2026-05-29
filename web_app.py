@@ -336,6 +336,49 @@ def collaborator_finder(limit: int = 12, university: str | None = None, keyword:
         """,
         (*params, datetime.now().year - 2, limit),
     )
+    is_fallback = False
+    if not items and keyword:
+        fallback_params: list[object] = []
+        fallback_where = ["w.is_international = 1", "c.collab_institution != ''"]
+        if university:
+            fallback_where.append("w.university = ?")
+            fallback_params.append(university)
+        fallback_sql = " AND ".join(fallback_where)
+        items = rows(
+            f"""
+            WITH candidate AS (
+                SELECT
+                    c.collab_institution AS institution,
+                    COALESCE(NULLIF(c.collab_country_name, ''), '-') AS country,
+                    COUNT(DISTINCT w.id) AS papers,
+                    COUNT(DISTINCT CASE WHEN w.is_lead = 1 THEN w.id END) AS lead_papers,
+                    ROUND(AVG(w.cited_by), 1) AS avg_cited,
+                    MAX(w.year) AS last_year,
+                    MAX(w.title) AS representative_title,
+                    MAX(COALESCE(NULLIF(w.topic, ''), COALESCE(NULLIF(w.domain, ''), 'Unclassified'))) AS topic
+                FROM works w
+                JOIN collaborations c ON w.id = c.work_id
+                WHERE {fallback_sql}
+                GROUP BY c.collab_institution, c.collab_country_name
+            )
+            SELECT
+                institution,
+                country,
+                papers,
+                lead_papers,
+                ROUND(100.0 * lead_papers / NULLIF(papers, 0), 1) AS lead_rate,
+                avg_cited,
+                last_year,
+                representative_title,
+                topic,
+                ROUND((papers * 1.0) + (avg_cited * 0.08) + (CASE WHEN last_year >= ? THEN 8 ELSE 0 END), 1) AS score
+            FROM candidate
+            ORDER BY score DESC, papers DESC
+            LIMIT ?
+            """,
+            (*fallback_params, datetime.now().year - 2, limit),
+        )
+        is_fallback = bool(items)
     for item in items:
         item["reason"] = (
             f"{item.get('institution')} 在 {item.get('topic') or '相关方向'} 上已有 {item.get('papers') or 0} 篇合作论文，"
@@ -352,7 +395,8 @@ def collaborator_finder(limit: int = 12, university: str | None = None, keyword:
         "top_country": items[0]["country"] if items else "",
         "top_topic": items[0]["topic"] if items else "",
         "keyword": keyword,
-        "status": "matched" if items else "no_match",
+        "status": "fallback" if is_fallback else ("matched" if items else "no_match"),
+        "fallback": is_fallback,
     }
     return {"items": items, "keyword": keyword, "summary": summary}
 

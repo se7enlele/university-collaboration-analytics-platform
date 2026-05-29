@@ -1257,8 +1257,13 @@ async function renderFinderWorkbench() {
   const summary = payload.summary || {};
   const top = candidates[0] || {};
   const hasResults = candidates.length > 0;
+  const isFallback = Boolean(summary.fallback);
   const scope = currentUser ? selectedUniversity : "公开样例库";
-  const statusText = hasResults ? `已在 ${scope} 中找到 ${fmt(summary.matched_works || 0)} 篇相关合作论文` : `暂未在 ${scope} 中找到可推荐对象`;
+  const statusText = isFallback
+    ? `“${keyword}”暂未直接命中，先展示 ${scope} 的高活跃合作对象`
+    : hasResults
+      ? `已在 ${scope} 中找到 ${fmt(summary.matched_works || 0)} 篇相关合作论文`
+      : `暂未在 ${scope} 中找到可推荐对象`;
   const resultRows = hasResults
     ? candidates
         .map(
@@ -1320,7 +1325,7 @@ async function renderFinderWorkbench() {
           <div class="status-copy">
             <span class="tag">匹配状态</span>
             <h3>${statusText}</h3>
-            <p>${hasResults ? `当前展示前 ${fmt(candidates.length)} 个候选对象。完整版本可继续下钻到作者、论文、学院和联系记录。` : "建议先扩大关键词，再用候选机构进入人工复核。"}</p>
+            <p>${isFallback ? "这些不是关键词的直接命中结果，而是用于预览系统能力的真实合作数据。你可以换成更上位的学科词继续检索。" : hasResults ? `当前展示前 ${fmt(candidates.length)} 个候选对象。完整版本可继续下钻到作者、论文、学院和联系记录。` : "建议先扩大关键词，再用候选机构进入人工复核。"}</p>
           </div>
           <div class="finder-metrics">
             <span><b>${fmt(summary.matched_works || 0)}</b>相关合作论文</span>
