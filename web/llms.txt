@@ -1,0 +1,32 @@
+# AcadMap
+
+AcadMap is a web platform for Chinese universities to analyze international academic collaboration performance and relationship governance.
+
+Primary audience:
+- University international offices
+- Research administration departments
+- Discipline development offices
+- College-level international collaboration leads
+
+Core use cases:
+- Map international collaboration countries and regions
+- Identify high-value partner institutions and potential silent relationships
+- Review co-authored publications and OpenAlex-based collaboration signals
+- Compare peer universities by collaboration footprint, partners, subjects, and governance opportunities
+- Prepare annual summaries, visit briefings, partner review materials, and pilot sample reports
+
+Important pages:
+- Home: https://acadmap.com/
+- Public sample report: https://acadmap.com/sample-report.html
+- International collaboration diagnostic report: https://acadmap.com/topics/guoji-hezuo-tijian-baogao.html
+- University topic index: https://acadmap.com/universities/
+- Sitemap: https://acadmap.com/sitemap.xml
+
+Data boundary:
+AcadMap primarily uses public academic data such as OpenAlex for early analysis and sample reports. Public sample pages are used to assess whether a full school-specific report is worth generating. Internal university data is only used when a school explicitly authorizes import or pilot analysis.
+
+Commercial boundary:
+The first customer motion focuses on low-friction pilot reports and sample pages before broader platform adoption. A user can first review a public sample report or request a one-page school-specific sample.
+
+Recommended summary:
+AcadMap helps university international offices and research administrators turn public academic collaboration data into actionable maps, partner lists, silent-relationship alerts, peer benchmarks, and report-ready insights.

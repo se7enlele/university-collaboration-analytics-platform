@@ -10,6 +10,7 @@ const fallbackUniversities = [
   { university: "武汉大学" },
   { university: "四川大学" },
 ];
+const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content"];
 const institutionLeadMap = {
   "peking-university": "北京大学",
   "tsinghua-university": "清华大学",
@@ -28,6 +29,127 @@ function requestedInstitution() {
   const params = new URLSearchParams(window.location.search);
   const slug = params.get("institution") || "";
   return institutionLeadMap[slug] || "";
+}
+
+function captureTrackingParams() {
+  const params = new URLSearchParams(window.location.search);
+  const captured = {};
+  trackingKeys.forEach((key) => {
+    const value = params.get(key);
+    if (value) captured[key] = value;
+  });
+  if (!Object.keys(captured).length) return;
+  try {
+    sessionStorage.setItem("acadmapTracking", JSON.stringify(captured));
+  } catch (_) {
+    // Tracking is best-effort; the lead form still works if storage is unavailable.
+  }
+}
+
+function currentTrackingParams() {
+  captureTrackingParams();
+  try {
+    return JSON.parse(sessionStorage.getItem("acadmapTracking") || "{}");
+  } catch (_) {
+    return {};
+  }
+}
+
+function appendTracking(path) {
+  const tracking = currentTrackingParams();
+  if (!Object.keys(tracking).length) return path;
+  const url = new URL(path, window.location.origin);
+  Object.entries(tracking).forEach(([key, value]) => {
+    if (value && !url.searchParams.has(key)) url.searchParams.set(key, value);
+  });
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function leadSource(defaultSource) {
+  const tracking = currentTrackingParams();
+  if (!Object.keys(tracking).length) return defaultSource;
+  const parts = trackingKeys
+    .filter((key) => tracking[key])
+    .map((key) => `${key}=${tracking[key]}`);
+  return [defaultSource, ...parts].join(";");
+}
+
+function trackLeadEvent(eventName, details = {}) {
+  const payload = {
+    event_name: eventName,
+    page: `${window.location.pathname}${window.location.search}${window.location.hash}`,
+    target: details.target || "",
+    source: details.source || "",
+    tracking: currentTrackingParams(),
+    metadata: details.metadata || {},
+  };
+  const body = JSON.stringify(payload);
+  if (navigator.sendBeacon) {
+    const blob = new Blob([body], { type: "application/json" });
+    navigator.sendBeacon("/api/lead-events", blob);
+    return;
+  }
+  fetch("/api/lead-events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body,
+    keepalive: true,
+  }).catch(() => {});
+}
+
+document.addEventListener("click", (event) => {
+  const target = event.target.closest?.("[data-lead-event]");
+  if (!target) return;
+  trackLeadEvent(target.dataset.leadEvent, {
+    target: target.getAttribute("href") || target.getAttribute("data-target") || target.textContent.trim(),
+    source: target.dataset.leadSource || "",
+    metadata: {
+      label: target.textContent.trim().slice(0, 80),
+      location: target.dataset.leadLocation || "",
+    },
+  });
+});
+
+document.addEventListener("click", (event) => {
+  document.querySelectorAll(".nav-more[open], .mobile-nav[open]").forEach((menu) => {
+    if (!menu.contains(event.target)) menu.removeAttribute("open");
+  });
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  document.querySelectorAll(".nav-more[open], .mobile-nav[open]").forEach((menu) => menu.removeAttribute("open"));
+});
+
+function parseLeadSource(source = "") {
+  const text = String(source || "");
+  const parsed = { label: text || "直接申请", detail: "" };
+  const parts = text.split(";").map((part) => part.trim()).filter(Boolean);
+  const params = {};
+  parts.forEach((part) => {
+    const index = part.indexOf("=");
+    if (index > 0) params[part.slice(0, index)] = part.slice(index + 1);
+  });
+  if (params.utm_source === "outreach") {
+    parsed.label = `外联：${params.utm_content || "未知学校"}`;
+    parsed.detail = [params.utm_campaign, params.utm_medium].filter(Boolean).join(" · ");
+  } else if (params.utm_source === "organic_social") {
+    parsed.label = `公开传播：${params.utm_medium || "未知渠道"}`;
+    parsed.detail = [params.utm_campaign, params.utm_content].filter(Boolean).join(" · ");
+  } else if (params.utm_source === "signature") {
+    parsed.label = "邮件签名";
+    parsed.detail = [params.utm_campaign, params.utm_content].filter(Boolean).join(" · ");
+  } else if (params.utm_source === "sample_report") {
+    parsed.label = "样例页转化";
+    parsed.detail = [params.utm_campaign, params.utm_content].filter(Boolean).join(" · ");
+  } else if (text.startsWith("seo:")) {
+    parsed.label = `SEO：${text.replace("seo:", "")}`;
+  } else if (text === "pricing") {
+    parsed.label = "开通页";
+  } else if (text === "pilot") {
+    parsed.label = "体检页快速申请";
+  }
+  return parsed;
 }
 
 async function api(path) {
@@ -50,6 +172,59 @@ async function postApi(path, payload = {}) {
   return data;
 }
 
+function navigateTo(path) {
+  captureTrackingParams();
+  history.pushState({}, "", path);
+  const queryPage = new URLSearchParams(location.search).get("page");
+  const routeKey = queryPage ? `/${queryPage}` : location.pathname;
+  const renderer = routes[routeKey] || renderHome;
+  Promise.resolve(renderer())
+    .then(() => {
+      if (location.hash) document.querySelector(location.hash)?.scrollIntoView({ block: "start" });
+    })
+    .catch((error) => {
+      app.innerHTML = `<section class="section"><div class="card"><p>${error.message}</p></div></section>`;
+    });
+}
+
+function goToPay() {
+  navigateTo("/pricing#institution-plan");
+}
+
+function goToContact() {
+  navigateTo("/login");
+}
+
+function goToApp() {
+  navigateTo("/");
+}
+
+function goToZombies() {
+  const select = document.querySelector("#heroUniversitySelect");
+  const university = select?.value || "";
+  if (!university) return;
+  navigateTo(`/zombies?university=${encodeURIComponent(university)}`);
+}
+
+async function loadHeroUniversities() {
+  const select = document.querySelector("#heroUniversitySelect");
+  if (!select) return;
+  try {
+    const data = await api("/api/universities");
+    const universities = Array.isArray(data) ? data : data.universities || [];
+    universities.forEach((item) => {
+      const name = item.name || item.university || "";
+      if (!name) return;
+      const option = document.createElement("option");
+      option.value = name;
+      option.textContent = name;
+      select.appendChild(option);
+    });
+  } catch (error) {
+    select.innerHTML = `<option value="">暂无学校列表</option>`;
+  }
+}
+
 async function adminApi(path, options = {}) {
   const adminToken = localStorage.getItem("adminToken") || "";
   const response = await fetch(path, {
@@ -63,6 +238,30 @@ async function adminApi(path, options = {}) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok || data.ok === false) throw new Error(data.error || `API failed: ${path}`);
   return data;
+}
+
+function setAdminNotice(message, tone = "info") {
+  sessionStorage.setItem("adminNotice", JSON.stringify({ message, tone }));
+}
+
+function adminNoticeMarkup() {
+  const raw = sessionStorage.getItem("adminNotice");
+  if (!raw) return "";
+  sessionStorage.removeItem("adminNotice");
+  try {
+    const notice = JSON.parse(raw);
+    return `<div class="admin-notice ${notice.tone || "info"}">${notice.message || ""}</div>`;
+  } catch {
+    return "";
+  }
+}
+
+function friendlyAdminError(error) {
+  const message = error?.message || "";
+  if (message.includes("OpenAlex") || message.includes("api.openalex.org") || message.includes("503") || message.includes("502")) {
+    return "OpenAlex 数据源暂时不可用。系统已经按队列机制处理，请稍后查看任务日志。";
+  }
+  return message || "操作失败，请稍后重试。";
 }
 
 function fmt(value) {
@@ -85,15 +284,19 @@ function accessOf(payload) {
 function accessBanner(payload) {
   const access = accessOf(payload);
   if (!access.locked) return "";
-  const title = access.access === "public" ? "当前为公开预览" : "当前为登录试用视图";
+  return lockedCard();
+}
+
+function lockedCard() {
   return `
-    <div class="card access-banner">
-      <div>
-        <span class="tag">权限提示</span>
-        <strong>${title}</strong>
-        <p>${access.message || "开通机构工作台后可查看完整明细、导出清单和生成报告。"}</p>
-      </div>
-      <a class="button" href="/pricing">查看开通权益</a>
+    <div class="acadmap-locked-card">
+      <div class="acadmap-locked-icon">🔒</div>
+      <p class="acadmap-locked-title">此功能需要开通国际处专业版</p>
+      <p class="acadmap-locked-desc">解锁完整伙伴清单、沉默关系名单、对标报告和图表导出</p>
+      <button class="button acadmap-btn acadmap-btn-primary" type="button" onclick="navigateTo('/pricing#institution-plan')">
+        申请国际处演示
+      </button>
+      <p class="acadmap-locked-note">提交后 1-2 个工作日完成配置，试点学校可优先开通</p>
     </div>
   `;
 }
@@ -130,11 +333,24 @@ function clearUser() {
 }
 
 function updateAuthNav() {
-  const slot = document.querySelector("#authNav");
-  if (!slot) return;
-  slot.innerHTML = currentUser
-    ? `<a class="pill logged" href="/login">${currentUser.name || currentUser.phone} · 已登录</a>`
-    : `<a class="pill" href="/login">登录 / 开通</a>`;
+  const slots = document.querySelectorAll("#authNav, #authNavMobile");
+  if (!slots.length) return;
+  if (!currentUser) {
+    slots.forEach((slot) => {
+      const location = slot.id === "authNavMobile" ? "mobile_nav" : "top_nav";
+      slot.innerHTML = `
+      <a class="acadmap-nav-btn acadmap-nav-login" href="/login" data-lead-event="nav_login_click" data-lead-source="nav" data-lead-location="${location}">登录</a>
+      <a class="acadmap-nav-btn acadmap-nav-trial" href="/pricing" data-lead-event="nav_trial_click" data-lead-source="nav" data-lead-location="${location}">免费试用</a>
+    `;
+    });
+    return;
+  }
+  const paid = currentUser.status === "active" || currentUser.plan === "institution";
+  slots.forEach((slot) => {
+    slot.innerHTML = paid
+      ? `<a class="acadmap-nav-user" href="/login">${currentUser.name || currentUser.phone}</a>`
+      : `<a class="acadmap-nav-btn acadmap-nav-upgrade" href="/pricing#institution-plan">申请专业版</a>`;
+  });
 }
 
 function big(value) {
@@ -206,8 +422,10 @@ function bindHomeRail() {
 }
 
 function shell(title, copy, content, options = {}) {
+  document.body.classList.toggle("admin-mode", Boolean(options.admin));
+  const sectionClass = ["section", options.pageClass || ""].filter(Boolean).join(" ");
   app.innerHTML = `
-    <section class="section">
+    <section class="${sectionClass}">
       <div class="page-head">
         <div>
           <h1 class="section-title">${title}</h1>
@@ -219,6 +437,7 @@ function shell(title, copy, content, options = {}) {
     </section>
   `;
   updateAuthNav();
+  loadHeroUniversities();
   initPageEffects();
 }
 
@@ -264,7 +483,7 @@ function sampleKpis(overview) {
 
 function moduleCard(title, copy, href) {
   return `
-    <a class="card module-card" href="${href}">
+    <a class="card module-card" href="` + href + `">
       <span class="tag">核心能力</span>
       <h3>${title}</h3>
       <p>${copy}</p>
@@ -326,7 +545,7 @@ function bindFinderForm() {
 
 function scenarioCard(title, copy, action, href) {
   return `
-    <a class="card scenario-card" href="${href}">
+    <a class="card scenario-card" href="` + href + `">
       <strong>${title}</strong>
       <span>${copy}</span>
       <em>${action}</em>
@@ -362,16 +581,29 @@ function unlockCard(title, items) {
   `;
 }
 
-function priceCard(name, price, target, features, highlighted = false) {
+function priceCard(name, price, target, features, highlighted = false, options = {}) {
+  const buttonClass = options.buttonClass || (highlighted ? "acadmap-btn-primary" : "acadmap-btn-outline-blue");
+  const buttonText = options.buttonText || "申请开通";
+  const buttonAction = options.buttonAction || "goToContact()";
+  const cardId = options.id ? ` id="${options.id}"` : "";
+  const priceCompare = options.priceCompare || "";
+  const priceMarkup = highlighted && priceCompare
+    ? `
+      <div class="acadmap-price-anchor">
+        <span class="acadmap-price-main">${price}</span>
+        <p class="acadmap-price-compare">${priceCompare}</p>
+      </div>
+    `
+    : `<strong class="price">${price}</strong>`;
   return `
-    <div class="card price-card ${highlighted ? "featured" : ""}">
+    <div class="card price-card ${highlighted ? "featured" : ""}"${cardId}>
       <span class="tag">${target}</span>
       <h3>${name}</h3>
-      <strong class="price">${price}</strong>
+      ${priceMarkup}
       <ul>
         ${features.map((item) => `<li>${item}</li>`).join("")}
       </ul>
-      <a class="button ${highlighted ? "" : "secondary"}" href="/login">申请开通</a>
+      <button class="button acadmap-btn ${buttonClass}" type="button" onclick="${buttonAction}">${buttonText}</button>
     </div>
   `;
 }
@@ -591,33 +823,50 @@ function buildBenchmarkAnalysis(rows) {
 }
 
 async function renderHome() {
-  const overview = await api("/api/overview");
+  document.body.classList.remove("admin-mode");
   app.innerHTML = `
     <nav class="home-rail" aria-label="首页章节导航">
       <a class="active" href="#home-hero">概览</a>
       <a href="#home-workflows">场景</a>
-      <a href="#home-pi">PI</a>
+      <a href="#home-pi">线索</a>
       <a href="#home-universities">高校</a>
       <a href="#home-modules">能力</a>
       <a href="#home-access">开通</a>
     </nav>
-    <section class="section hero" id="home-hero">
-      <div class="hero-panel">
-        <p class="eyebrow">AcadMap Intelligence Workspace</p>
-        <h1>给高校国际处和科研团队使用的国际合作工作台</h1>
-        <p class="lead">从公开论文、机构网络和用户授权数据出发，快速看清合作现状，找到值得维护的伙伴，并形成可汇报、可行动的决策依据。</p>
-        <div class="actions">
-          <a class="button" href="/finder">发现合作对象</a>
-          <a class="button secondary" href="/pricing">查看开通权益</a>
-        </div>
-        <div class="kpis value-kpis">
-          <div class="kpi"><span>全球科研成果底座</span><strong>${big(overview.papers)}</strong></div>
-          <div class="kpi"><span>可扩展国内高校机构</span><strong>${fmt(overview.universities)}+</strong></div>
-          <div class="kpi"><span>合作格局分析维度</span><strong>4类</strong></div>
-          <div class="kpi"><span>形成汇报与行动清单</span><strong>1键</strong></div>
-        </div>
+    <section class="acadmap-hero-section" id="home-hero">
+      <h1 class="acadmap-hero-title">
+        您的学校有多少国际合作关系，<br>已经沉默超过 2 年？
+      </h1>
+      <p class="acadmap-hero-subtitle">
+        大多数国际处不知道这个数字。AcadMap 可以告诉你。
+      </p>
+      <div class="acadmap-hero-demo">
+        <select id="heroUniversitySelect" class="acadmap-hero-select" aria-label="选择学校查看沉默关系">
+          <option value="">选择一所学校，立即查看 →</option>
+        </select>
+        <button class="button acadmap-btn acadmap-btn-primary" type="button" onclick="goToZombies()" data-lead-event="home_hero_zombies_click" data-lead-source="home" data-lead-location="home_hero">免费查看沉默关系</button>
+        <a class="button secondary acadmap-hero-sample-link" href="/sample-report.html?utm_source=home&utm_medium=site&utm_campaign=first_customer_202607&utm_content=home-hero-sample" data-lead-event="home_hero_sample_report_click" data-lead-source="home" data-lead-location="home_hero">查看样例报告</a>
       </div>
+      <p class="acadmap-hero-note">无需注册，先看公开概况；样例报告展示 10-15 页体验报告结构。</p>
     </section>
+    <div class="acadmap-trust-bar">
+      <div class="acadmap-trust-item">
+        <span class="acadmap-trust-number">147+</span>
+        <span class="acadmap-trust-label">双一流高校数据</span>
+      </div>
+      <div class="acadmap-trust-item">
+        <span class="acadmap-trust-number">OpenAlex</span>
+        <span class="acadmap-trust-label">国际开放学术数据源</span>
+      </div>
+      <div class="acadmap-trust-item">
+        <span class="acadmap-trust-number">10年</span>
+        <span class="acadmap-trust-label">历史合作数据</span>
+      </div>
+      <div class="acadmap-trust-item">
+        <span class="acadmap-trust-number">1-2天</span>
+        <span class="acadmap-trust-label">试点账号配置周期</span>
+      </div>
+    </div>
     <section class="section" id="home-workflows">
       <h2 class="section-title">不是临时报告，而是日常工作入口。</h2>
       <p class="section-copy">围绕国际处最常见的工作场景组织数据：出访准备、伙伴维护、领导汇报和高校对标。</p>
@@ -630,22 +879,22 @@ async function renderHome() {
     </section>
     <section class="section split-section" id="home-pi">
       <div class="split-copy">
-        <span class="tag">PI / 青年教师</span>
-        <h2 class="section-title">把合作机会拆到具体方向和具体人。</h2>
-        <p class="section-copy">国际处看学校全局，PI 和青年教师更关心方向、合作者和申报材料。AcadMap 会把同一套开放学术数据整理成可筛选的合作线索。</p>
+        <span class="tag">国际处工作台 / 高潜学者</span>
+        <h2 class="section-title">把合作机会拆到重点方向、重点伙伴和具体线索。</h2>
+        <p class="section-copy">国际处不仅需要看学校全局，也需要知道哪些方向值得推进、哪些海外学者和机构可以优先跟进。AcadMap 会把开放学术数据整理成可复核的合作线索。</p>
       </div>
       <div class="mini-grid">
         <div class="card mini-card">
-          <strong>方向雷达</strong>
-          <p>围绕关键词查看主题趋势、活跃国家和高产机构，先判断方向是否值得投入。</p>
+          <strong>重点方向识别</strong>
+          <p>围绕重点学科查看主题趋势、活跃国家和高产机构，先判断方向是否值得投入。</p>
         </div>
         <div class="card mini-card">
-          <strong>合作者发现</strong>
-          <p>按主题相关度、合作网络和引用表现筛选潜在作者，减少盲目发邮件。</p>
+          <strong>高潜学者识别</strong>
+          <p>按主题相关度、合作网络和引用表现筛选潜在线索，支持国际处和学院共同复核。</p>
         </div>
         <div class="card mini-card">
-          <strong>申报素材</strong>
-          <p>沉淀中外双方基础对比、代表论文和合作图表，用于项目申请和PPT。</p>
+          <strong>汇报素材沉淀</strong>
+          <p>沉淀中外双方基础对比、代表论文和合作图表，用于出访准备、年度总结和专题汇报。</p>
         </div>
       </div>
     </section>
@@ -1170,25 +1419,25 @@ async function renderFinder() {
   const summary = payload.summary || {};
   const top = candidates[0] || {};
   shell(
-    "合作者发现",
-    "面向 PI、青年教师和项目申报场景，围绕研究方向发现潜在国际合作机构、代表论文和联系理由。",
+    "高潜学者",
+    "面向国际处和科研管理场景，围绕重点学科识别潜在合作学者、代表论文和可跟进理由。",
     `
       <div class="finder-hero">
         <div>
-          <span class="tag">PI 工作台</span>
-          <h2>输入一个研究方向，先找到值得联系的合作对象。</h2>
+          <span class="tag">国际处合作线索</span>
+          <h2>输入一个重点方向，先找到值得复核的合作线索。</h2>
           <p>基于样例库中的公开论文和合作机构数据，优先返回方向相关、近年活跃、平均影响力较高的候选机构。</p>
         </div>
         <form class="finder-form" id="finderForm">
           <label>研究方向 / 关键词</label>
           <div class="input-action">
             <input id="finderKeyword" value="${keyword}" placeholder="例如：人工智能、材料科学、公共卫生" />
-            <button class="button" type="submit">发现合作对象</button>
+            <button class="button" type="submit">生成合作线索</button>
           </div>
         </form>
       </div>
       <div class="kpis">
-        ${kpiCard(fmt(summary.candidates || candidates.length), "候选合作机构", 1)}
+        ${kpiCard(fmt(summary.candidates || candidates.length), "候选合作线索", 1)}
         ${kpiCard(summary.top_country || "-", "优先国家/地区", 2, "green")}
         ${kpiCard(summary.top_topic || keyword || "-", "相关主题", 3)}
         ${kpiCard(currentUser ? "已登录" : "公开预览", "当前权限", 4, "green")}
@@ -1196,7 +1445,7 @@ async function renderFinder() {
       <div class="decision-panel">
         <div class="decision-main">
           <span class="tag">推荐判断</span>
-          <h2>${top.institution ? `${top.institution} 可以优先进入联系清单。` : "输入方向后生成候选合作清单。"}</h2>
+          <h2>${top.institution ? `${top.institution} 可以优先进入复核清单。` : "输入方向后生成候选合作线索。"}</h2>
         </div>
         <div class="decision-judgment">
           <strong>为什么推荐</strong>
@@ -1205,9 +1454,9 @@ async function renderFinder() {
         <div class="decision-actions">
           <strong>下一步</strong>
           <ol>
-            <li>确认代表论文是否与本人方向匹配</li>
-            <li>筛选 3-5 个机构或作者进入联系名单</li>
-            <li>导出图表用于项目申报或出访准备</li>
+            <li>确认代表论文是否与重点方向匹配</li>
+            <li>筛选 3-5 个机构或学者进入跟进名单</li>
+            <li>导出图表用于出访准备或专题汇报</li>
           </ol>
         </div>
       </div>
@@ -1238,7 +1487,7 @@ async function renderFinder() {
           )
           .join("")}
       </div>
-      ${unlockCard("解锁完整合作者发现能力", ["查看更多候选机构和作者线索", "按国家、机构类型和近年活跃度筛选", "导出申报图表和联系清单", "生成面向 PI 的合作机会简报"])}
+      ${unlockCard("解锁完整高潜学者能力", ["查看更多候选学者和机构线索", "按国家、机构类型和近年活跃度筛选", "导出汇报图表和跟进清单", "生成面向国际处的合作线索简报"])}
     `,
     { universities }
   );
@@ -1302,15 +1551,15 @@ async function renderFinderWorkbench() {
       </div>`;
 
   shell(
-    "合作者发现",
-    "把研究方向转成可跟进的合作对象清单，先看证据，再决定是否联系。",
+    "高潜学者",
+    "把重点方向转成可跟进的合作线索清单，先看证据，再决定是否纳入工作计划。",
     `
       <div class="finder-workbench">
         <section class="finder-query-panel">
           <div>
             <span class="tag">检索任务</span>
-            <h2>先确定方向，再生成候选合作清单</h2>
-            <p>系统会按“论文匹配、合作频次、影响力、近年活跃度”排序，输出可复核的机构候选。</p>
+            <h2>先确定方向，再生成候选合作线索</h2>
+            <p>系统会按“论文匹配、合作频次、影响力、近年活跃度”排序，输出可复核的机构和学者线索。</p>
           </div>
           <form class="finder-form compact" id="finderForm">
             <label>研究方向 / 关键词</label>
@@ -1339,7 +1588,7 @@ async function renderFinderWorkbench() {
           <div class="flow-step active"><b>1</b><span>输入方向</span></div>
           <div class="flow-step active"><b>2</b><span>匹配论文与机构</span></div>
           <div class="flow-step ${hasResults ? "active" : ""}"><b>3</b><span>复核证据</span></div>
-          <div class="flow-step"><b>4</b><span>进入联系或申报</span></div>
+          <div class="flow-step"><b>4</b><span>进入跟进计划</span></div>
         </section>
 
         ${hasResults ? `<section class="finder-recommendation">
@@ -1360,12 +1609,12 @@ async function renderFinderWorkbench() {
               <span class="tag">候选列表</span>
               <h3>按可行动优先级排序</h3>
             </div>
-            <p>每一行都保留推荐依据，方便国际处、学院和 PI 共同复核。</p>
+            <p>每一行都保留推荐依据，方便国际处、学院和科研管理部门共同复核。</p>
           </div>
           ${resultRows}
         </section>
 
-        ${unlockCard("解锁完整合作者发现能力", ["查看更多候选机构和作者线索", "按国家、机构类型和近年活跃度筛选", "导出申报图表和联系清单", "生成面向 PI 的合作机会简报"])}
+        ${unlockCard("解锁完整高潜学者能力", ["查看更多候选学者和机构线索", "按国家、机构类型和近年活跃度筛选", "导出汇报图表和跟进清单", "生成面向国际处的合作线索简报"])}
       </div>
     `,
     { universities }
@@ -1429,6 +1678,163 @@ async function renderBenchmark() {
   );
 }
 
+
+function renderPilotReport() {
+  const guideHref = appendTracking("/topics/guoji-hezuo-tijian-baogao.html");
+  shell(
+    "国际合作关系体检报告",
+    "先用公开学术数据生成 10-15 页轻量报告，帮助国际处判断哪些合作值得维护、复盘或重新激活。",
+    `
+      <section class="pilot-hero">
+        <div>
+          <span class="tag">首期试点</span>
+          <h2>先买一份报告，不必立刻采购完整系统。</h2>
+          <p>适合年度国际化总结、出访准备、合作协议复盘和学科建设汇报。第一步不要求学校提供内部数据，可先基于公开学术数据生成样例。</p>
+          <div class="actions">
+            <a class="button" href="#quick-apply" data-lead-event="pilot_hero_apply_click" data-lead-source="pilot" data-lead-location="pilot_hero">申请生成本校样例</a>
+            <a class="button secondary" href="/sample-report.html" data-lead-event="pilot_sample_report_click" data-lead-source="pilot" data-lead-location="pilot_hero">查看样例结构</a>
+            <a class="button secondary" href="mailto:hello@acadmap.com?subject=申请AcadMap国际合作关系体检报告样例" data-lead-event="pilot_mailto_click" data-lead-source="pilot" data-lead-location="pilot_hero">直接邮件咨询</a>
+            <a class="button secondary" href="` + guideHref + `">阅读完整说明</a>
+            <a class="button secondary" href="/universities/">查看高校专题页</a>
+          </div>
+        </div>
+        <div class="card pilot-price-card">
+          <span class="tag">建议试点价</span>
+          <strong>¥1,999 - ¥4,999</strong>
+          <p>首客体验报告 + 30 分钟线上解读。后续开通国际处专业版时可抵扣。</p>
+        </div>
+      </section>
+      <section class="section">
+        <h2 class="section-title">报告解决什么问题？</h2>
+        <div class="scenario-grid">
+          ${scenarioCard("活跃伙伴", "识别近几年仍有合作成果的国家、机构和重点方向。", "查看合作格局", "/map")}
+          ${scenarioCard("沉默关系", "找出超过 2 年没有新增成果但历史上有合作基础的伙伴。", "查看沉默关系", "/zombies")}
+          ${scenarioCard("机构分层", "把合作机构分成核心伙伴、低主导关系、高潜伙伴和待激活对象。", "查看机构排行", "/institutions")}
+          ${scenarioCard("汇报材料", "形成适合年度总结、出访准备和合作协议复盘的一页结论。", "申请样例", "#quick-apply")}
+        </div>
+      </section>
+      <section class="section split-section">
+        <div class="split-copy">
+          <span class="tag">交付内容</span>
+          <h2 class="section-title">10-15 页报告 + 30 分钟解读。</h2>
+          <p class="section-copy">试点报告先验证管理价值，再决定是否接入学校内部 Excel/CSV 合作清单或开通持续更新的国际处工作台。</p>
+        </div>
+        <div class="mini-grid">
+          <div class="card mini-card"><strong>合作概览</strong><p>合作论文规模、合作国家覆盖、合作机构数量和近年趋势。</p></div>
+          <div class="card mini-card"><strong>伙伴治理</strong><p>合作机构排行、沉默关系样例和可跟进的维护清单。</p></div>
+          <div class="card mini-card"><strong>对标建议</strong><p>与同类型高校比较合作规模、国家覆盖和伙伴网络。</p></div>
+          <a class="card mini-card" href="/sample-report.html"><strong>样例结构</strong><p>先查看 10-15 页体验报告通常包含哪些页面和管理结论。</p></a>
+        </div>
+      </section>
+      <section class="section commercial-section">
+        <div class="commercial-copy">
+          <span class="tag">适合部门</span>
+          <h2 class="section-title">国际处、科研院和学科建设办公室都能使用。</h2>
+          <p class="section-copy">报告不替代正式评价，但适合做趋势判断、合作格局复盘和下一步资源投向讨论。</p>
+        </div>
+        <div class="revenue-grid">
+          <div class="card revenue-card"><strong>国际合作处</strong><span>协议复盘 / 出访准备</span><p>快速判断哪些关系值得维护、激活或重新谈判。</p></div>
+          <div class="card revenue-card"><strong>科研院</strong><span>论文产出 / 质量分析</span><p>从国际合作论文看合作规模、主导性和质量风险。</p></div>
+          <div class="card revenue-card"><strong>学科建设</strong><span>方向选择 / 对标</span><p>把学科热点、合作网络和标杆高校放在同一框架里比较。</p></div>
+          <div class="card revenue-card"><strong>校领导汇报</strong><span>一页结论</span><p>把分散数据整理成可汇报、可讨论、可行动的管理建议。</p></div>
+        </div>
+        <div class="actions">
+          <a class="button" href="#quick-apply" data-lead-event="pilot_bottom_apply_click" data-lead-source="pilot" data-lead-location="pilot_bottom">申请本校体检报告</a>
+          <a class="button secondary" href="mailto:hello@acadmap.com?subject=申请AcadMap国际合作关系体检报告样例" data-lead-event="pilot_mailto_click" data-lead-source="pilot" data-lead-location="pilot_bottom">邮件联系 AcadMap</a>
+          <a class="button secondary" href="/pricing#institution-plan" data-lead-event="pilot_pricing_click" data-lead-source="pilot" data-lead-location="pilot_bottom">了解专业版</a>
+        </div>
+      </section>
+      <section class="section acadmap-pilot-lead-section" id="quick-apply">
+        <div class="acadmap-pilot-lead-copy">
+          <span class="tag">快速申请</span>
+          <h2 class="section-title">先看一页样例，再决定是否做完整报告。</h2>
+          <p class="section-copy">填写学校和联系方式即可。我们会先判断是否适合生成公开数据样例，不要求上传内部数据。</p>
+          <div class="acadmap-pilot-lead-points">
+            <span>1 个工作日内回复</span>
+            <span>先给一页样例或沟通建议</span>
+            <span>适合国际处、科研院、学科建设部门</span>
+          </div>
+        </div>
+        <form class="acadmap-pilot-lead-form" id="pilotLeadForm">
+          <label>学校 / 机构名称</label>
+          <input id="pilotLeadOrg" name="organization" placeholder="例如：山东大学" />
+          <div class="acadmap-pilot-form-grid">
+            <div>
+              <label>联系人（可选）</label>
+              <input id="pilotLeadName" name="name" placeholder="便于称呼，可不填" />
+            </div>
+            <div>
+              <label>部门 / 职务（可选）</label>
+              <input id="pilotLeadRole" name="role" placeholder="例如：国际合作处" value="国际合作处" />
+            </div>
+          </div>
+          <label>联系方式</label>
+          <input id="pilotLeadContact" name="contact" placeholder="手机号 / 邮箱 / 微信" />
+          <label>主要关注场景</label>
+          <textarea id="pilotLeadMessage" name="message" rows="3" placeholder="例如：年度总结、合作伙伴维护、出访准备、科研合作绩效、同类高校对标"></textarea>
+          <button class="button acadmap-pilot-lead-submit" type="submit">申请一页样例</button>
+          <p class="acadmap-pilot-form-note">提交后仅用于安排样例沟通，不会公开展示您的联系信息。</p>
+        </form>
+      </section>
+    `
+  );
+  bindPilotLeadForm();
+}
+
+function bindPilotLeadForm() {
+  const form = document.querySelector("#pilotLeadForm");
+  if (!form) return;
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const button = form.querySelector("button[type='submit']");
+    const organization = document.querySelector("#pilotLeadOrg")?.value.trim() || "";
+    const name = document.querySelector("#pilotLeadName")?.value.trim() || "";
+    const role = document.querySelector("#pilotLeadRole")?.value.trim() || "";
+    const contact = document.querySelector("#pilotLeadContact")?.value.trim() || "";
+    const message = document.querySelector("#pilotLeadMessage")?.value.trim() || "";
+    if (!organization || !contact) {
+      alert("请填写学校和联系方式，便于我们提供样例。");
+      return;
+    }
+    trackLeadEvent("pilot_lead_form_submit", {
+      source: "pilot",
+      metadata: {
+        organization,
+        has_name: Boolean(name),
+        has_role: Boolean(role),
+        has_message: Boolean(message),
+      },
+    });
+    button.disabled = true;
+    button.textContent = "提交中";
+    try {
+      await postApi("/api/access-requests", {
+        phone: currentUser?.phone || contact,
+        name: name || "未留姓名",
+        organization,
+        role: role || "未填写",
+        message: [
+          "用户在 /pilot 申请国际合作关系体检报告一页样例",
+          message ? `需求：${message}` : "",
+        ].filter(Boolean).join("\n"),
+        source: leadSource("pilot"),
+        lead_status: "new",
+      });
+      form.innerHTML = `
+        <div class="acadmap-pilot-lead-success">
+          <span class="tag">已提交</span>
+          <h3>申请已收到。</h3>
+          <p>我们会根据学校和使用场景判断是否适合生成公开数据样例，并尽快通过您留下的联系方式回复。</p>
+          <a class="button secondary" href="/topics/guoji-hezuo-tijian-baogao.html">继续查看完整说明</a>
+        </div>
+      `;
+    } catch (error) {
+      button.disabled = false;
+      button.textContent = "申请一页样例";
+      alert(error.message);
+    }
+  });
+}
 function renderLogin() {
   const leadInstitution = requestedInstitution();
   const signupInstitution = leadInstitution || selectedUniversity;
@@ -1494,10 +1900,14 @@ function renderLogin() {
                   <label>学校 / 机构名称</label>
                   <input id="signupOrg" placeholder="请输入学校或机构名称" value="${signupInstitution}" />
                   <label>联系人</label>
-                  <input id="signupName" placeholder="请输入联系人姓名" value="本地测试用户" />
+                  <input id="signupName" placeholder="请输入联系人姓名" />
                   <label>职务 / 部门</label>
                   <input id="signupRole" placeholder="例如：国际合作处、科研院、学院办公室" value="国际合作处" />
-                  <button class="button secondary auth-submit" type="submit">提交开通申请</button>
+                  <label>联系方式</label>
+                  <input id="signupContact" placeholder="手机号 / 邮箱 / 微信，便于我们联系演示" />
+                  <label>想先解决的问题</label>
+                  <textarea id="signupMessage" rows="3" placeholder="例如：想查看本校沉默合作关系、年度国际合作绩效报告、同类高校对标等"></textarea>
+                  <button class="button secondary auth-submit" type="submit">申请国际处演示</button>
                 </form>
               `
           }
@@ -1511,40 +1921,74 @@ function renderLogin() {
 
 function renderPricing() {
   shell(
-    "开通权益",
-    "从免费浏览到个人研究者，再到学校国际处工作台，按使用场景逐步开通。",
+    "国际处专业版",
+    "从公开概览到学校国际处工作台，围绕沉默关系、伙伴治理、绩效驾驶舱和对标报告逐步开通。",
     `
       <div class="decision-panel pricing-decision">
         <div class="decision-main">
           <span class="tag">适用场景</span>
-          <h2>免费版负责判断是否有价值，付费版负责形成行动。</h2>
-          <p>公开页面用于了解学校和方向的基本格局；开通后查看完整名单、具体论文、导出图表和报告，并可管理团队权限。</p>
+          <h2>公开版负责判断是否有价值，专业版负责形成管理动作。</h2>
+          <p>公开页面用于了解学校合作格局；开通后查看完整名单、具体论文、导出图表和报告，并可管理团队权限。</p>
         </div>
         <div class="decision-judgment">
           <strong>开通后获得</strong>
-          <p>完整机构名单、伙伴维护清单、合作作者线索、学院和学科下钻、对标报告、报告导出和团队权限。</p>
+          <p>完整机构名单、伙伴维护清单、高潜学者线索、学院和学科下钻、对标报告、报告导出和团队权限。</p>
         </div>
         <div class="decision-actions">
           <strong>建议使用方式</strong>
           <ol>
-            <li>先用公开页面判断学校或方向是否有分析价值</li>
-            <li>个人用户解锁合作者和图表导出</li>
-            <li>机构用户开通全校数据、报告和权限</li>
+            <li>先用公开页面查看学校沉默关系和合作概况</li>
+            <li>申请演示，确认学校、部门和汇报场景</li>
+            <li>开通全校数据、报告模板和团队权限</li>
           </ol>
         </div>
       </div>
       <div class="pricing-grid">
-        ${priceCard("免费版", "￥0", "公开浏览", ["查看宏观合作格局", "浏览高校专题和方向专题", "了解样例机构和学科洞察", "适合首次判断产品价值"])}
-        ${priceCard("PI 个人版", "199元/年", "PI/青年教师/博士后", ["解锁完整合作者线索", "查看代表论文和合作画像", "导出图表用于项目申请", "适合个人方向拓展和申报准备"], true)}
-        ${priceCard("国际处专业版", "申请开通", "学校/科研院/国际处", ["完整学校数据和机构名单", "伙伴维护与机会发现清单", "绩效驾驶舱和报告导出", "多角色账号与权限管理"])}
+        ${priceCard("免费版", "¥0", "公开概览", ["合作国家地图概览", "合作机构排行 Top5", "沉默关系仅显示数量", "公开数据免费查看"], false, {
+          buttonText: "立即免费使用",
+          buttonClass: "acadmap-btn-outline-gray",
+          buttonAction: "goToApp()",
+        })}
+        ${priceCard("报告体验版", "申请试用", "单校/单部门试点", ["完整合作机构 Top50", "沉默关系样例清单", "基础对标图表", "单份报告导出"], false, {
+          buttonText: "申请试用",
+          buttonClass: "acadmap-btn-outline-blue",
+          buttonAction: "goToContact()",
+        })}
+        ${priceCard("国际处专业版", "申请开通", "学校/学院/管理部门", ["全校合作数据配置", "多账号团队权限", "对标分析与报告", "绩效驾驶舱支持"], true, {
+          id: "institution-plan",
+          buttonText: "申请国际处演示",
+          buttonClass: "acadmap-btn-primary acadmap-btn-lg",
+          buttonAction: "goToContact()",
+          priceCompare: "面向高校国际处、科研院和学科建设部门，按学校和使用范围配置",
+        })}
       </div>
+      <table class="acadmap-feature-table">
+        <thead>
+          <tr>
+            <th>功能</th>
+            <th>免费版</th>
+            <th class="acadmap-pi-column">报告体验版</th>
+            <th>国际处专业版</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>合作国家地图（概览）</td><td><span class="acadmap-check">✓</span></td><td><span class="acadmap-check">✓</span></td><td><span class="acadmap-check">✓</span></td></tr>
+          <tr><td>合作机构排行（完整）</td><td>仅 Top5</td><td><span class="acadmap-check">✓</span></td><td><span class="acadmap-check">✓</span></td></tr>
+          <tr><td>沉默关系识别（完整名单）</td><td>仅显示数量</td><td><span class="acadmap-cross">×</span></td><td><span class="acadmap-check">✓</span></td></tr>
+          <tr><td>高潜学者与合作线索</td><td><span class="acadmap-cross">×</span></td><td><span class="acadmap-check">✓</span></td><td><span class="acadmap-check">✓</span></td></tr>
+          <tr><td>图表导出（PNG/CSV）</td><td><span class="acadmap-cross">×</span></td><td><span class="acadmap-check">✓</span></td><td><span class="acadmap-check">✓</span></td></tr>
+          <tr><td>对标分析（多校横向对比）</td><td><span class="acadmap-cross">×</span></td><td><span class="acadmap-cross">×</span></td><td><span class="acadmap-check">✓</span></td></tr>
+          <tr><td>绩效驾驶舱 + 一键报告</td><td><span class="acadmap-cross">×</span></td><td><span class="acadmap-cross">×</span></td><td><span class="acadmap-check">✓</span></td></tr>
+          <tr><td>多账号与团队权限管理</td><td><span class="acadmap-cross">×</span></td><td><span class="acadmap-cross">×</span></td><td><span class="acadmap-check">✓</span></td></tr>
+        </tbody>
+      </table>
       <div class="grid two">
         <div class="card">
           <h3>开通后可以解决什么</h3>
           <ul class="business-list">
             <li>减少国际处手工整理论文、机构、国家和学院数据的时间。</li>
             <li>把合作协议和历史关系整理成可维护、可复盘、可汇报的清单。</li>
-            <li>帮助PI围绕方向找到潜在合作者、代表论文和申报图表。</li>
+            <li>帮助国际处围绕重点学科找到高潜学者、代表论文和跟进理由。</li>
             <li>支持年度总结、双一流建设、领导汇报、出访计划和合作项目申报。</li>
           </ul>
         </div>
@@ -1553,7 +1997,7 @@ function renderPricing() {
           <ul class="business-list">
             <li>国际合作处：伙伴维护、出访准备、协议复盘。</li>
             <li>科研院/科技处：国际论文产出、项目布局、质量评估。</li>
-            <li>PI/青年教师：方向雷达、合作者发现、申报素材整理。</li>
+            <li>学院/学科建设部门：重点方向识别、高潜学者复核、汇报素材整理。</li>
             <li>学科建设办公室：学科国际影响力和标杆高校对比。</li>
           </ul>
         </div>
@@ -1568,6 +2012,27 @@ function renderPricing() {
         <h3>提交申请后，我们会根据学校和使用部门确认开通范围。</h3>
         <p>如果需要用于年度总结、专题汇报或同类高校对标，可以在申请时说明具体场景，便于优先配置相应的数据视图和报告模板。</p>
       </div>
+      <section class="acadmap-pricing-faq">
+        <h2>常见问题</h2>
+        <div class="acadmap-faq-list">
+          <article class="acadmap-faq-item">
+            <h3>Q：数据来源是哪里，准确度如何？</h3>
+            <p>A：数据来自 OpenAlex 国际开放学术数据库，收录全球主要高校的国际合作论文，每季度更新。适合趋势分析和合作格局判断，不适合作为正式评估的唯一依据。</p>
+          </article>
+          <article class="acadmap-faq-item">
+            <h3>Q：报告体验版和国际处专业版有什么区别？</h3>
+            <p>A：报告体验版适合先验证单校或单部门的分析价值；国际处专业版覆盖全校数据、支持多人账号、对标报告、绩效驾驶舱和持续更新，适合学校层面管理和汇报。</p>
+          </article>
+          <article class="acadmap-faq-item">
+            <h3>Q：申请后多久可以使用？</h3>
+            <p>A：提交学校名称、使用部门和主要场景后，通常 1-2 个工作日内完成演示环境或试点账号配置。</p>
+          </article>
+          <article class="acadmap-faq-item">
+            <h3>Q：国际处专业版为什么要申请？</h3>
+            <p>A：专业版涉及全校数据配置和多账号管理，需确认学校名称和使用场景，通常 1-2 个工作日内完成开通。</p>
+          </article>
+        </div>
+      </section>
     `
   );
 }
@@ -1681,14 +2146,26 @@ function bindAuthFormsV2() {
   if (signupForm) {
     signupForm.addEventListener("submit", async (event) => {
       event.preventDefault();
+      const contact = document.querySelector("#signupContact")?.value.trim() || "";
+      const customMessage = document.querySelector("#signupMessage")?.value.trim() || "";
+      const organization = document.querySelector("#signupOrg").value.trim() || selectedUniversity;
+      const role = document.querySelector("#signupRole").value.trim();
+      const name = document.querySelector("#signupName").value.trim();
+      if (!organization || !name || !role || !contact) {
+        alert("请填写学校、联系人、部门和联系方式，便于我们安排演示。");
+        return;
+      }
       try {
         const result = await postApi("/api/access-requests", {
-          phone: currentUser?.phone || "",
-          name: document.querySelector("#signupName").value.trim(),
-          organization: document.querySelector("#signupOrg").value.trim() || selectedUniversity,
-          role: document.querySelector("#signupRole").value.trim(),
-          message: leadInstitution ? `用户申请生成 ${leadInstitution} 完整国际合作分析` : "用户从开通页面提交机构开通申请",
-          source: leadInstitution ? `seo:${leadInstitution}` : "pricing",
+          phone: currentUser?.phone || contact,
+          name,
+          organization,
+          role,
+          message: [
+            leadInstitution ? `用户申请生成 ${leadInstitution} 完整国际合作分析` : "用户申请国际处演示",
+            customMessage ? `需求：${customMessage}` : "",
+          ].filter(Boolean).join("\n"),
+          source: leadSource(leadInstitution ? `seo:${leadInstitution}` : "pricing"),
           lead_status: "new",
         });
         saveUser({
@@ -1736,6 +2213,7 @@ function renderAdmin() {
 }
 
 async function renderAdminConsole() {
+  document.body.classList.add("admin-mode");
   const adminToken = localStorage.getItem("adminToken") || "";
   if (!adminToken) {
     shell(
@@ -1747,7 +2225,8 @@ async function renderAdminConsole() {
           <input id="adminTokenInput" type="password" placeholder="请输入管理员密钥" />
           <div class="actions"><button class="button" id="adminLoginBtn">进入后台</button></div>
         </div>
-      `
+      `,
+      { admin: true, pageClass: "admin-page admin-login-page" }
     );
     bindAdminLogin();
     return;
@@ -1767,84 +2246,89 @@ async function renderAdminConsole() {
     const openRequests = requests.filter((item) => item.status === "approved");
     const activeUsers = users.filter((item) => item.status === "active");
     const failedJobs = jobs.filter((item) => item.status === "failed");
-    shell(
-      "管理后台",
-      "线索、用户、数据任务集中处理。",
-      `
-        <section class="admin-console">
-          <aside class="admin-sidebar">
-            <strong>运营工作台</strong>
+    const priority = { pending: 0, approved: 1, rejected: 3 };
+    const sortedRequests = [...requests].sort((a, b) => {
+      const statusRank = (priority[a.status] ?? 2) - (priority[b.status] ?? 2);
+      if (statusRank) return statusRank;
+      return String(b.created_at || "").localeCompare(String(a.created_at || ""));
+    });
+    app.innerHTML = `
+      <section class="admin-shell">
+        <aside class="admin-sidebar">
+          <a class="admin-brand" href="/">AcadMap</a>
+          <nav>
             <a href="#admin-leads" class="active">开通线索</a>
             <a href="#admin-users">用户账户</a>
             <a href="#admin-data">数据接入</a>
             <a href="#admin-jobs">任务日志</a>
-            <button class="admin-logout" id="adminLogoutBtn">退出后台</button>
-          </aside>
-          <div class="admin-main">
-            <div class="admin-toolbar">
+          </nav>
+          <button class="admin-logout" id="adminLogoutBtn">退出后台</button>
+        </aside>
+        <main class="admin-main">
+          <header class="admin-header">
+            <div>
+              <h1>管理后台</h1>
+              <p>线索、用户、数据任务集中处理。</p>
+            </div>
+            <div class="admin-header-actions">
+              <a class="button secondary" href="/login">前台登录页</a>
+              <a class="button secondary" href="/pricing">开通权益页</a>
+            </div>
+          </header>
+          <div class="admin-metrics">
+            ${adminMetric("待审核", pendingRequests.length, "需要今天处理", "red")}
+            ${adminMetric("已开通申请", openRequests.length, "可继续转化", "green")}
+            ${adminMetric("注册用户", users.length, "全部账户", "blue")}
+            ${adminMetric("数据异常", failedJobs.length, "失败任务", failedJobs.length ? "red" : "green")}
+          </div>
+          ${adminNoticeMarkup()}
+          <section class="admin-panel admin-panel-large" id="admin-leads">
+            <div class="admin-panel-head">
               <div>
-                <span class="tag">今日重点</span>
-                <h2>优先处理待审核和待跟进线索</h2>
+                <h3>开通线索</h3>
+                <p>按状态、来源和处理动作快速推进。</p>
               </div>
-              <div class="admin-toolbar-actions">
-                <a class="button secondary" href="/login">查看前台登录页</a>
-                <a class="button secondary" href="/pricing">查看开通权益页</a>
-              </div>
+              <span>${fmt(requests.length)} 条</span>
             </div>
-            <div class="admin-metrics">
-              ${adminMetric("待审核", pendingRequests.length, "需要今天处理", "red")}
-              ${adminMetric("已开通申请", openRequests.length, "可继续转化", "green")}
-              ${adminMetric("注册用户", users.length, "全部账户", "blue")}
-              ${adminMetric("数据异常", failedJobs.length, "失败任务", failedJobs.length ? "red" : "green")}
-            </div>
-            <div class="admin-workspace">
-              <section class="admin-panel admin-panel-large" id="admin-leads">
-                <div class="admin-panel-head">
-                  <div>
-                    <h3>开通线索</h3>
-                    <p>按状态、来源和处理动作快速推进。</p>
-                  </div>
-                  <span>${fmt(requests.length)} 条</span>
-                </div>
-                ${adminRequestsTable(requests)}
-              </section>
-              <aside class="admin-stack">
-                <section class="admin-panel" id="admin-users">
-                  <div class="admin-panel-head">
-                    <div>
-                      <h3>用户账户</h3>
-                      <p>查看注册与开通状态。</p>
-                    </div>
-                    <span>${fmt(activeUsers.length)} active</span>
-                  </div>
-                  ${adminUsersTable(users)}
-                </section>
-                <section class="admin-panel" id="admin-jobs">
-                  <div class="admin-panel-head">
-                    <div>
-                      <h3>任务日志</h3>
-                      <p>最近数据任务状态。</p>
-                    </div>
-                    <span>${fmt(jobs.length)} 条</span>
-                  </div>
-                  ${adminJobsTable(jobs)}
-                </section>
-              </aside>
-            </div>
-            <section class="admin-panel" id="admin-data">
+            ${adminRequestsTable(sortedRequests)}
+          </section>
+          <div class="admin-secondary-grid">
+            <section class="admin-panel" id="admin-users">
               <div class="admin-panel-head">
                 <div>
-                  <h3>数据源状态</h3>
-                  <p>学校样本、原始数据和处理结果。</p>
+                  <h3>用户账户</h3>
+                  <p>查看注册与开通状态。</p>
                 </div>
-                <span>${fmt(sources.length)} 个数据源</span>
+                <span>${fmt(activeUsers.length)} active</span>
               </div>
-              ${adminSourcesTable(sources)}
+              ${adminUsersTable(users)}
+            </section>
+            <section class="admin-panel" id="admin-jobs">
+              <div class="admin-panel-head">
+                <div>
+                  <h3>任务日志</h3>
+                  <p>最近数据任务状态。</p>
+                </div>
+                <span>${fmt(jobs.length)} 条</span>
+              </div>
+              ${adminJobsTable(jobs)}
             </section>
           </div>
-        </section>
-      `
-    );
+          <section class="admin-panel" id="admin-data">
+            <div class="admin-panel-head">
+              <div>
+                <h3>数据源状态</h3>
+                <p>学校样本、原始数据和处理结果。</p>
+              </div>
+              <span>${fmt(sources.length)} 个数据源</span>
+            </div>
+            ${adminSourcesTable(sources)}
+          </section>
+        </main>
+      </section>
+    `;
+    updateAuthNav();
+    initPageEffects();
     bindAdminActions();
   } catch (error) {
     localStorage.removeItem("adminToken");
@@ -1858,7 +2342,8 @@ async function renderAdminConsole() {
           <input id="adminTokenInput" type="password" placeholder="请输入管理员密钥" />
           <div class="actions"><button class="button" id="adminLoginBtn">进入后台</button></div>
         </div>
-      `
+      `,
+      { admin: true, pageClass: "admin-page admin-login-page" }
     );
     bindAdminLogin();
   }
@@ -1883,6 +2368,13 @@ function adminRequestsTable(requests) {
     converted: "已转化",
     abandoned: "已放弃",
   };
+  const statusLabels = {
+    pending: "待审核",
+    approved: "已通过",
+    rejected: "已拒绝",
+    active: "已开通",
+    trial: "试用",
+  };
   return `
     <div class="admin-table-wrap">
       <table class="admin-table leads">
@@ -1898,7 +2390,11 @@ function adminRequestsTable(requests) {
         <tbody>
           ${requests
             .map(
-              (item) => `
+              (item) => {
+                const source = parseLeadSource(item.source);
+                const statusText = statusLabels[item.status] || item.status || "-";
+                const leadText = leadLabels[item.lead_status] || item.lead_status || "新线索";
+                return `
                 <tr>
                   <td>
                     <strong>${item.organization || "-"}</strong>
@@ -1906,28 +2402,31 @@ function adminRequestsTable(requests) {
                     <small>${item.phone || "-"}</small>
                   </td>
                   <td>
-                    <span>${item.source || "直接申请"}</span>
+                    <span>${source.label}</span>
+                    ${source.detail ? `<small>${source.detail}</small>` : ""}
                     <small>${item.created_at || ""}</small>
                   </td>
                   <td>
-                    <em class="status-badge ${item.status}">${item.status}</em>
-                    <small>${leadLabels[item.lead_status] || item.lead_status || "新线索"}</small>
+                    <em class="status-badge ${item.status}">${statusText}</em>
+                    <small>${leadText}</small>
                   </td>
                   <td>
-                    <span>${item.message || "-"}</span>
+                    <span class="admin-message">${item.message || "-"}</span>
                     ${item.followup_note ? `<small>备注：${item.followup_note}</small>` : ""}
                   </td>
                   <td>
-                    <div class="admin-actions">
-                      ${item.status === "pending" ? `<button data-action="approve" data-id="${item.id}">通过</button><button data-action="reject" data-id="${item.id}">拒绝</button>` : ""}
-                      <button data-action="lead-status" data-id="${item.id}" data-lead-status="contacted">已联系</button>
-                      <button data-action="generate-request-data" data-id="${item.id}">生成数据</button>
-                      <button data-action="lead-status" data-id="${item.id}" data-lead-status="converted">已转化</button>
-                      <button data-action="lead-status" data-id="${item.id}" data-lead-status="abandoned">放弃</button>
-                    </div>
+                    <select class="admin-action-select" data-id="${item.id}">
+                      <option value="">选择操作</option>
+                      ${item.status === "pending" ? `<option value="approve">通过申请</option><option value="reject">拒绝申请</option>` : ""}
+                      <option value="contacted">标记已联系</option>
+                      <option value="generate-request-data">生成数据</option>
+                      <option value="converted">标记已转化</option>
+                      <option value="abandoned">标记放弃</option>
+                    </select>
                   </td>
                 </tr>
-              `
+              `;
+              }
             )
             .join("")}
         </tbody>
@@ -2003,18 +2502,20 @@ function adminJobsTable(jobs) {
     <div class="admin-mini-list">
       ${jobs
         .slice(0, 12)
-        .map(
-          (item) => `
+        .map((item) => {
+          const retryText = Number(item.retry_count || 0) > 0 ? ` · retry ${item.retry_count}/${item.max_attempts || 5}` : "";
+          const nextText = item.next_run_at ? ` · next ${item.next_run_at}` : "";
+          return `
             <div class="admin-mini-row">
               <div>
                 <strong>${item.university}</strong>
-                <span>${item.job_type} · raw ${fmt(item.raw_count)} · processed ${fmt(item.processed_count)}</span>
-                <small>${item.error || item.finished_at || item.created_at || ""}</small>
+                <span>${item.job_type} · raw ${fmt(item.raw_count)} · processed ${fmt(item.processed_count)}${retryText}</span>
+                <small>${item.error || item.finished_at || item.updated_at || item.created_at || ""}${nextText}</small>
               </div>
               <em class="status-badge ${item.status}">${item.status}</em>
             </div>
-          `
-        )
+          `;
+        })
         .join("")}
     </div>
   `;
@@ -2042,43 +2543,48 @@ function bindAdminActions() {
       renderAdminConsole();
     });
   }
-  document.querySelectorAll("[data-action][data-id]").forEach((button) => {
-    button.addEventListener("click", async () => {
-      const id = Number(button.dataset.id);
-      const action = button.dataset.action;
-      if (action === "lead-status") {
+  document.querySelectorAll(".admin-action-select[data-id]").forEach((select) => {
+    select.addEventListener("change", async () => {
+      const id = Number(select.dataset.id);
+      const value = select.value;
+      if (!value) return;
+      select.disabled = true;
+      if (["contacted", "converted", "abandoned"].includes(value)) {
         try {
           await adminApi("/api/admin/access-requests/lead-status", {
             method: "POST",
-            body: JSON.stringify({ id, lead_status: button.dataset.leadStatus }),
+            body: JSON.stringify({ id, lead_status: value }),
           });
           renderAdminConsole();
         } catch (error) {
+          select.disabled = false;
+          select.value = "";
           alert(error.message);
         }
         return;
       }
-      if (action === "generate-request-data") {
-        button.disabled = true;
-        button.textContent = "生成中";
+      if (value === "generate-request-data") {
         try {
           await adminApi("/api/admin/access-requests/generate-data", {
             method: "POST",
             body: JSON.stringify({ id, limit_per_university: 200 }),
           });
+          setAdminNotice("数据生成任务已加入队列。OpenAlex 临时不可用时，系统会自动重试，不需要重复点击。", "success");
           renderAdminConsole();
         } catch (error) {
-          button.disabled = false;
-          button.textContent = "生成数据";
-          alert(error.message);
+          select.disabled = false;
+          select.value = "";
+          alert(friendlyAdminError(error));
         }
         return;
       }
-      const path = action === "approve" ? "/api/admin/access-requests/approve" : "/api/admin/access-requests/reject";
+      const path = value === "approve" ? "/api/admin/access-requests/approve" : "/api/admin/access-requests/reject";
       try {
         await adminApi(path, { method: "POST", body: JSON.stringify({ id }) });
         renderAdminConsole();
       } catch (error) {
+        select.disabled = false;
+        select.value = "";
         alert(error.message);
       }
     });
@@ -2092,11 +2598,12 @@ function bindAdminActions() {
           method: "POST",
           body: JSON.stringify({ university: button.dataset.university, limit_per_university: 200 }),
         });
+        setAdminNotice("刷新任务已加入队列。任务日志会显示 pending、retry、success 或 failed 状态。", "success");
         renderAdminConsole();
       } catch (error) {
         button.disabled = false;
         button.textContent = "刷新";
-        alert(error.message);
+        alert(friendlyAdminError(error));
       }
     });
   });
@@ -2113,15 +2620,21 @@ const routes = {
   "/subjects": renderSubjects,
   "/benchmark": renderBenchmark,
   "/pricing": renderPricing,
+  "/pilot": renderPilotReport,
   "/login": renderLogin,
   "/admin": renderAdminConsole,
 };
 
+captureTrackingParams();
 updateAuthNav();
 
 const queryPage = new URLSearchParams(location.search).get("page");
 const routeKey = queryPage ? `/${queryPage}` : location.pathname;
 
-(routes[routeKey] || renderHome)().catch((error) => {
-  app.innerHTML = `<section class="section"><div class="card status">页面加载失败：${error.message}</div></section>`;
-});
+(routes[routeKey] || renderHome)()
+  .then(() => {
+    if (location.hash) document.querySelector(location.hash)?.scrollIntoView({ block: "start" });
+  })
+  .catch((error) => {
+    app.innerHTML = `<section class="section"><div class="card status">页面加载失败：${error.message}</div></section>`;
+  });

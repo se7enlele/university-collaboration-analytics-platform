@@ -1,4 +1,5 @@
-from pathlib import Path
+﻿from pathlib import Path
+from urllib.parse import quote
 
 
 INSTITUTIONS = [
@@ -174,15 +175,15 @@ TOPICS = [
         "cta": "申请绩效报告样例",
     },
     {
-        "slug": "pi-guoji-hezuo-huoban-faxian",
-        "title": "PI 国际合作伙伴发现",
-        "keyword": "PI 国际合作伙伴发现",
-        "intent": "帮助课题负责人、青年教师和博士后围绕具体研究方向寻找潜在国际合作者。",
-        "h1": "PI 如何更高效地找到合适的国际合作伙伴？",
-        "summary": "国际合作不是只看学校排名，而是要判断方向是否匹配、对方是否活跃、代表论文是否相关、合作网络是否可触达。AcadMap 将开放论文和机构数据整理成面向 PI 的合作发现线索。",
-        "questions": ["某个研究方向有哪些活跃国家和机构", "哪些作者与本课题方向最接近", "项目申请中可以引用哪些合作图表和代表论文"],
-        "features": ["方向雷达", "合作者画像", "代表论文", "申报图表"],
-        "cta": "申请 PI 合作者发现样例",
+        "slug": "gaoqian-xuezhe-hezuo-xiansuo",
+        "title": "高潜学者与合作线索识别",
+        "keyword": "高潜学者与合作线索识别",
+        "intent": "帮助国际处围绕重点学科识别可跟进的海外学者、合作机构和校内牵头线索。",
+        "h1": "国际处如何识别值得优先跟进的高潜学者？",
+        "summary": "合作推进不是只看机构排名，而是要判断方向是否匹配、对方是否活跃、代表论文是否相关、合作网络是否可触达。AcadMap 将开放论文和机构数据整理成面向国际处的合作线索清单。",
+        "questions": ["重点学科有哪些活跃国家和机构", "哪些海外学者和机构值得优先复核", "出访准备和专题汇报可以引用哪些合作证据"],
+        "features": ["重点方向", "高潜学者", "代表论文", "跟进理由"],
+        "cta": "申请高潜学者线索样例",
     },
     {
         "slug": "gaoxiao-shuju-daoru-fenxi",
@@ -198,8 +199,150 @@ TOPICS = [
 ]
 
 
+NAV_CSS = """
+      .nav {
+        position: sticky;
+        top: 16px;
+        z-index: 20;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 14px;
+        min-height: 60px;
+        padding: 8px 14px 8px 18px;
+        border: 1px solid rgba(15, 23, 42, .10);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .86);
+        -webkit-backdrop-filter: blur(18px);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
+      }
+      .brand { display: inline-flex; align-items: baseline; gap: 8px; min-width: 0; color: #111827; font-weight: 800; white-space: nowrap; }
+      .brand span { color: #5f6b7a; font-size: 12px; font-weight: 700; }
+      .desktop-nav { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 0; font-size: 13px; }
+      .desktop-nav > a, .nav-more summary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 36px;
+        padding: 0 9px;
+        border-radius: 999px;
+        color: #374151;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+      .desktop-nav > a:hover, .nav-more summary:hover, .mobile-nav-panel a:hover { background: rgba(5, 116, 232, .08); color: #075fc2; }
+      .nav-more { position: relative; }
+      .nav-more summary, .mobile-nav summary { cursor: pointer; list-style: none; }
+      .nav-more summary::-webkit-details-marker, .mobile-nav summary::-webkit-details-marker { display: none; }
+      .nav-more summary::after { content: "⌄"; margin-left: 6px; font-size: 12px; color: #64748b; }
+      .nav-more[open] summary::after { content: "⌃"; }
+      .nav-more-panel, .mobile-nav-panel {
+        position: absolute;
+        display: grid;
+        gap: 4px;
+        border: 1px solid rgba(15, 23, 42, .10);
+        background: rgba(255, 255, 255, .96);
+        box-shadow: 0 22px 60px rgba(31, 41, 55, .14);
+      }
+      .nav-more-panel { top: calc(100% + 10px); right: 0; width: 184px; padding: 8px; border-radius: 18px; }
+      .nav-more-panel a, .mobile-nav-panel a { min-height: 38px; padding: 9px 12px; border-radius: 12px; color: #334155; font-size: 13px; font-weight: 750; }
+      .topbar-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; white-space: nowrap; }
+      .acadmap-nav-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 36px; padding: 0 14px; border-radius: 999px; font-weight: 800; white-space: nowrap; }
+      .acadmap-nav-login { color: #1f2937; border: 1px solid rgba(5, 116, 232, .24); background: rgba(255, 255, 255, .72); }
+      .acadmap-nav-trial { color: #fff; background: #0574e8; box-shadow: 0 12px 28px rgba(5, 116, 232, .22); }
+      .mobile-nav { display: none; justify-self: end; position: relative; }
+      .mobile-nav summary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 78px;
+        min-height: 44px;
+        padding: 0 18px;
+        border: 1px solid rgba(15, 23, 42, .14);
+        border-radius: 999px;
+        color: #111827;
+        font-weight: 900;
+        background: rgba(255, 255, 255, .76);
+      }
+      .mobile-nav-panel { top: calc(100% + 10px); right: 0; width: min(320px, calc(100vw - 56px)); max-height: calc(100vh - 96px); overflow: auto; padding: 10px; border-radius: 22px; }
+      .mobile-auth { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding-top: 8px; margin-top: 4px; border-top: 1px solid rgba(15, 23, 42, .08); }
+      @media (max-width: 1180px) {
+        .nav { width: 100%; }
+        .brand span { display: none; }
+        .desktop-nav { gap: 2px; }
+        .desktop-nav > a, .nav-more summary { padding: 0 7px; font-size: 12px; }
+      }
+      @media (max-width: 760px) {
+        .shell { padding-top: 18px; }
+        .nav { grid-template-columns: minmax(0, 1fr) auto; top: 10px; min-height: 58px; padding: 7px 10px 7px 18px; border-radius: 999px; }
+        .desktop-nav, .topbar-actions { display: none; }
+        .mobile-nav { display: block; }
+        .hero { padding-top: 52px; }
+      }
+"""
+
+
+def render_nav(login_href: str = "/login") -> str:
+    return f"""
+      <nav class="nav" aria-label="主导航">
+        <a class="brand" href="/">AcadMap <span>高校国际合作绩效与关系治理平台</span></a>
+        <div class="desktop-nav">
+          <a href="/map">合作格局</a>
+          <a href="/finder">高潜学者</a>
+          <a href="/zombies">沉默关系</a>
+          <a href="/sample-report.html">样例报告</a>
+          <details class="nav-more">
+            <summary>更多</summary>
+            <div class="nav-more-panel">
+              <a href="/universities/">高校库</a>
+              <a href="/?page=dashboard">绩效驾驶舱</a>
+              <a href="/institutions">机构排行</a>
+              <a href="/subjects">学科热力</a>
+              <a href="/benchmark">对标分析</a>
+            </div>
+          </details>
+        </div>
+        <div class="topbar-actions">
+          <a class="acadmap-nav-btn acadmap-nav-login" href="{login_href}">登录</a>
+          <a class="acadmap-nav-btn acadmap-nav-trial" href="/pricing">免费试用</a>
+        </div>
+        <details class="mobile-nav">
+          <summary aria-label="打开导航菜单">菜单</summary>
+          <div class="mobile-nav-panel">
+            <a href="/map">合作格局</a>
+            <a href="/universities/">高校库</a>
+            <a href="/finder">高潜学者</a>
+            <a href="/zombies">沉默关系</a>
+            <a href="/sample-report.html">样例报告</a>
+            <a href="/?page=dashboard">绩效驾驶舱</a>
+            <a href="/institutions">机构排行</a>
+            <a href="/subjects">学科热力</a>
+            <a href="/benchmark">对标分析</a>
+            <div class="mobile-auth">
+              <a class="acadmap-nav-btn acadmap-nav-login" href="{login_href}">登录</a>
+              <a class="acadmap-nav-btn acadmap-nav-trial" href="/pricing">免费试用</a>
+            </div>
+          </div>
+        </details>
+      </nav>"""
+
+
 def render_page(filename: str, name: str, category: str, region: str, links: str) -> str:
     slug = filename.replace(".html", "")
+    nav_html = render_nav(f"/login?institution={slug}")
+    encoded_name = quote(name)
+    sample_apply_url = (
+        "/sample-report.html"
+        f"?utm_source=university_page&utm_medium=seo&utm_campaign=first_customer_202607&utm_content={slug}-sample"
+        f"&school_name={encoded_name}"
+        "#sample-apply"
+    )
+    sample_structure_url = (
+        "/sample-report.html"
+        f"?utm_source=university_page&utm_medium=seo&utm_campaign=first_customer_202607&utm_content={slug}-structure"
+        f"&school_name={encoded_name}"
+    )
     return f"""<!doctype html>
 <html lang="zh-CN">
   <head>
@@ -256,7 +399,7 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
         background-size: 96px 96px, 96px 96px, auto, auto, auto;
       }}
       a {{ color: var(--blue); text-decoration: none; }}
-      .shell {{ max-width: 1120px; margin: 0 auto; padding: 28px 24px 72px; }}
+      .shell {{ max-width: 1180px; margin: 0 auto; padding: 28px 24px 72px; }}
       .nav {{
         position: sticky;
         top: 16px;
@@ -272,18 +415,16 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
         backdrop-filter: blur(18px);
         box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
       }}
-      .brand {{ display: inline-flex; align-items: baseline; gap: 8px; color: var(--ink); font-weight: 800; }}
+      .brand {{ display: inline-flex; align-items: baseline; gap: 8px; color: var(--ink); font-weight: 800; white-space: nowrap; }}
       .brand span {{ color: var(--muted); font-size: 12px; font-weight: 700; }}
-      .nav-links {{ display: flex; gap: 18px; align-items: center; font-size: 14px; }}
       .hero {{ display: grid; grid-template-columns: minmax(0, 1.1fr) 360px; gap: 32px; align-items: center; padding: 86px 0 56px; }}
       .eyebrow {{ display: inline-flex; gap: 8px; align-items: center; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5, 116, 232, .10); border-radius: 999px; padding: 8px 12px; }}
       h1 {{ max-width: 760px; font-size: clamp(42px, 6vw, 74px); line-height: 1.04; margin: 22px 0 20px; letter-spacing: 0; }}
       .lead {{ max-width: 720px; color: #405066; font-size: 20px; line-height: 1.8; margin: 0; }}
       .actions {{ display: flex; gap: 12px; flex-wrap: wrap; margin-top: 30px; }}
-      .button, .pill {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; font-weight: 800; }}
+      .button {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; font-weight: 800; }}
       .button.primary {{ color: #fff; background: var(--blue); box-shadow: 0 14px 34px rgba(5, 116, 232, .22); }}
       .button.secondary {{ color: var(--blue); border: 1px solid rgba(5, 116, 232, .45); background: rgba(255, 255, 255, .65); }}
-      .pill {{ min-height: 36px; color: #fff; background: #111827; padding: 0 16px; }}
       .hero-card {{ padding: 24px; border: 1px solid var(--line); border-radius: 28px; background: var(--card); box-shadow: 0 28px 90px rgba(31, 41, 55, .12); }}
       .hero-card h2 {{ margin: 0 0 18px; font-size: 22px; }}
       .signal {{ display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; padding: 15px 0; border-top: 1px solid var(--line); }}
@@ -309,11 +450,14 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
       .cta h2 {{ margin: 0 0 10px; font-size: clamp(28px, 4vw, 44px); }}
       .cta p {{ margin: 0; color: rgba(255, 255, 255, .78); line-height: 1.7; }}
       .cta .button {{ color: #0b1220; background: #fff; }}
+      .seo-cta {{ margin-top: 30px; padding: 32px; border: 1px solid rgba(5, 116, 232, .18); border-radius: 26px; background: rgba(255, 255, 255, .92); box-shadow: 0 24px 70px rgba(31, 41, 55, .09); text-align: center; }}
+      .seo-cta h3 {{ margin: 0 0 10px; font-size: clamp(24px, 3vw, 34px); }}
+      .seo-cta p {{ max-width: 640px; margin: 0 auto 18px; color: var(--muted); line-height: 1.7; }}
+      .seo-cta .acadmap-btn-primary {{ color: #fff; background: var(--blue); box-shadow: 0 14px 34px rgba(5, 116, 232, .22); }}
+      .seo-cta .cta-note {{ margin: 14px auto 0; color: var(--muted); font-size: 13px; }}
       .links {{ columns: 3; padding-left: 20px; color: var(--muted); }}
       .links li {{ margin: 8px 0; break-inside: avoid; }}
       @media (max-width: 900px) {{
-        .nav {{ align-items: flex-start; border-radius: 24px; }}
-        .nav-links {{ flex-wrap: wrap; justify-content: flex-end; }}
         .hero, .split, .cta {{ grid-template-columns: 1fr; }}
         .grid {{ grid-template-columns: 1fr; }}
         .section-head {{ display: block; }}
@@ -322,29 +466,14 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
       }}
       @media (max-width: 560px) {{
         .shell {{ padding: 18px 16px 54px; }}
-        .nav {{ position: static; }}
-        .nav-links a:not(.button) {{ display: none; }}
-        .hero {{ padding-top: 52px; }}
         .cta {{ padding: 26px; }}
       }}
+{NAV_CSS}
     </style>
   </head>
   <body>
     <div class="shell">
-      <nav class="nav">
-        <a class="brand" href="/">AcadMap <span>高校国际合作数据分析平台</span></a>
-        <div class="nav-links">
-          <a href="/map">合作格局</a>
-          <a href="/universities/">高校库</a>
-          <a href="/?page=dashboard">绩效驾驶舱</a>
-          <a href="/institutions">机构排行</a>
-          <a href="/zombies">沉默关系</a>
-          <a href="/subjects">学科热力</a>
-          <a href="/benchmark">对标分析</a>
-          <a href="/pricing">开通权益</a>
-          <a class="pill" href="/login?institution={slug}">登录 / 开通</a>
-        </div>
-      </nav>
+      {nav_html}
 
       <header class="hero">
         <div>
@@ -352,8 +481,8 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
           <h1>{name}国际合作该看什么，AcadMap 帮你先梳理清楚。</h1>
           <p class="lead">面向国际处、科研院和学科建设部门，把公开论文和机构数据整理成可解释的合作格局、伙伴清单、学科热点和对标结论，帮助判断资源应该投向哪里。</p>
           <div class="actions">
-            <a class="button primary" href="/login?institution={slug}">申请生成{name}完整分析</a>
-            <a class="button secondary" href="/map">先看平台样例</a>
+            <a class="button primary" href="{sample_apply_url}">免费申请{name}一页样例</a>
+            <a class="button secondary" href="{sample_structure_url}">先看样例结构</a>
           </div>
         </div>
         <aside class="hero-card">
@@ -414,14 +543,23 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
       <section class="cta">
         <div>
           <h2>需要{name}的完整国际合作分析？</h2>
-          <p>提交申请后，我们会优先生成该机构样例数据，并通过邮件提醒团队跟进。早期可先按需生成，不必一次性覆盖全部机构。</p>
+          <p>先提交学校和联系方式，我们会优先判断公开数据是否足够生成一页样例。早期可先验证报告价值，不必直接进入采购流程。</p>
         </div>
-        <a class="button" href="/login?institution={slug}">申请生成报告</a>
+        <a class="button" href="{sample_apply_url}">免费申请一页样例</a>
       </section>
 
       <section class="panel">
       <h2>主流高校与科研机构</h2>
         <ul class="links">{links}</ul>
+      </section>
+
+      <section class="seo-cta">
+        <h3>查看 {name} 的完整国际合作分析</h3>
+        <p>包含合作机构名单、沉默关系识别、学科热力图和对标报告。可先申请一页样例，判断是否适合本校内部讨论。</p>
+        <a href="{sample_apply_url}" class="button acadmap-btn-primary">
+          免费申请 {name} 一页样例
+        </a>
+        <p class="cta-note">不需要上传内部数据，提交后仅用于安排样例沟通</p>
       </section>
     </div>
   </body>
@@ -430,6 +568,7 @@ def render_page(filename: str, name: str, category: str, region: str, links: str
 
 
 def render_topic_page(topic: dict) -> str:
+    nav_html = render_nav()
     feature_items = "".join(f"<li>{feature}</li>" for feature in topic["features"])
     question_cards = "".join(
         f"""
@@ -455,7 +594,7 @@ def render_topic_page(topic: dict) -> str:
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{topic["title"]} | AcadMap 高校国际合作数据分析平台</title>
+    <title>{topic["title"]} | AcadMap 高校国际合作绩效与关系治理平台</title>
     <meta name="description" content="{topic["summary"]}" />
     <meta name="keywords" content="{topic["keyword"]},高校国际合作,高校国际处,科研合作分析,高校对标分析,国际合作论文" />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
@@ -495,7 +634,7 @@ def render_topic_page(topic: dict) -> str:
         background-size: 96px 96px, 96px 96px, auto, auto, auto;
       }}
       a {{ color: #0574e8; text-decoration: none; }}
-      .shell {{ max-width: 1120px; margin: 0 auto; padding: 28px 24px 72px; }}
+      .shell {{ max-width: 1180px; margin: 0 auto; padding: 28px 24px 72px; }}
       .nav {{
         position: sticky;
         top: 16px;
@@ -511,10 +650,8 @@ def render_topic_page(topic: dict) -> str:
         backdrop-filter: blur(18px);
         box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
       }}
-      .brand {{ display: inline-flex; align-items: baseline; gap: 8px; color: #111827; font-weight: 800; }}
+      .brand {{ display: inline-flex; align-items: baseline; gap: 8px; color: #111827; font-weight: 800; white-space: nowrap; }}
       .brand span {{ color: #5f6b7a; font-size: 12px; font-weight: 700; }}
-      .nav-links {{ display: flex; gap: 18px; align-items: center; font-size: 14px; }}
-      .pill {{ display: inline-flex; min-height: 36px; align-items: center; padding: 0 16px; border-radius: 999px; color: #fff; background: #111827; font-weight: 800; }}
       .hero {{ display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 28px; align-items: stretch; padding: 86px 0 36px; }}
       .eyebrow {{ display: inline-flex; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5,116,232,.10); border-radius: 999px; padding: 8px 12px; }}
       h1 {{ max-width: 760px; font-size: clamp(42px, 6vw, 74px); line-height: 1.04; margin: 22px 0 20px; letter-spacing: 0; }}
@@ -545,33 +682,19 @@ def render_topic_page(topic: dict) -> str:
       .cta p {{ margin: 0; color: rgba(255,255,255,.78); line-height: 1.7; }}
       .button {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; color: #0b1220; background: #fff; font-weight: 900; }}
       @media (max-width: 900px) {{
-        .nav {{ position: static; border-radius: 24px; align-items: flex-start; }}
-        .nav-links {{ flex-wrap: wrap; justify-content: flex-end; }}
         .hero, .split, .cta {{ grid-template-columns: 1fr; }}
         .grid {{ grid-template-columns: 1fr; }}
         .school-links {{ columns: 1; }}
       }}
       @media (max-width: 560px) {{
         .shell {{ padding: 18px 16px 54px; }}
-        .nav-links a:not(.pill) {{ display: none; }}
-        .hero {{ padding-top: 52px; }}
       }}
+{NAV_CSS}
     </style>
   </head>
   <body>
     <div class="shell">
-      <nav class="nav">
-        <a class="brand" href="/">AcadMap <span>高校国际合作数据分析平台</span></a>
-        <div class="nav-links">
-          <a href="/map">合作格局</a>
-          <a href="/universities/">高校库</a>
-          <a href="/?page=dashboard">绩效驾驶舱</a>
-          <a href="/institutions">机构排行</a>
-          <a href="/benchmark">对标分析</a>
-          <a href="/pricing">开通权益</a>
-          <a class="pill" href="/login">登录 / 开通</a>
-        </div>
-      </nav>
+      {nav_html}
       <header class="hero">
         <div>
           <span class="eyebrow">{topic["keyword"]}</span>
@@ -612,6 +735,7 @@ def render_topic_page(topic: dict) -> str:
 
 
 def render_index_page() -> str:
+    nav_html = render_nav()
     cards = "\n".join(
         f"""
         <a class="school-card" href="/universities/{filename}">
@@ -686,7 +810,7 @@ def render_index_page() -> str:
         background-size: 96px 96px, 96px 96px, auto, auto, auto;
       }}
       a {{ color: #0574e8; text-decoration: none; }}
-      .shell {{ max-width: 1120px; margin: 0 auto; padding: 28px 24px 72px; }}
+      .shell {{ max-width: 1180px; margin: 0 auto; padding: 28px 24px 72px; }}
       .nav {{
         position: sticky;
         top: 16px;
@@ -702,9 +826,8 @@ def render_index_page() -> str:
         backdrop-filter: blur(18px);
         box-shadow: 0 18px 60px rgba(31, 41, 55, .09);
       }}
-      .brand {{ display: inline-flex; align-items: baseline; gap: 8px; color: #111827; font-weight: 800; }}
+      .brand {{ display: inline-flex; align-items: baseline; gap: 8px; color: #111827; font-weight: 800; white-space: nowrap; }}
       .brand span {{ color: #5f6b7a; font-size: 12px; font-weight: 700; }}
-      .nav-links {{ display: flex; gap: 18px; align-items: center; font-size: 14px; }}
       .hero {{ padding: 86px 0 46px; }}
       .eyebrow {{ display: inline-flex; color: #075fc2; font-size: 13px; font-weight: 800; background: rgba(5, 116, 232, .10); border-radius: 999px; padding: 8px 12px; }}
       h1 {{ max-width: 820px; font-size: clamp(42px, 6vw, 74px); line-height: 1.04; margin: 22px 0 20px; letter-spacing: 0; }}
@@ -728,28 +851,15 @@ def render_index_page() -> str:
       .cta {{ margin-top: 34px; padding: 34px; border-radius: 30px; color: #fff; background: linear-gradient(135deg, #0b1220, #0b5aa8 58%, #0f8b7f); }}
       .cta h2 {{ margin: 0 0 10px; font-size: 34px; }}
       .cta p {{ margin: 0 0 20px; color: rgba(255,255,255,.78); line-height: 1.7; }}
-      .button, .pill {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; color: #0b1220; background: #fff; font-weight: 800; }}
-      .pill {{ min-height: 36px; color: #fff; background: #111827; padding: 0 16px; }}
-      @media (max-width: 900px) {{ .grid, .region-section ul {{ grid-template-columns: 1fr; }} .nav {{ position: static; border-radius: 24px; align-items: flex-start; }} .nav-links {{ flex-wrap: wrap; justify-content: flex-end; }} }}
-      @media (max-width: 560px) {{ .shell {{ padding: 18px 16px 54px; }} .brand span {{ display: none; }} .nav-links a:not(:last-child) {{ display: none; }} .hero {{ padding-top: 52px; }} }}
+      .button {{ display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 999px; padding: 0 20px; color: #0b1220; background: #fff; font-weight: 800; }}
+      @media (max-width: 900px) {{ .grid, .region-section ul {{ grid-template-columns: 1fr; }} }}
+      @media (max-width: 560px) {{ .shell {{ padding: 18px 16px 54px; }} }}
+{NAV_CSS}
     </style>
   </head>
   <body>
     <div class="shell">
-      <nav class="nav">
-        <a class="brand" href="/">AcadMap <span>高校国际合作数据分析平台</span></a>
-        <div class="nav-links">
-          <a href="/map">合作格局</a>
-          <a href="/universities/">高校库</a>
-          <a href="/?page=dashboard">绩效驾驶舱</a>
-          <a href="/institutions">机构排行</a>
-          <a href="/zombies">沉默关系</a>
-          <a href="/subjects">学科热力</a>
-          <a href="/benchmark">对标分析</a>
-          <a href="/pricing">开通权益</a>
-          <a class="pill" href="/login">登录 / 开通</a>
-        </div>
-      </nav>
+      {nav_html}
       <header class="hero">
         <span class="eyebrow">高校国际合作分析库</span>
         <h1>从学校入口进入，快速查看国际合作分析专题。</h1>
