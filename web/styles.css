@@ -222,6 +222,54 @@ a {
   padding: 58px 0;
 }
 
+.seo-topic-page {
+  padding-bottom: 56px;
+}
+
+.seo-topic-page .hero-section,
+.seo-topic-page .section {
+  width: min(1180px, calc(100% - 32px));
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.seo-topic-page .hero-section {
+  margin-top: 34px;
+  padding: clamp(44px, 6vw, 74px) clamp(20px, 5vw, 64px);
+  border: 1px solid rgba(191, 219, 254, 0.68);
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 16% 12%, rgba(0, 110, 219, 0.10), transparent 32%),
+    linear-gradient(180deg, rgba(239, 246, 255, 0.96), rgba(255, 255, 255, 0.9));
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
+}
+
+.seo-topic-page .hero-title {
+  max-width: 960px;
+  margin: 0 auto;
+  font-size: clamp(42px, 5.2vw, 76px);
+  line-height: 1.06;
+  text-wrap: balance;
+}
+
+.seo-topic-page .hero-subtitle {
+  max-width: 860px;
+  margin: 18px auto 0;
+  color: #334155;
+  font-size: clamp(16px, 1.5vw, 18px);
+  line-height: 1.75;
+}
+
+.seo-topic-page .section {
+  padding: 58px 0;
+}
+
+.seo-topic-page .section-title {
+  max-width: 880px;
+  text-wrap: balance;
+}
+
 .hero {
   display: grid;
   place-items: center;
