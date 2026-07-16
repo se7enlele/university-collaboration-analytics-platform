@@ -50,13 +50,16 @@ a {
   position: sticky;
   top: 0;
   z-index: 50;
+  width: min(1240px, calc(100% - 32px));
+  margin: 16px auto 0;
+}
+
+.nav-shell {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  gap: 18px;
+  gap: 28px;
   align-items: center;
-  width: min(1240px, calc(100% - 32px));
   min-height: 60px;
-  margin: 16px auto 0;
   padding: 8px 14px 8px 18px;
   border: 1px solid rgba(229, 231, 235, 0.78);
   border-radius: 999px;
@@ -86,6 +89,7 @@ a {
 }
 
 .brand span {
+  display: none;
   color: #5f6b7a;
   font-size: 12px;
   font-weight: 700;
@@ -95,10 +99,10 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 10px;
   min-width: 0;
   color: #374151;
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .desktop-nav > a,
@@ -107,10 +111,10 @@ a {
   align-items: center;
   justify-content: center;
   min-height: 38px;
-  padding: 0 11px;
+  padding: 0 12px;
   border-radius: 999px;
   color: #334155;
-  font-weight: 750;
+  font-weight: 760;
   white-space: nowrap;
   cursor: pointer;
   transition: background 180ms ease, color 180ms ease, transform 180ms ease;
@@ -2819,26 +2823,28 @@ body.admin-mode .topbar {
 @media (max-width: 1180px) {
   .topbar {
     width: min(100% - 24px, 1240px);
-    gap: 10px;
   }
 
-  .brand span {
-    display: none;
+  .nav-shell {
+    gap: 18px;
   }
 
   .desktop-nav > a,
   .nav-more summary {
-    padding: 0 9px;
-    font-size: 12px;
+    padding: 0 10px;
+    font-size: 13px;
   }
 }
 
 @media (max-width: 760px) {
   .topbar {
-    grid-template-columns: minmax(0, 1fr) auto;
     width: min(100% - 20px, 1240px);
-    min-height: 58px;
     margin-top: 10px;
+  }
+
+  .nav-shell {
+    grid-template-columns: minmax(0, 1fr) auto;
+    min-height: 58px;
     padding: 8px 10px 8px 16px;
   }
 
