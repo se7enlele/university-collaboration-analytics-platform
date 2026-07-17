@@ -5,26 +5,10 @@ let selectedUniversity = localStorage.getItem("selectedUniversity") || "山东�
 let currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
 let authToken = localStorage.getItem("authToken") || "";
 const fallbackUniversities = [
-  { university: "北京大学" },
-  { university: "清华大学" },
-  { university: "复旦大学" },
-  { university: "上海交通大学" },
-  { university: "浙江大学" },
-  { university: "南京大学" },
-  { university: "中国科学技术大学" },
   { university: "山东大学" },
   { university: "中山大学" },
   { university: "武汉大学" },
   { university: "四川大学" },
-  { university: "西安交通大学" },
-  { university: "哈尔滨工业大学" },
-  { university: "天津大学" },
-  { university: "南开大学" },
-  { university: "北京航空航天大学" },
-  { university: "北京理工大学" },
-  { university: "华中科技大学" },
-  { university: "东南大学" },
-  { university: "厦门大学" },
 ];
 const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content"];
 const institutionLeadMap = {
@@ -222,6 +206,14 @@ function goToZombies() {
   navigateTo(`/zombies?university=${encodeURIComponent(university)}`);
 }
 
+function syncSelectedUniversityFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const university = (params.get("university") || "").trim();
+  if (!isUsableUniversityName(university)) return;
+  selectedUniversity = university;
+  localStorage.setItem("selectedUniversity", selectedUniversity);
+}
+
 async function loadHeroUniversities() {
   const select = document.querySelector("#heroUniversitySelect");
   if (!select) return;
@@ -251,6 +243,17 @@ async function loadHeroUniversities() {
 
 function isUsableUniversityName(name) {
   return Boolean(name && !name.includes("?") && /[\u4e00-\u9fff]/.test(name));
+}
+
+function usableUniversities(items = []) {
+  const seen = new Set();
+  return items
+    .map((item) => ({ ...item, university: (item.name || item.university || "").trim() }))
+    .filter((item) => {
+      if (!isUsableUniversityName(item.university) || seen.has(item.university)) return false;
+      seen.add(item.university);
+      return true;
+    });
 }
 
 async function adminApi(path, options = {}) {
@@ -330,12 +333,14 @@ function lockedCard() {
 }
 
 function withUniversity(path) {
-  if (!currentUser) return path;
+  syncSelectedUniversityFromUrl();
+  if (!currentUser && !new URLSearchParams(location.search).has("university")) return path;
   const separator = path.includes("?") ? "&" : "?";
   return `${path}${separator}university=${encodeURIComponent(selectedUniversity)}`;
 }
 
 function withUniversityAlways(path) {
+  syncSelectedUniversityFromUrl();
   const separator = path.includes("?") ? "&" : "?";
   return `${path}${separator}university=${encodeURIComponent(selectedUniversity)}`;
 }
@@ -522,10 +527,11 @@ function moduleCard(title, copy, href) {
 async function loadUniversities() {
   if (!universitiesCache) {
     try {
-      universitiesCache = await api("/api/universities");
+      universitiesCache = usableUniversities(await api("/api/universities"));
     } catch (_) {
       universitiesCache = fallbackUniversities;
     }
+    if (!universitiesCache.length) universitiesCache = fallbackUniversities;
   }
   if (!universitiesCache.some((item) => item.university === selectedUniversity) && universitiesCache[0]) {
     selectedUniversity = universitiesCache[0].university;
@@ -1284,6 +1290,7 @@ async function renderInstitutions() {
 }
 
 async function renderZombies() {
+  syncSelectedUniversityFromUrl();
   const [data, universities] = await Promise.all([api(withUniversity("/api/zombies")), loadUniversities()]);
   const summary = data.summary || {};
   const partners = data.partners || [];
@@ -1291,7 +1298,7 @@ async function renderZombies() {
   const warnings = partners.filter((item) => item.status === "警告").slice(0, 10);
   shell(
     "沉默关系识别",
-    "找出签过协议或曾经合作、但近年没有继续产出的机构，帮助国际处判断是否激活、维护或清理。",
+    `当前查看：${selectedUniversity}。找出签过协议或曾经合作、但近年没有继续产出的机构，帮助国际处判断是否激活、维护或清理。`,
     `
       ${decisionPanel(
         "识别名义合作和无效维护成本",
