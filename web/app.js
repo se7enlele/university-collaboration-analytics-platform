@@ -5,10 +5,26 @@ let selectedUniversity = localStorage.getItem("selectedUniversity") || "山东�
 let currentUser = JSON.parse(localStorage.getItem("currentUser") || "null");
 let authToken = localStorage.getItem("authToken") || "";
 const fallbackUniversities = [
+  { university: "北京大学" },
+  { university: "清华大学" },
+  { university: "复旦大学" },
+  { university: "上海交通大学" },
+  { university: "浙江大学" },
+  { university: "南京大学" },
+  { university: "中国科学技术大学" },
   { university: "山东大学" },
   { university: "中山大学" },
   { university: "武汉大学" },
   { university: "四川大学" },
+  { university: "西安交通大学" },
+  { university: "哈尔滨工业大学" },
+  { university: "天津大学" },
+  { university: "南开大学" },
+  { university: "北京航空航天大学" },
+  { university: "北京理工大学" },
+  { university: "华中科技大学" },
+  { university: "东南大学" },
+  { university: "厦门大学" },
 ];
 const trackingKeys = ["utm_source", "utm_medium", "utm_campaign", "utm_content"];
 const institutionLeadMap = {
@@ -209,20 +225,32 @@ function goToZombies() {
 async function loadHeroUniversities() {
   const select = document.querySelector("#heroUniversitySelect");
   if (!select) return;
-  try {
-    const data = await api("/api/universities");
-    const universities = Array.isArray(data) ? data : data.universities || [];
-    universities.forEach((item) => {
-      const name = item.name || item.university || "";
-      if (!name) return;
+  const placeholder = select.querySelector("option")?.outerHTML || `<option value="">选择一所学校，立即查看 →</option>`;
+  const seen = new Set();
+  const appendOptions = (items = []) => {
+    items.forEach((item) => {
+      const name = (item.name || item.university || "").trim();
+      if (!isUsableUniversityName(name) || seen.has(name)) return;
+      seen.add(name);
       const option = document.createElement("option");
       option.value = name;
       option.textContent = name;
       select.appendChild(option);
     });
+  };
+  select.innerHTML = placeholder;
+  appendOptions(fallbackUniversities);
+  try {
+    const data = await api("/api/universities");
+    const universities = Array.isArray(data) ? data : data.universities || [];
+    appendOptions(universities);
   } catch (error) {
-    select.innerHTML = `<option value="">暂无学校列表</option>`;
+    if (!seen.size) select.innerHTML = `<option value="">暂无学校列表</option>`;
   }
+}
+
+function isUsableUniversityName(name) {
+  return Boolean(name && !name.includes("?") && /[\u4e00-\u9fff]/.test(name));
 }
 
 async function adminApi(path, options = {}) {
@@ -955,6 +983,7 @@ async function renderHome() {
     </section>
   `;
   updateAuthNav();
+  loadHeroUniversities();
   initPageEffects();
 }
 
