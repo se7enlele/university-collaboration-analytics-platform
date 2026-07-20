@@ -1422,6 +1422,20 @@ h1 {
   font-weight: 800;
 }
 
+.acadmap-data-note {
+  margin: 0 0 22px;
+  padding: 18px 22px;
+  border: 1px solid rgba(0, 110, 219, 0.14);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: none;
+}
+
+.acadmap-data-note p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.72;
+}
+
 .decision-panel {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(320px, 1.1fr) minmax(260px, 0.85fr);

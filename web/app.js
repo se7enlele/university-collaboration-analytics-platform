@@ -514,6 +514,23 @@ function sampleKpis(overview) {
   `;
 }
 
+function dataCoverageNote(coverage = {}) {
+  const years =
+    coverage.min_year && coverage.max_year
+      ? `${coverage.min_year}-${coverage.max_year}`
+      : "年份待确认";
+  const works = fmt(coverage.works || 0);
+  const intl = fmt(coverage.international_works || 0);
+  const source = coverage.source || "OpenAlex";
+  return `
+    <div class="card acadmap-data-note">
+      <span class="tag">数据口径</span>
+      <p>当前结果基于 ${source} 公开样例库扫描，覆盖 ${works} 条论文记录、${intl} 条国际合作论文，年份范围 ${years}。这些数字用于发现待复核线索，不等同于学校正式合作关系总量。</p>
+      <p>正式报告建议结合 WoS、学校内部论文库和合作协议台账复核，尤其要核对近两年新增成果和机构名称归并。</p>
+    </div>
+  `;
+}
+
 function moduleCard(title, copy, href) {
   return `
     <a class="card module-card" href="` + href + `">
@@ -1293,35 +1310,37 @@ async function renderZombies() {
   syncSelectedUniversityFromUrl();
   const [data, universities] = await Promise.all([api(withUniversity("/api/zombies")), loadUniversities()]);
   const summary = data.summary || {};
+  const coverage = data.coverage || {};
   const partners = data.partners || [];
-  const zombies = partners.filter((item) => item.status === "僵尸").slice(0, 20);
+  const zombies = partners.filter((item) => item.status === "疑似沉默").slice(0, 20);
   const warnings = partners.filter((item) => item.status === "警告").slice(0, 10);
   shell(
     "沉默关系识别",
-    `当前查看：${selectedUniversity}。找出签过协议或曾经合作、但近年没有继续产出的机构，帮助国际处判断是否激活、维护或清理。`,
+    `当前查看：${selectedUniversity}。先用公开学术数据找出可能长期没有新增成果的合作机构，作为后续 WoS、校内论文库和合作协议台账复核的线索。`,
     `
       ${decisionPanel(
-        "识别名义合作和无效维护成本",
-        "很多高校有大量历史合作协议和伙伴名单，但真正持续产生科研成果的关系有限。本页帮助判断哪些关系还值得投入时间和资源。",
-        `当前样例识别出 ${fmt(summary.zombie)} 个僵尸关系和 ${fmt(summary.warning)} 个警告关系，应优先复盘历史产出高但近期无新成果的机构。`,
-        ["把沉默关系按历史价值排序", "分配到学院或项目负责人复盘", "形成激活、观察、清理三类处理结果"]
+        "识别待复核的沉默合作线索",
+        "很多高校有大量历史合作协议和伙伴名单，但公开论文数据只能证明公开产出情况，不能直接证明合作协议是否仍有效。本页用于把可能需要复盘的机构先筛出来。",
+        `当前公开样例识别出 ${fmt(summary.zombie)} 个疑似沉默机构和 ${fmt(summary.warning)} 个近期待跟进机构，建议先核对近两年新增成果、机构名称归并和校内合作台账。`,
+        ["把疑似沉默机构按历史产出排序", "分配到学院或项目负责人复核", "结合 WoS 与校内台账形成激活、观察、清理三类处理结果"]
       )}
+      ${dataCoverageNote(coverage)}
       <div class="kpis">
-        ${kpiCard(fmt(summary.total), "样例合作机构", 1)}
-        ${kpiCard(fmt(summary.zombie), "僵尸关系", 2, "red")}
-        ${kpiCard(fmt(summary.warning), "警告关系", 3, "red")}
-        ${kpiCard(fmt(summary.active), "仍然活跃", 4, "green")}
+        ${kpiCard(fmt(summary.total), "待复核机构样例", 1)}
+        ${kpiCard(fmt(summary.zombie), "疑似沉默机构", 2, "red")}
+        ${kpiCard(fmt(summary.warning), "近期待跟进", 3, "red")}
+        ${kpiCard(fmt(summary.active), "公开产出活跃", 4, "green")}
       </div>
       <div class="insight-grid">
         <div class="card insight-card">
           <span class="tag">痛点识别</span>
-          <h3>协议不等于有效合作</h3>
-          <p>长期没有论文产出的机构需要重新评估，避免合作协议只停留在名义关系。</p>
+          <h3>公开产出不等于协议状态</h3>
+          <p>长期没有公开论文产出的机构需要进入复核名单，但不能直接写成合作终止或无效。</p>
         </div>
         <div class="card insight-card">
           <span class="tag">优先处理</span>
-          <h3>${summary.zombie || 0} 个关系需要复盘</h3>
-          <p>建议优先看历史产出较高、但最近三年以上没有新成果的合作机构。</p>
+          <h3>${summary.zombie || 0} 个机构需要复核</h3>
+          <p>建议优先看历史产出较高、但当前公开样例中最近三年以上没有新成果的合作机构。</p>
         </div>
         <div class="card insight-card">
           <span class="tag">行动清单</span>
@@ -1331,12 +1350,12 @@ async function renderZombies() {
         <div class="card insight-card">
           <span class="tag">完整清单</span>
           <h3>登录后可继续查看明细</h3>
-          <p>完整沉默关系名单、跟进记录和导出能力可用于部门协同和年度复盘。</p>
+          <p>完整机构名单、跟进记录和导出能力可用于部门协同、年度复盘和数据复核。</p>
         </div>
       </div>
       <div class="grid two">
         <div class="card">
-          <h3>优先复盘的沉默机构</h3>
+          <h3>优先复核的疑似沉默机构</h3>
           ${table(zombies, [
             { label: "机构", key: "institution" },
             { label: "国家/地区", key: "country" },
@@ -1358,10 +1377,10 @@ async function renderZombies() {
       </div>
       <div class="card recommendation">
         <span class="tag">行动建议</span>
-        <h3>把沉默关系分成三类处理：激活、观察、清理。</h3>
-        <p>历史产出高但沉默时间长的机构，优先安排学院复盘和外方沟通；历史产出低且长期无后续的机构，可减少维护投入，把资源转向高潜力伙伴。</p>
+        <h3>先复核数据，再分成激活、观察、清理三类处理。</h3>
+        <p>历史产出高但公开样例显示沉默时间长的机构，优先安排学院复盘和外方沟通；历史产出低且长期无后续的机构，再讨论是否减少维护投入，把资源转向高潜力伙伴。</p>
       </div>
-      ${unlockCard("解锁完整沉默关系名单", ["导出全部僵尸合作机构 Excel", "按国家、学院和学科筛选沉默关系", "生成激活、观察、清理三类处理清单", "沉默关系跟进记录和权限协作"])}
+      ${unlockCard("解锁完整待复核机构名单", ["导出全部疑似沉默机构 Excel", "按国家、学院和学科筛选待复核线索", "生成激活、观察、清理三类处理清单", "沉默关系跟进记录和权限协作"])}
     `,
     pageOptions(universities)
   );
